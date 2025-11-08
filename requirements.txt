@@ -1,25 +1,21 @@
 
 # Basic/minimal requirements
 penman>=1.1.0
-torch>=1.6
-numpy
-spacy>=2.0          # also requires model download `python -m spacy download en_core_web_sm`
+torch>=1.13.1        # 升级到 1.13.1 或更高
+numpy>=1.21          # 升级到 1.21 或更高
+spacy>=2.0
 tqdm
-transformers>=3.0   # Note that original models trained with v3.4.0
+transformers>=4.30.0 # 升级到 4.30.0 或更高
 smatch
 
-# Model specific
-cached_property     # parse_spring model only
-networkx            # parse_spring model only
+cached_property
+networkx
 
-# Used for amr_view / PlotAMR
 PyQt5
-graphviz            # this requires the Graphviz non-python library to be installed too (see pypi page)
+graphviz
 
-# Used for testing/scoring trained models
-nltk
+nltk>=3.6.6          # 升级到 3.6.6 或更高
 
-# Other
-unidecode           # model_parse_t5, LDC2020T02 pre-processing and adding wiki tags 
-requests            # Adding wiki tags
-word2number         # used in alignments code
+unidecode
+requests>=2.31.0     # 升级到 2.31.0 或更高
+word2number
