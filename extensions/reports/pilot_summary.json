@@ -1,0 +1,162 @@
+{
+  "models": {
+    "gpt-4o-mini": {
+      "exact_match_rate": 0.5128205128205128
+    },
+    "gpt-4o": {
+      "exact_match_rate": 0.5384615384615384
+    }
+  },
+  "per_rule": {
+    "gpt-4o-mini": {
+      "contraposition": {
+        "total": 11,
+        "judge_equivalent": 8,
+        "exact_match": 3,
+        "judge_not_equivalent": 3,
+        "no_gold": 4
+      },
+      "implication": {
+        "total": 5,
+        "exact_match": 2,
+        "judge_equivalent": 3,
+        "no_gold": 7,
+        "judge_not_equivalent": 2
+      },
+      "double_negation": {
+        "no_gold": 10,
+        "total": 4,
+        "judge_equivalent": 4,
+        "exact_match": 2
+      },
+      "de_morgan": {
+        "no_gold": 5,
+        "total": 3,
+        "exact_match": 3,
+        "judge_equivalent": 3
+      },
+      "commutative": {
+        "total": 7,
+        "exact_match": 7,
+        "judge_equivalent": 7,
+        "no_gold": 5
+      },
+      "modal_strength_inversion": {
+        "total": 1,
+        "judge_not_equivalent": 1,
+        "no_gold": 4
+      },
+      "transitivity": {
+        "total": 1,
+        "exact_match": 1,
+        "judge_equivalent": 1
+      },
+      "inverse_relation": {
+        "total": 4,
+        "judge_not_equivalent": 2,
+        "exact_match": 2,
+        "judge_equivalent": 2,
+        "no_gold": 2
+      },
+      "tense_transformation": {
+        "total": 1,
+        "judge_equivalent": 1,
+        "no_gold": 1
+      },
+      "symmetric_asymmetric": {
+        "no_gold": 3
+      },
+      "predicate_implication": {
+        "total": 2,
+        "judge_equivalent": 2
+      },
+      "aspect_equivalence": {
+        "no_gold": 3
+      },
+      "doc_level_temporal_transitivity": {
+        "no_gold": 7
+      }
+    },
+    "gpt-4o": {
+      "contraposition": {
+        "total": 11,
+        "judge_equivalent": 9,
+        "exact_match": 4,
+        "judge_not_equivalent": 2,
+        "no_gold": 4
+      },
+      "implication": {
+        "total": 5,
+        "exact_match": 2,
+        "judge_equivalent": 3,
+        "no_gold": 7,
+        "judge_not_equivalent": 2
+      },
+      "double_negation": {
+        "no_gold": 10,
+        "total": 4,
+        "judge_equivalent": 3,
+        "exact_match": 2,
+        "judge_not_equivalent": 1
+      },
+      "de_morgan": {
+        "no_gold": 5,
+        "total": 3,
+        "exact_match": 3,
+        "judge_equivalent": 3
+      },
+      "commutative": {
+        "total": 7,
+        "exact_match": 7,
+        "judge_equivalent": 7,
+        "no_gold": 5
+      },
+      "modal_strength_inversion": {
+        "total": 1,
+        "judge_not_equivalent": 1,
+        "no_gold": 4
+      },
+      "transitivity": {
+        "total": 1,
+        "exact_match": 1,
+        "judge_equivalent": 1
+      },
+      "inverse_relation": {
+        "total": 4,
+        "judge_equivalent": 4,
+        "exact_match": 2,
+        "no_gold": 2
+      },
+      "tense_transformation": {
+        "total": 1,
+        "judge_not_equivalent": 1,
+        "no_gold": 1
+      },
+      "symmetric_asymmetric": {
+        "no_gold": 3
+      },
+      "predicate_implication": {
+        "total": 2,
+        "judge_equivalent": 2
+      },
+      "aspect_equivalence": {
+        "no_gold": 3
+      },
+      "doc_level_temporal_transitivity": {
+        "no_gold": 7
+      }
+    }
+  },
+  "judge": {
+    "gpt-4o-mini": {
+      "equivalent": 31,
+      "skipped": 51,
+      "not_equivalent": 8
+    },
+    "gpt-4o": {
+      "equivalent": 32,
+      "skipped": 51,
+      "not_equivalent": 7
+    }
+  }
+}

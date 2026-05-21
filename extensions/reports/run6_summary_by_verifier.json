@@ -1,0 +1,14 @@
+{
+  "amr_struct": {
+    "equivalent": 202,
+    "not_equivalent": 23,
+    "abstain": 45,
+    "equivalence_rate": 0.8977777777777778
+  },
+  "llm_gpt-4o-mini": {
+    "equivalent": 122,
+    "not_equivalent": 148,
+    "abstain": 0,
+    "equivalence_rate": 0.45185185185185184
+  }
+}
