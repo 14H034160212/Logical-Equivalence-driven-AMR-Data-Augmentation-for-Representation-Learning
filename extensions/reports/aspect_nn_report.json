@@ -1,0 +1,30 @@
+{
+  "n_training_nodes": 1486,
+  "n_hard_nodes": 808,
+  "label_distribution": {
+    "process": 74,
+    "state": 590,
+    "performance": 516,
+    "activity": 189,
+    "endeavor": 33,
+    "habitual": 69,
+    "inceptive": 9,
+    "iterative": 2,
+    "generic": 2,
+    "semelfactive": 2
+  },
+  "all_nodes": {
+    "macro_precision": 0.49131869391845245,
+    "macro_recall": 0.5933762512072693,
+    "macro_f1": 0.5228386928424211,
+    "micro_precision": 0.6778523489932886,
+    "micro_recall": 0.6778523489932886,
+    "micro_f1": 0.6778523489932886
+  },
+  "hard_only": {
+    "macro_precision": 0.7686654908877131,
+    "macro_recall": 0.7917616009721273,
+    "macro_f1": 0.7779142356945441,
+    "n_test": 161
+  }
+}

@@ -1,0 +1,497 @@
+{
+  "runs": [
+    {
+      "n_sentences": 594,
+      "n_gold_nodes": 1488,
+      "rule_used": 946,
+      "nn_used": 5329,
+      "nn_abstained": 0,
+      "full_precision": 0.1847011952191235,
+      "full_recall": 0.7788978494623656,
+      "full_f1": 0.2985959036454979,
+      "gold_accuracy": 0.7788978494623656,
+      "gold_correct": 1159,
+      "gold_wrong": 329,
+      "gold_abstain": 0,
+      "gold_by_source": {
+        "nn": 808,
+        "rule": 680
+      },
+      "top_confusions": [
+        [
+          "state\u2192activity",
+          38
+        ],
+        [
+          "state\u2192performance",
+          33
+        ],
+        [
+          "performance\u2192process",
+          31
+        ],
+        [
+          "performance\u2192state",
+          29
+        ],
+        [
+          "activity\u2192performance",
+          25
+        ],
+        [
+          "process\u2192performance",
+          20
+        ],
+        [
+          "performance\u2192activity",
+          18
+        ],
+        [
+          "state\u2192habitual",
+          12
+        ],
+        [
+          "state\u2192process",
+          12
+        ],
+        [
+          "habitual\u2192performance",
+          12
+        ]
+      ],
+      "nn_threshold": 0.0
+    },
+    {
+      "n_sentences": 594,
+      "n_gold_nodes": 1488,
+      "rule_used": 946,
+      "nn_used": 5328,
+      "nn_abstained": 1,
+      "full_precision": 0.18473063436404208,
+      "full_recall": 0.7788978494623656,
+      "full_f1": 0.29863437258438547,
+      "gold_accuracy": 0.7788978494623656,
+      "gold_correct": 1159,
+      "gold_wrong": 329,
+      "gold_abstain": 0,
+      "gold_by_source": {
+        "nn": 808,
+        "rule": 680
+      },
+      "top_confusions": [
+        [
+          "state\u2192activity",
+          38
+        ],
+        [
+          "state\u2192performance",
+          33
+        ],
+        [
+          "performance\u2192process",
+          31
+        ],
+        [
+          "performance\u2192state",
+          29
+        ],
+        [
+          "activity\u2192performance",
+          25
+        ],
+        [
+          "process\u2192performance",
+          20
+        ],
+        [
+          "performance\u2192activity",
+          18
+        ],
+        [
+          "state\u2192habitual",
+          12
+        ],
+        [
+          "state\u2192process",
+          12
+        ],
+        [
+          "habitual\u2192performance",
+          12
+        ]
+      ],
+      "nn_threshold": 0.2
+    },
+    {
+      "n_sentences": 594,
+      "n_gold_nodes": 1488,
+      "rule_used": 946,
+      "nn_used": 4812,
+      "nn_abstained": 517,
+      "full_precision": 0.19555401180965612,
+      "full_recall": 0.7567204301075269,
+      "full_f1": 0.310792161192382,
+      "gold_accuracy": 0.7567204301075269,
+      "gold_correct": 1126,
+      "gold_wrong": 271,
+      "gold_abstain": 91,
+      "gold_by_source": {
+        "nn": 717,
+        "rule": 680,
+        "abstain": 91
+      },
+      "top_confusions": [
+        [
+          "performance\u2192state",
+          28
+        ],
+        [
+          "performance\u2192process",
+          28
+        ],
+        [
+          "state\u2192performance",
+          26
+        ],
+        [
+          "activity\u2192performance",
+          23
+        ],
+        [
+          "process\u2192performance",
+          20
+        ],
+        [
+          "performance\u2192activity",
+          13
+        ],
+        [
+          "habitual\u2192performance",
+          12
+        ],
+        [
+          "performance\u2192inceptive",
+          11
+        ],
+        [
+          "state\u2192process",
+          10
+        ],
+        [
+          "endeavor\u2192performance",
+          10
+        ]
+      ],
+      "nn_threshold": 0.3
+    },
+    {
+      "n_sentences": 594,
+      "n_gold_nodes": 1488,
+      "rule_used": 946,
+      "nn_used": 3877,
+      "nn_abstained": 1452,
+      "full_precision": 0.2009122952519179,
+      "full_recall": 0.6512096774193549,
+      "full_f1": 0.3070828711773095,
+      "gold_accuracy": 0.6512096774193549,
+      "gold_correct": 969,
+      "gold_wrong": 235,
+      "gold_abstain": 284,
+      "gold_by_source": {
+        "nn": 524,
+        "rule": 680,
+        "abstain": 284
+      },
+      "top_confusions": [
+        [
+          "performance\u2192state",
+          26
+        ],
+        [
+          "performance\u2192process",
+          24
+        ],
+        [
+          "activity\u2192performance",
+          22
+        ],
+        [
+          "process\u2192performance",
+          20
+        ],
+        [
+          "state\u2192performance",
+          16
+        ],
+        [
+          "habitual\u2192performance",
+          12
+        ],
+        [
+          "performance\u2192inceptive",
+          10
+        ],
+        [
+          "endeavor\u2192performance",
+          10
+        ],
+        [
+          "state\u2192activity",
+          9
+        ],
+        [
+          "performance\u2192activity",
+          8
+        ]
+      ],
+      "nn_threshold": 0.4
+    },
+    {
+      "n_sentences": 594,
+      "n_gold_nodes": 1488,
+      "rule_used": 946,
+      "nn_used": 2314,
+      "nn_abstained": 3015,
+      "full_precision": 0.25429447852760734,
+      "full_recall": 0.5571236559139785,
+      "full_f1": 0.3491996630160067,
+      "gold_accuracy": 0.5571236559139785,
+      "gold_correct": 829,
+      "gold_wrong": 193,
+      "gold_abstain": 466,
+      "gold_by_source": {
+        "nn": 342,
+        "rule": 680,
+        "abstain": 466
+      },
+      "top_confusions": [
+        [
+          "performance\u2192state",
+          23
+        ],
+        [
+          "process\u2192performance",
+          19
+        ],
+        [
+          "activity\u2192performance",
+          18
+        ],
+        [
+          "performance\u2192process",
+          18
+        ],
+        [
+          "state\u2192performance",
+          13
+        ],
+        [
+          "habitual\u2192performance",
+          12
+        ],
+        [
+          "endeavor\u2192performance",
+          10
+        ],
+        [
+          "performance\u2192inceptive",
+          9
+        ],
+        [
+          "endeavor\u2192activity",
+          7
+        ],
+        [
+          "activity\u2192state",
+          7
+        ]
+      ],
+      "nn_threshold": 0.5
+    },
+    {
+      "n_sentences": 594,
+      "n_gold_nodes": 1488,
+      "rule_used": 946,
+      "nn_used": 869,
+      "nn_abstained": 4460,
+      "full_precision": 0.4027548209366391,
+      "full_recall": 0.49126344086021506,
+      "full_f1": 0.4426279140175598,
+      "gold_accuracy": 0.49126344086021506,
+      "gold_correct": 731,
+      "gold_wrong": 171,
+      "gold_abstain": 586,
+      "gold_by_source": {
+        "nn": 222,
+        "rule": 680,
+        "abstain": 586
+      },
+      "top_confusions": [
+        [
+          "performance\u2192state",
+          22
+        ],
+        [
+          "process\u2192performance",
+          19
+        ],
+        [
+          "activity\u2192performance",
+          18
+        ],
+        [
+          "state\u2192performance",
+          13
+        ],
+        [
+          "performance\u2192process",
+          12
+        ],
+        [
+          "habitual\u2192performance",
+          12
+        ],
+        [
+          "endeavor\u2192performance",
+          10
+        ],
+        [
+          "performance\u2192inceptive",
+          9
+        ],
+        [
+          "endeavor\u2192activity",
+          7
+        ],
+        [
+          "activity\u2192state",
+          7
+        ]
+      ],
+      "nn_threshold": 0.6
+    },
+    {
+      "n_sentences": 594,
+      "n_gold_nodes": 1488,
+      "rule_used": 946,
+      "nn_used": 537,
+      "nn_abstained": 4792,
+      "full_precision": 0.44302090357383683,
+      "full_recall": 0.4415322580645161,
+      "full_f1": 0.44227532817233256,
+      "gold_accuracy": 0.4415322580645161,
+      "gold_correct": 657,
+      "gold_wrong": 161,
+      "gold_abstain": 670,
+      "gold_by_source": {
+        "abstain": 670,
+        "rule": 680,
+        "nn": 138
+      },
+      "top_confusions": [
+        [
+          "performance\u2192state",
+          19
+        ],
+        [
+          "process\u2192performance",
+          19
+        ],
+        [
+          "activity\u2192performance",
+          18
+        ],
+        [
+          "state\u2192performance",
+          13
+        ],
+        [
+          "performance\u2192process",
+          12
+        ],
+        [
+          "habitual\u2192performance",
+          12
+        ],
+        [
+          "endeavor\u2192performance",
+          10
+        ],
+        [
+          "performance\u2192inceptive",
+          9
+        ],
+        [
+          "endeavor\u2192activity",
+          7
+        ],
+        [
+          "activity\u2192state",
+          7
+        ]
+      ],
+      "nn_threshold": 0.7
+    }
+  ],
+  "best": {
+    "n_sentences": 594,
+    "n_gold_nodes": 1488,
+    "rule_used": 946,
+    "nn_used": 5329,
+    "nn_abstained": 0,
+    "full_precision": 0.1847011952191235,
+    "full_recall": 0.7788978494623656,
+    "full_f1": 0.2985959036454979,
+    "gold_accuracy": 0.7788978494623656,
+    "gold_correct": 1159,
+    "gold_wrong": 329,
+    "gold_abstain": 0,
+    "gold_by_source": {
+      "nn": 808,
+      "rule": 680
+    },
+    "top_confusions": [
+      [
+        "state\u2192activity",
+        38
+      ],
+      [
+        "state\u2192performance",
+        33
+      ],
+      [
+        "performance\u2192process",
+        31
+      ],
+      [
+        "performance\u2192state",
+        29
+      ],
+      [
+        "activity\u2192performance",
+        25
+      ],
+      [
+        "process\u2192performance",
+        20
+      ],
+      [
+        "performance\u2192activity",
+        18
+      ],
+      [
+        "state\u2192habitual",
+        12
+      ],
+      [
+        "state\u2192process",
+        12
+      ],
+      [
+        "habitual\u2192performance",
+        12
+      ]
+    ],
+    "nn_threshold": 0.0
+  }
+}
