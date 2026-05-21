@@ -90,6 +90,8 @@ AMR-LDA quality improved **8.6% → 43.8%** (5×) across 4 patch rounds. See:
 - 🧬 **[AMR → UMR converter](extensions/reports/UMR_CONVERTER.md)** — Post et al. 2024 reproduction. Rule-only F1 43.7%; **rule + DistilBERT gold-accuracy 80.7%** on aspect (DistilBERT macro F1 0.63 vs sklearn LR 0.52)
 - 🗂️ **[Document-level UMR](extensions/reports/DOC_LEVEL_UMR.md)** — cross-sentence temporal/modal/coref derivation baseline (modal P=70%)
 - 🤖 **[RL verifier integration](extensions/rl/README.md)** + **[GRPO results](extensions/reports/GRPO_RESULTS.md)** — Qwen2.5-0.5B trained end-to-end, reward 43.75% → 62.5% in 113 seconds on one A100
+- 🏋️ **[GRPO @ 3B + LoRA](extensions/reports/GRPO_3B_RESULTS.md)** — Qwen2.5-3B-Instruct with PEFT/LoRA on 2× A100; reward **37.5% → 93.75%** over 3 epochs (13 min)
+- 🛠 **[T5wtense fine-tune](extensions/reports/T5_FINETUNE_RESULTS.md)** — 389 (AMR, text) pairs from pilot; eval_loss 0.278 → 0.240 over 3 epochs (~50 s on one A100), targeting the 19% polarity-drop failure mode
 - 🔌 **[Multi-LLM setup guide](extensions/reports/MULTI_LLM_SETUP.md)** — adding Claude / DeepSeek / Llama-3-70B baselines
 - 🔧 **[Reports index](extensions/reports/README.md)** — all generated reports + JSON aggregates
 - 📝 **[Red-line failure cases](extensions/pilot_study/red_line_cases.md)** — 5 paper-ready exhibits

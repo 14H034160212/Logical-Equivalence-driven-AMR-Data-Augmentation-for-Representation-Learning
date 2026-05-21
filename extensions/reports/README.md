@@ -49,6 +49,16 @@ JSON aggregates ship alongside the markdown:
   (Qwen2.5-0.5B, 16 examples, 113 sec on one A100). Reward improved
   **43.75% → 62.5%** over 1 epoch, validating the verifier-backed reward
   pipeline end-to-end.
+- [GRPO_3B_RESULTS.md](GRPO_3B_RESULTS.md) — production-scale GRPO with
+  Qwen2.5-3B-Instruct + LoRA on 2× A100. 64 examples × 3 epochs × 4
+  generations/prompt; **reward 37.5% → 93.75%** in 13 minutes.
+
+## T5wtense fine-tune
+
+- [T5_FINETUNE_RESULTS.md](T5_FINETUNE_RESULTS.md) — domain-adapting the
+  AMR-to-text generator to preserve `:polarity -` edges. 389 silver pairs
+  harvested from the pilot, 3 epochs, eval_loss **0.278 → 0.240**.
+  JSON: [ft_t5wtense_report.json](ft_t5wtense_report.json).
 
 ## AMR → UMR converter
 
