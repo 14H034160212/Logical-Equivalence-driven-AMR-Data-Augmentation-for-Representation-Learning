@@ -87,7 +87,7 @@ AMR-LDA quality improved **8.6% → 43.8%** (5×) across 4 patch rounds. See:
 - 📊 **[Three-way comparison](extensions/reports/THREE_WAY_v4.md)** — system × rule × verifier breakdown
 - 📈 **[Improvement trajectory](extensions/reports/TRAJECTORY_v2.md)** — per-run gains across all patches
 - 🔬 **[Self-check analysis](extensions/reports/SELF_CHECK.md)** — 15 detected generator polarity-flips
-- 🧬 **[AMR → UMR converter](extensions/reports/UMR_CONVERTER.md)** — Post et al. 2024 reproduction. Rule-only F1 43.7%; **hybrid (rule + neural) gold-accuracy 77.9%** on aspect
+- 🧬 **[AMR → UMR converter](extensions/reports/UMR_CONVERTER.md)** — Post et al. 2024 reproduction. Rule-only F1 43.7%; **rule + DistilBERT gold-accuracy 80.7%** on aspect (DistilBERT macro F1 0.63 vs sklearn LR 0.52)
 - 🗂️ **[Document-level UMR](extensions/reports/DOC_LEVEL_UMR.md)** — cross-sentence temporal/modal/coref derivation baseline (modal P=70%)
 - 🤖 **[RL verifier integration](extensions/rl/README.md)** — GRPO training scaffold with verifier-backed reward
 - 🔌 **[Multi-LLM setup guide](extensions/reports/MULTI_LLM_SETUP.md)** — adding Claude / DeepSeek / Llama-3-70B baselines
