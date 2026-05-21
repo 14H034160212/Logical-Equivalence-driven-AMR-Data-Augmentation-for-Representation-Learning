@@ -29,6 +29,7 @@ extensions/rl/ckpts/
 extensions/pilot_study/ft_t5wtense/
 extensions/pilot_study/ft_t5wtense_v2/
 extensions/pilot_study/ft_t5wtense_v3/
+extensions/pilot_study/ft_t5wtense_v4/
 
 # IDE
 .vscode/

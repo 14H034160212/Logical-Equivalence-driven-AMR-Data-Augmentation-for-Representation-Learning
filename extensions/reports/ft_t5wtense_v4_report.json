@@ -1,0 +1,6 @@
+{
+  "n_train": 492,
+  "n_eval": 87,
+  "epochs": 4,
+  "out_dir": "extensions/pilot_study/ft_t5wtense_v4"
+}
