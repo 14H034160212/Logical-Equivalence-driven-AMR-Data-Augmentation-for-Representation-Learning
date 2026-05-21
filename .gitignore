@@ -27,6 +27,7 @@ extensions/umr/bert_aspect_clf/
 extensions/umr/aspect_classifier.pkl
 extensions/rl/ckpts/
 extensions/pilot_study/ft_t5wtense/
+extensions/pilot_study/ft_t5wtense_v2/
 
 # IDE
 .vscode/

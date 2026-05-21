@@ -60,6 +60,10 @@ def collect_training_pairs() -> List[Tuple[str, str]]:
         Path("extensions/reports/contrastive_pilot_smoketest.jsonl"),
         Path("extensions/pilot_study/results/combined/rewrite/amr_lda.jsonl"),
         Path("extensions/pilot_study/pararule_contrastive.jsonl"),
+        # Hand-curated golds for the SELF_CHECK failure set (built by
+        # extensions.pilot_study.build_failure_set_golds). Upweighted by
+        # repeating each entry so the small set actually shapes the loss.
+        Path("extensions/pilot_study/failure_set_golds.jsonl"),
     ]
 
     test_json = json.loads(Path("extensions/pilot_study/test_sentences.json").read_text())
@@ -73,6 +77,10 @@ def collect_training_pairs() -> List[Tuple[str, str]]:
     for path in candidate_paths:
         if not path.exists():
             continue
+        # Upweight the curated failure-set golds (small file, ~8 pairs) so
+        # they actually move the loss instead of getting drowned out by the
+        # ~380 silver pairs from contrastive sources.
+        repeat = 10 if path.name == "failure_set_golds.jsonl" else 1
         for line in path.read_text().splitlines():
             if not line.strip():
                 continue
@@ -86,10 +94,11 @@ def collect_training_pairs() -> List[Tuple[str, str]]:
             gold = gold_map.get((sid, rule))
             target = gold if gold else text
             key = (amr, target)
-            if key in seen:
+            if key in seen and repeat == 1:
                 continue
             seen.add(key)
-            pairs.append((amr, target))
+            for _ in range(repeat):
+                pairs.append((amr, target))
 
     return pairs
 
