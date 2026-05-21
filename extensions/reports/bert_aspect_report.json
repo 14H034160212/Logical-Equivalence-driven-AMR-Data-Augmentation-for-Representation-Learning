@@ -1,0 +1,18 @@
+{
+  "n_train": 1184,
+  "n_test": 296,
+  "labels": [
+    "activity",
+    "endeavor",
+    "habitual",
+    "inceptive",
+    "performance",
+    "process",
+    "state"
+  ],
+  "macro_f1": 0.6323450407367647,
+  "micro_f1": 0.7601351351351352,
+  "macro_precision": 0.5934380664194328,
+  "macro_recall": 0.7044761931863673,
+  "classification_report": "              precision    recall  f1-score   support\n\n    activity       0.64      0.61      0.62        38\n    endeavor       0.60      1.00      0.75         6\n    habitual       0.40      0.43      0.41        14\n   inceptive       0.33      0.50      0.40         2\n performance       0.87      0.77      0.81       103\n     process       0.46      0.80      0.59        15\n       state       0.85      0.83      0.84       118\n\n    accuracy                           0.76       296\n   macro avg       0.59      0.70      0.63       296\nweighted avg       0.78      0.76      0.77       296\n"
+}

@@ -1,0 +1,120 @@
+{
+  "runs": [
+    {
+      "n_sentences": 594,
+      "n_gold_nodes": 1488,
+      "gold_accuracy": 0.8071236559139785,
+      "gold_correct": 1201,
+      "gold_wrong": 287,
+      "gold_abstain": 0,
+      "gold_by_source": {
+        "bert": 808,
+        "rule": 680
+      },
+      "rule_count": 946,
+      "bert_count": 5329,
+      "bert_abstain_count": 0,
+      "top_confusions": [
+        [
+          "performance\u2192state",
+          40
+        ],
+        [
+          "activity\u2192performance",
+          22
+        ],
+        [
+          "process\u2192performance",
+          20
+        ],
+        [
+          "performance\u2192process",
+          19
+        ],
+        [
+          "state\u2192performance",
+          19
+        ],
+        [
+          "activity\u2192habitual",
+          16
+        ],
+        [
+          "state\u2192activity",
+          15
+        ],
+        [
+          "performance\u2192inceptive",
+          14
+        ],
+        [
+          "performance\u2192activity",
+          13
+        ],
+        [
+          "habitual\u2192performance",
+          12
+        ]
+      ],
+      "confidence_threshold": 0.0
+    }
+  ],
+  "best": {
+    "n_sentences": 594,
+    "n_gold_nodes": 1488,
+    "gold_accuracy": 0.8071236559139785,
+    "gold_correct": 1201,
+    "gold_wrong": 287,
+    "gold_abstain": 0,
+    "gold_by_source": {
+      "bert": 808,
+      "rule": 680
+    },
+    "rule_count": 946,
+    "bert_count": 5329,
+    "bert_abstain_count": 0,
+    "top_confusions": [
+      [
+        "performance\u2192state",
+        40
+      ],
+      [
+        "activity\u2192performance",
+        22
+      ],
+      [
+        "process\u2192performance",
+        20
+      ],
+      [
+        "performance\u2192process",
+        19
+      ],
+      [
+        "state\u2192performance",
+        19
+      ],
+      [
+        "activity\u2192habitual",
+        16
+      ],
+      [
+        "state\u2192activity",
+        15
+      ],
+      [
+        "performance\u2192inceptive",
+        14
+      ],
+      [
+        "performance\u2192activity",
+        13
+      ],
+      [
+        "habitual\u2192performance",
+        12
+      ]
+    ],
+    "confidence_threshold": 0.0
+  }
+}

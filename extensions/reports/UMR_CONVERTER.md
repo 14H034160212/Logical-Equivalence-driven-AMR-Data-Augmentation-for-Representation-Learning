@@ -22,17 +22,28 @@ fall-off recall is the bottleneck.
 
 ### Hybrid (rule + small neural classifier)
 
-The neural classifier (sklearn `LogisticRegression` with class-balanced
-weights, ~17K bag-of-features inputs per node: frame name, frame stem,
-frame sense, polarity-neg, has-time/duration/freq, parent role, depth,
-n_args) takes over when the rule abstains.
+Two classifier flavours have been trained:
 
-| Metric | Rule-only | Hybrid |
-|---|---|---|
-| **Gold-conditional accuracy** (correct / gold-annotated nodes) | ~36% | **77.9%** |
-| Rule used | 680 / 1488 | 680 / 1488 |
-| NN used | n/a | 808 / 1488 |
-| Wrong | n/a | 329 / 1488 |
+  - **sklearn LogisticRegression** (cheap, no GPU) on bag-of-features inputs
+  - **DistilBERT fine-tuned** (~10 min on one A100) on
+    `"{sentence_text} [SEP] target: {concept}"` text inputs
+
+Both replace the rule when it abstains.
+
+| Metric | Rule-only | Rule + sklearn LR | Rule + DistilBERT |
+|---|---|---|---|
+| **Gold-conditional accuracy** | ~36% | 77.9% | **80.7%** |
+| Rule used | 680 / 1488 | 680 / 1488 | 680 / 1488 |
+| NN used | 0 | 808 / 1488 | 808 / 1488 |
+| Correct (total) | ~530 | 1159 | **1201** |
+| Wrong (total) | ~960 (abstained) | 329 | **287** |
+
+DistilBERT improvement per label (vs sklearn LR):
+  - `state`         F1 0.80 → **0.84**
+  - `performance`   F1 0.70 → **0.81**
+  - `inceptive`     F1 0.00 → **0.40** (was completely failing)
+  - `process`       F1 0.48 → **0.59**
+  - Overall macro F1: 0.523 → **0.632**
 
 On the **subset where the rule abstains** (54% of all gold nodes), the NN
 alone achieves **macro F1 0.778** (precision 0.769, recall 0.792) — a

@@ -128,28 +128,90 @@ def _name_of_entity(g: penman.Graph, node: str) -> Optional[str]:
     return None
 
 
+import re as _re
+
+EVENT_FRAME_RE = _re.compile(r"^([a-z][a-z0-9_-]*)-(\d{2,3})$")
+
+
+def _is_event_node(g: penman.Graph, node: str) -> bool:
+    """A node is an 'event' if its instance concept matches frame pattern
+    (verb-XX or copular-XX). We exclude pure entity nodes (person, country).
+    """
+    inst = _instance(g, node)
+    if not inst:
+        return False
+    return bool(EVENT_FRAME_RE.match(inst))
+
+
+def _enumerate_events(g: penman.Graph) -> List[str]:
+    """Return all event node vars in the graph."""
+    return [s for s, role, t in g.triples
+            if role == ":instance" and EVENT_FRAME_RE.match(t)]
+
+
 def derive_doc_relations(
     graphs: List[Tuple[str, penman.Graph]],
     weak_temporal_from_order: bool = True,
+    include_dct_anchor: bool = True,
+    include_intra_sentence_overlap: bool = True,
 ) -> List[Tuple[str, str, str]]:
     """Derive document-level :temporal / :modal / :coref triples from a
     sequence of (sentence_id_prefix, AMR_graph) pairs.
 
-    The graphs should be parsed AMR (or AMR-like) sentence graphs in narrative
-    order. Returns a flat list of (src_node, relation, tgt_node) triples in
-    UMR document-level format.
+    Improved derivation rules (vs the previous baseline):
+      1. Modal: author affirms ALL events (not just root) — UMR practice
+         annotates many sub-events with author stance.
+      2. DCT anchor: `(document-creation-time :before <event>)` for each
+         event. This is the UMR convention for past-tense news reports
+         (DCT is positioned before the events being reported).
+      3. Intra-sentence overlap: events in the same sentence are emitted
+         as pairwise `:overlap` triples (matches gold's heavy use of
+         :overlap for co-occurring sub-events like landslide+die).
+      4. Cross-sentence narrative ordering: weak `:before` between root
+         events of adjacent sentences (kept from baseline).
+      5. Explicit `:time (after/before :op1 X)` markers (kept).
+      6. Coreference by name string (kept).
+
+    Returns a flat list of (src_node, relation, tgt_node) triples in UMR
+    document-level format.
     """
     relations: List[Tuple[str, str, str]] = []
 
-    # --- Modal: author affirms each root event ---
+    # --- Modal: author affirms every event (not just roots) ---
     for prefix, g in graphs:
-        root = _root_event(g)
-        if root is None:
-            continue
-        rel = ":full-negative" if _has_polarity_neg(g, root) else ":full-affirmative"
-        relations.append(("author", rel, f"{prefix}{root}"))
+        for event in _enumerate_events(g):
+            rel = (":full-negative" if _has_polarity_neg(g, event)
+                   else ":full-affirmative")
+            relations.append(("author", rel, f"{prefix}{event}"))
 
-    # --- Explicit :time after/before within a sentence ---
+    # --- DCT anchor: for ALL events in the document ---
+    # In UMR, news events (past tense) are typically anchored as
+    # (document-creation-time :before <event>). Aggressive but high-recall.
+    if include_dct_anchor:
+        for prefix, g in graphs:
+            for ev in _enumerate_events(g):
+                relations.append((
+                    "document-creation-time",
+                    ":before",
+                    f"{prefix}{ev}",
+                ))
+
+    # --- Intra-sentence sub-event overlap ---
+    # Events co-occurring within the same sentence typically overlap in time
+    # (one news event mentions multiple sub-actions). Pairwise emission;
+    # cap at 8 events per sentence to bound output size.
+    if include_intra_sentence_overlap:
+        for prefix, g in graphs:
+            events = _enumerate_events(g)[:8]
+            for i in range(len(events)):
+                for j in range(i + 1, len(events)):
+                    relations.append((
+                        f"{prefix}{events[i]}",
+                        ":overlap",
+                        f"{prefix}{events[j]}",
+                    ))
+
+    # --- Explicit :time after/before markers within a sentence ---
     for prefix, g in graphs:
         for s, role, t in g.triples:
             if role != ":time":
@@ -157,18 +219,16 @@ def derive_doc_relations(
             inst = _instance(g, t)
             if inst not in ("after", "before"):
                 continue
-            # Find :op1 of the time node
             for s2, r2, t2 in g.triples:
                 if s2 == t and r2 == ":op1":
-                    target_event = t2
                     relations.append((
                         f"{prefix}{s}",
                         f":{inst}",
-                        f"{prefix}{target_event}",
+                        f"{prefix}{t2}",
                     ))
                     break
 
-    # --- Weak: sentence-order temporal sequencing ---
+    # --- Weak narrative ordering: adjacent root :before ---
     if weak_temporal_from_order and len(graphs) >= 2:
         for i in range(len(graphs) - 1):
             prev_prefix, prev_g = graphs[i]
@@ -182,7 +242,7 @@ def derive_doc_relations(
                     f"{next_prefix}{next_root}",
                 ))
 
-    # --- Coreference: same name across sentences = :same-entity ---
+    # --- Coreference by name match ---
     name_to_nodes: Dict[str, List[str]] = {}
     for prefix, g in graphs:
         for s, role, t in g.triples:
@@ -193,7 +253,6 @@ def derive_doc_relations(
                 name_to_nodes.setdefault(name, []).append(f"{prefix}{s}")
     for name, nodes in name_to_nodes.items():
         if len(nodes) >= 2:
-            # Link consecutive mentions
             for i in range(len(nodes) - 1):
                 relations.append((nodes[i], ":same-entity", nodes[i + 1]))
 
