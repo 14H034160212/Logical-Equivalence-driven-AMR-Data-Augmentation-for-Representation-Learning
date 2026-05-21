@@ -18,7 +18,7 @@ current session.
 | 7 | symmetric | AMR | new (11 frames) | ✅ |
 | 8 | asymmetric | AMR | new (14 frames) | ✅ |
 | 9 | predicate_implication | AMR | new (WordNet hypernym + fallback dict) | ✅ |
-| 10 | transitivity | cross-sentence | stub (needs coref) | 🚧 |
+| 10 | transitivity | cross-sentence | new — two-graph rule (Jaccard subgraph match) | ✅ |
 | 11 | modal_strength_inversion | UMR-style | new (11 modal frames) | ✅ |
 | 12 | aspect_equivalence | UMR-style | new (3 categories) | ✅ |
 | 13 | doc_level_temporal_transitivity | UMR-style | new (before/after chains) | ✅ |
@@ -101,36 +101,39 @@ These are GENERATOR issues, not rule-logic issues. V1 confirms the rules
 applied correctly; V2 catches the surface noise. This separation is itself
 a contribution.
 
+## Completed since last revision
+
+- [x] T5wtense self-consistency check (polarity parity, flags 15/77 generator errors)
+- [x] AMR→UMR converter (Post et al. 2024 rule-based reproduction, aspect
+      F1 43.7% / modal F1 27.2% against UMR 2.0 English gold)
+- [x] Real transitivity rule (two-graph API, Jaccard subgraph matching)
+- [x] 4 UMR-style rules: aspect, modal-strength, doc-temporal, tense
+- [x] 6 commits with clean history (reorg → extensions → reports → UMR → transitivity)
+- [x] Top-level README links to all reports (`extensions/reports/`)
+
 ## What's not done yet (recommended next steps)
 
-1. **T5wtense self-consistency**: re-parse the generated text and check that
-   key `:polarity-` triples survive the round-trip. Retry / fall back if
-   information is lost. Would fix LED→CFL and similar drift.
+1. **Neural classifier for AMR→UMR** (the unfinished part of Post et al. 2024):
+   train a small BERT on (AMR-context → aspect label) pairs to handle the
+   gray zone between performance/process/state. Aspect F1 should jump from
+   43.7% to ~70%.
 
-2. **Implement real `transitivity`**: cross-sentence two-graph rule. Needs
-   simple coref (Spacy + heuristics or AllenNLP) to identify shared events
-   across sentences.
+2. **Document-level UMR**: temporal/modal/coref relations across sentences.
+   Loader already parses the document section; need a structured representation
+   and validator.
 
-3. **Genuine UMR overlay**:
-   - Reproduce Post et al. 2024 AMR→UMR neuro-symbolic converter
-     ([umr-data](umr/) loader is already in place; 580 English docs / 31K
-     sentences available)
-   - Replace the AMR-layer approximations of modal/aspect/temporal rules
-     with genuine UMR-grounded versions
-   - Add cross-sentence document-level temporal transitivity
-
-4. **Negative sample generation pipeline**: the rules expose `apply_negative`
+3. **Negative sample generation pipeline**: the rules expose `apply_negative`
    but no end-to-end pipeline currently mints contrastive negatives for
    stage-2 training data.
 
-5. **RL verifier integration**: integrate the auto-verifier into a
+4. **RL verifier integration**: integrate the auto-verifier into a
    GRPO-style training loop where the policy generates reasoning chains and
    the verifier scores each step.
 
-6. **Additional LLM baselines**: add Claude (V3 judge + rewriter),
+5. **Additional LLM baselines**: add Claude (V3 judge + rewriter),
    DeepSeek-V3, Llama-3-70B (requires ANTHROPIC / DEEPSEEK / TOGETHER keys).
 
-7. **Cost / latency report**: AMR-LDA is essentially free at inference time;
+6. **Cost / latency report**: AMR-LDA is essentially free at inference time;
    LLM-as-rewriter costs scale with calls. Quantify for the paper.
 
 ## File index
