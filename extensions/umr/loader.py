@@ -90,47 +90,51 @@ def _split_blocks(text: str) -> List[str]:
 
 def _parse_sentence_block(block: str, doc_id: str) -> Optional[UMRSentence]:
     """Parse one sentence block. Returns None if the block has no UMR penman."""
-    # Detect sections by looking for canonical line prefixes.
     sent_id = ""
-    text = ""
     tokens: List[str] = []
     pos_tags: List[str] = []
     english: Optional[str] = None
     umr_penman_lines: List[str] = []
     alignment_lines: List[str] = []
-    in_umr = False
-    in_alignment = False
+    document_lines: List[str] = []
+    state = None  # None | "umr" | "alignment" | "document"
 
     for line in block.splitlines():
         stripped = line.strip()
         if not stripped:
             continue
-        if stripped.startswith("# :: snt"):
-            sent_id = stripped.replace("# :: snt", "").strip()
-        elif stripped.startswith("Words:"):
+        # Section markers (lowercase variants used by umr-data)
+        if stripped.startswith("# :: snt") or stripped.startswith("#:: snt"):
+            sent_id = stripped.split("snt", 1)[1].strip()
+            continue
+        if stripped.startswith("# sentence level graph") or stripped.lower().startswith("# sentence level annotation"):
+            state = "umr"
+            continue
+        if stripped.startswith("# alignment"):
+            state = "alignment"
+            continue
+        if stripped.startswith("# document level annotation") or stripped.lower().startswith("# document level annotation"):
+            state = "document"
+            continue
+        # Word lists and metadata
+        if stripped.startswith("Words:"):
             tokens = stripped[len("Words:"):].split()
-        elif stripped.startswith("Word IDs:"):
-            pass  # ignore
-        elif stripped.startswith("POS:"):
+            continue
+        if stripped.startswith("Word IDs:") or stripped.startswith("Index:"):
+            continue
+        if stripped.startswith("POS:"):
             pos_tags = stripped[len("POS:"):].split()
-        elif stripped.startswith("English translation:"):
+            continue
+        if stripped.startswith("English translation:"):
             english = stripped[len("English translation:"):].strip()
-        elif stripped.startswith("Sentence Level Annotation"):
-            in_umr = True
-            in_alignment = False
             continue
-        elif stripped.startswith("Alignment"):
-            in_umr = False
-            in_alignment = True
-            continue
-        elif stripped.startswith("Document Level Annotation"):
-            in_umr = False
-            in_alignment = False
-            continue
-        elif in_umr:
+        # Section content
+        if state == "umr":
             umr_penman_lines.append(line)
-        elif in_alignment:
+        elif state == "alignment":
             alignment_lines.append(line)
+        elif state == "document":
+            document_lines.append(line)
 
     umr_penman = "\n".join(umr_penman_lines).strip()
     if not umr_penman:
@@ -205,7 +209,12 @@ def load_umr_dataset(
             f"UMR data root not found: {root}. Run extensions/umr/download_umr_data.sh first."
         )
     sentences: List[UMRSentence] = []
-    for fp in sorted(root.rglob("*.txt")):
+    # umr-data uses `.umr` extension; fall back to `.txt` for older releases.
+    file_patterns = ["*.umr", "*.txt"]
+    files = []
+    for pat in file_patterns:
+        files.extend(root.rglob(pat))
+    for fp in sorted(set(files)):
         doc_id = fp.stem
         try:
             text = fp.read_text(encoding="utf-8")

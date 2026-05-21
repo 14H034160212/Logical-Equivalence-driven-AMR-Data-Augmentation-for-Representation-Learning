@@ -1,0 +1,149 @@
+{
+  "n_sentences_with_gold": 596,
+  "aspect": {
+    "tp": 532,
+    "fp": 417,
+    "fn": 956,
+    "precision": 0.5605900948366702,
+    "recall": 0.3575268817204301,
+    "f1": 0.4366023799753796,
+    "confusion": {
+      "process\u2192performance": 19,
+      "performance\u2192state": 17,
+      "endeavor\u2192activity": 7,
+      "performance\u2192activity": 3,
+      "activity\u2192performance": 18,
+      "activity\u2192state": 6,
+      "process\u2192activity": 2,
+      "performance\u2192process": 10,
+      "performance\u2192inceptive": 9,
+      "endeavor\u2192performance": 10,
+      "habitual\u2192performance": 12,
+      "state\u2192performance": 13,
+      "habitual\u2192activity": 6,
+      "activity\u2192process": 3,
+      "state\u2192activity": 5,
+      "inceptive\u2192state": 1,
+      "process\u2192state": 1,
+      "state\u2192habitual": 1,
+      "habitual\u2192state": 3,
+      "activity\u2192habitual": 1,
+      "process\u2192habitual": 1
+    },
+    "gold_only": {
+      "process": 51,
+      "performance": 266,
+      "state": 301,
+      "activity": 111,
+      "partial-affirmative": 1,
+      "habitual": 47,
+      "endeavor": 16,
+      "inceptive": 8,
+      "iterative": 2,
+      "generic": 2,
+      "directed-achievement": 1,
+      "semelfactive": 2
+    },
+    "pred_only": {
+      "state": 206,
+      "performance": 43,
+      "process": 2,
+      "activity": 12,
+      "habitual": 6
+    }
+  },
+  "modal_strength": {
+    "tp": 189,
+    "fp": 641,
+    "fn": 370,
+    "precision": 0.22771084337349398,
+    "recall": 0.33810375670840787,
+    "f1": 0.27213822894168466,
+    "confusion": {
+      "full-negative\u2192full-affirmative": 1,
+      "partial-affirmative\u2192full-affirmative": 7,
+      "neutral-affirmative\u2192full-affirmative": 5,
+      "neutral-negative\u2192full-negative": 4,
+      "full-affirmative\u2192partial-affirmative": 1,
+      "full-affirmative\u2192full-negative": 2,
+      "neutral-negative\u2192full-affirmative": 1
+    },
+    "gold_only": {
+      "full-affirmative": 276,
+      "neutral-affirmative": 16,
+      "neutral-negative": 4,
+      "full-negative": 28,
+      "partial-affirmative": 23,
+      "partial-negative": 2
+    },
+    "pred_only": {
+      "full-affirmative": 596,
+      "full-negative": 24
+    }
+  },
+  "error_examples": {
+    "aspect": [
+      {
+        "sent": "About 200 people were believed killed and 1,500 others were missing in the centr",
+        "concept": "landslide-01",
+        "gold": "process",
+        "pred": "performance"
+      },
+      {
+        "sent": "Eyewitnesses said only a few houses were left standing after the landslide hit t",
+        "concept": "landslide-01",
+        "gold": "process",
+        "pred": "performance"
+      },
+      {
+        "sent": "Tiny groups of mud - spattered survivors were also shown , walking through the m",
+        "concept": "show-01",
+        "gold": "performance",
+        "pred": "state"
+      },
+      {
+        "sent": "Tiny groups of mud - spattered survivors were also shown , walking through the m",
+        "concept": "destroy-01",
+        "gold": "process",
+        "pred": "performance"
+      },
+      {
+        "sent": "In a televised address to the nation , President Gloria Arroyo said rescue teams",
+        "concept": "rescue-01",
+        "gold": "process",
+        "pred": "performance"
+      },
+      {
+        "sent": "\" Naval ships will be used as floating hospitals and command centres for relief ",
+        "concept": "rescue-01",
+        "gold": "process",
+        "pred": "performance"
+      },
+      {
+        "sent": "Leyte Governor Rosette Lerias said the latest census indicated there were 375 ho",
+        "concept": "landslide-01",
+        "gold": "process",
+        "pred": "performance"
+      },
+      {
+        "sent": "Lerias said that many Guinsaugon residents had been evacuated after landslides e",
+        "concept": "landslide-01",
+        "gold": "process",
+        "pred": "performance"
+      },
+      {
+        "sent": "Lerias said that many Guinsaugon residents had been evacuated after landslides e",
+        "concept": "rain-01",
+        "gold": "endeavor",
+        "pred": "activity"
+      },
+      {
+        "sent": "A mild 2.6 - magnitude earthquake which struck before the landslide may also hav",
+        "concept": "landslide-01",
+        "gold": "process",
+        "pred": "performance"
+      }
+    ],
+    "modal": []
+  }
+}
