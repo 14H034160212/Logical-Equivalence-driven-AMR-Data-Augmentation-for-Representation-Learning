@@ -39,7 +39,13 @@ JSON aggregates ship alongside the markdown:
 
 ## AMR → UMR converter
 
-- [UMR_CONVERTER.md](UMR_CONVERTER.md) — rule-based reproduction of Post et al. 2024,
-  validated against UMR 2.0 English gold (596 sentences). Achieves F1 43.7%
-  on aspect, F1 27.2% on modal-strength using ~100-frame dictionary + heuristics.
-- [umr_validation_report.json](umr_validation_report.json) — full per-label breakdown
+- [UMR_CONVERTER.md](UMR_CONVERTER.md) — Post et al. 2024 reproduction.
+  Rule-based F1 43.7% (aspect), 27.2% (modal). **Hybrid (rule + neural classifier)
+  achieves gold-conditional accuracy 77.9% on aspect** (vs rule-only ~36%).
+- [DOC_LEVEL_UMR.md](DOC_LEVEL_UMR.md) — document-level annotation derivation.
+  Modal F1 32% (P=70%), coref F1 5%, temporal baseline = 0 (granularity issue
+  documented; next-step work).
+- JSON aggregates: [umr_validation_report.json](umr_validation_report.json),
+  [aspect_nn_report.json](aspect_nn_report.json),
+  [hybrid_aspect_report.json](hybrid_aspect_report.json),
+  [document_umr_report.json](document_umr_report.json)
