@@ -23,6 +23,9 @@ extensions/pilot_study/results/
 extensions/auto_verifier/results/
 extensions/umr/umr-data/
 extensions/umr/*.json
+extensions/umr/bert_aspect_clf/
+extensions/umr/aspect_classifier.pkl
+extensions/rl/ckpts/
 
 # IDE
 .vscode/

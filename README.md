@@ -89,7 +89,7 @@ AMR-LDA quality improved **8.6% → 43.8%** (5×) across 4 patch rounds. See:
 - 🔬 **[Self-check analysis](extensions/reports/SELF_CHECK.md)** — 15 detected generator polarity-flips
 - 🧬 **[AMR → UMR converter](extensions/reports/UMR_CONVERTER.md)** — Post et al. 2024 reproduction. Rule-only F1 43.7%; **rule + DistilBERT gold-accuracy 80.7%** on aspect (DistilBERT macro F1 0.63 vs sklearn LR 0.52)
 - 🗂️ **[Document-level UMR](extensions/reports/DOC_LEVEL_UMR.md)** — cross-sentence temporal/modal/coref derivation baseline (modal P=70%)
-- 🤖 **[RL verifier integration](extensions/rl/README.md)** — GRPO training scaffold with verifier-backed reward
+- 🤖 **[RL verifier integration](extensions/rl/README.md)** + **[GRPO results](extensions/reports/GRPO_RESULTS.md)** — Qwen2.5-0.5B trained end-to-end, reward 43.75% → 62.5% in 113 seconds on one A100
 - 🔌 **[Multi-LLM setup guide](extensions/reports/MULTI_LLM_SETUP.md)** — adding Claude / DeepSeek / Llama-3-70B baselines
 - 🔧 **[Reports index](extensions/reports/README.md)** — all generated reports + JSON aggregates
 - 📝 **[Red-line failure cases](extensions/pilot_study/red_line_cases.md)** — 5 paper-ready exhibits

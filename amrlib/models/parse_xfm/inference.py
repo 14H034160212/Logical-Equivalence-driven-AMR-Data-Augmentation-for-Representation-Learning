@@ -40,7 +40,9 @@ class Inference(STOGInferenceBase):
         self.tokenizer     = tokenizer
         self.max_sent_len  = config['max_in_len']
         self.max_graph_len = config['max_out_len']
-        if self.model.config.no_repeat_ngram_size != 0:
+        # Newer transformers versions (>=4.50) removed `no_repeat_ngram_size`
+        # from BartConfig; guard with getattr.
+        if getattr(self.model.config, "no_repeat_ngram_size", 0) != 0:
             logger.warning('self.model.config.no_repeat_ngram_size != 0. Overiding value in config')
             self.model.config.no_repeat_ngram_size = 0
 

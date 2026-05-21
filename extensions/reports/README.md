@@ -43,6 +43,13 @@ JSON aggregates ship alongside the markdown:
   Llama-3-70B baselines (code already supports them; needs API keys + a
   small re-run)
 
+## RL training
+
+- [GRPO_RESULTS.md](GRPO_RESULTS.md) — small-scale GRPO experiment
+  (Qwen2.5-0.5B, 16 examples, 113 sec on one A100). Reward improved
+  **43.75% → 62.5%** over 1 epoch, validating the verifier-backed reward
+  pipeline end-to-end.
+
 ## AMR → UMR converter
 
 - [UMR_CONVERTER.md](UMR_CONVERTER.md) — Post et al. 2024 reproduction.
