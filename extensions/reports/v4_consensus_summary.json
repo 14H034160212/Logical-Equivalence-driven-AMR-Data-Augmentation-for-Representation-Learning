@@ -1,0 +1,34 @@
+{
+  "amr_lda": {
+    "equivalent": 52,
+    "not_equivalent": 17,
+    "pending_review": 21,
+    "n": 90,
+    "equivalence_rate_decided": 0.7536231884057971,
+    "pending_fraction": 0.23333333333333334
+  },
+  "amr_lda_v4": {
+    "equivalent": 52,
+    "not_equivalent": 16,
+    "pending_review": 22,
+    "n": 90,
+    "equivalence_rate_decided": 0.7647058823529411,
+    "pending_fraction": 0.24444444444444444
+  },
+  "gpt-4o-mini": {
+    "equivalent": 56,
+    "not_equivalent": 4,
+    "pending_review": 30,
+    "n": 90,
+    "equivalence_rate_decided": 0.9333333333333333,
+    "pending_fraction": 0.3333333333333333
+  },
+  "gpt-4o": {
+    "equivalent": 56,
+    "not_equivalent": 4,
+    "pending_review": 30,
+    "n": 90,
+    "equivalence_rate_decided": 0.9333333333333333,
+    "pending_fraction": 0.3333333333333333
+  }
+}

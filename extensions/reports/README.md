@@ -60,9 +60,16 @@ JSON aggregates ship alongside the markdown:
   harvested from the pilot, 3 epochs, eval_loss **0.278 → 0.240**.
   JSON: [ft_t5wtense_report.json](ft_t5wtense_report.json).
 - [T5_FT_RECOVERY.md](T5_FT_RECOVERY.md) — A/B of the AMR-LDA pipeline
-  on the 15 known polarity-flips with stock vs fine-tuned T5wtense.
-  Pass rate **34.8% → 52.2%**; recovered 5/15, regressed 1.
-  JSON: [t5_ft_recovery_summary.json](t5_ft_recovery_summary.json).
+  on the 15 known polarity-flips with stock vs fine-tuned T5wtense across
+  v1/v2/v3/v4. Final pass rate **34.8% → 73.9%** (subset),
+  **68.9% → 78.9%** (full 49-sentence pilot, +9 net recoveries).
+  JSONs: [v1](t5_ft_recovery_summary.json), [v2](t5_ft_recovery_v2_summary.json),
+  [v3](t5_ft_recovery_v3_summary.json), [v4](t5_ft_recovery_v4_summary.json),
+  [full-pilot v3](pilot_full_v3_summary.json).
+- [T5_FT_CONSENSUS.md](T5_FT_CONSENSUS.md) — same v4 pilot output run
+  back through the AMR + SMATCH consensus verifier; AMR-LDA EQ-rate
+  75.4% → 76.5%. V2 (LLM-judge) skipped pending API key.
+  JSON: [v4_consensus_summary.json](v4_consensus_summary.json).
 
 ## AMR → UMR converter
 
