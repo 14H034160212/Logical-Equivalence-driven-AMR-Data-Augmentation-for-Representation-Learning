@@ -1,0 +1,708 @@
+{
+  "version": "0.1",
+  "description": "50 curated test sentences for the LLM-as-rewriter vs AMR/UMR-LDA pilot study. Each sentence is annotated with applicable logical equivalence rules, anticipated LLM failure modes, and gold-standard rewrites where unambiguous. Sentences span 5 difficulty categories and 13 equivalence rules.",
+  "rule_inventory": {
+    "amr_rules": [
+      "contraposition",
+      "commutative",
+      "implication",
+      "double_negation",
+      "de_morgan",
+      "transitivity",
+      "inverse_relation",
+      "symmetric_asymmetric",
+      "predicate_implication"
+    ],
+    "umr_rules": [
+      "aspect_equivalence",
+      "modal_strength_inversion",
+      "doc_level_temporal_transitivity"
+    ],
+    "extras": [
+      "tense_transformation"
+    ]
+  },
+  "difficulty_categories": {
+    "C1_basic_implication": "Short, single if-then statements with binary predicates",
+    "C2_conjoined_disjoined": "And/or combinations including negated forms",
+    "C3_nested_negation": "Sentences with multiple negation scopes",
+    "C4_quantifier_scope": "Sentences with universal/existential quantifiers",
+    "C5_long_complex_prose": "Multi-clause sentences from realistic prose, including known reversal-curse and modal-precision cases"
+  },
+  "sentences": [
+    {
+      "id": "S001",
+      "text": "If Alice studies hard, then she passes the exam.",
+      "category": "C1_basic_implication",
+      "difficulty": "easy",
+      "applicable_rules": ["contraposition", "implication", "double_negation"],
+      "gold_outputs": {
+        "contraposition": "If Alice does not pass the exam, then she does not study hard.",
+        "implication": "Alice does not study hard, or she passes the exam."
+      },
+      "anticipated_llm_failures": {
+        "contraposition": "Replaces 'not pass' with 'fails' (lexical antonym substitution breaking exact polarity)",
+        "implication": "Adds connective 'either' that changes pragmatics"
+      }
+    },
+    {
+      "id": "S002",
+      "text": "If the device is unplugged, the LED does not light up.",
+      "category": "C1_basic_implication",
+      "difficulty": "easy",
+      "applicable_rules": ["contraposition", "implication", "double_negation"],
+      "gold_outputs": {
+        "contraposition": "If the LED lights up, then the device is not unplugged.",
+        "double_negation": "If the device is not plugged in, the LED does not light up."
+      },
+      "anticipated_llm_failures": {
+        "contraposition": "May produce 'If the LED lights up, the device is plugged in' — collapses double negation prematurely"
+      }
+    },
+    {
+      "id": "S003",
+      "text": "If a triangle has three equal sides, then it has three equal angles.",
+      "category": "C1_basic_implication",
+      "difficulty": "easy",
+      "applicable_rules": ["contraposition", "implication"],
+      "gold_outputs": {
+        "contraposition": "If a triangle does not have three equal angles, then it does not have three equal sides."
+      },
+      "anticipated_llm_failures": {
+        "contraposition": "May insert mathematical equivalence reasoning rather than perform syntactic contraposition"
+      }
+    },
+    {
+      "id": "S004",
+      "text": "If the water reaches 100 degrees Celsius at sea level, then it boils.",
+      "category": "C1_basic_implication",
+      "difficulty": "easy",
+      "applicable_rules": ["contraposition", "implication"],
+      "gold_outputs": {
+        "contraposition": "If the water does not boil, then it does not reach 100 degrees Celsius at sea level."
+      },
+      "anticipated_llm_failures": {
+        "contraposition": "Might add real-world qualifications ('assuming standard atmospheric pressure') that drift from the original logical form"
+      }
+    },
+    {
+      "id": "S005",
+      "text": "If Mary owns a car, then she has a driver's license.",
+      "category": "C1_basic_implication",
+      "difficulty": "easy",
+      "applicable_rules": ["contraposition", "implication", "double_negation"],
+      "gold_outputs": {
+        "contraposition": "If Mary does not have a driver's license, then she does not own a car.",
+        "implication": "Mary does not own a car, or she has a driver's license."
+      }
+    },
+    {
+      "id": "S006",
+      "text": "If the building has an elevator, residents on upper floors are not required to take the stairs.",
+      "category": "C1_basic_implication",
+      "difficulty": "medium",
+      "applicable_rules": ["contraposition", "double_negation"],
+      "gold_outputs": {
+        "contraposition": "If residents on upper floors are required to take the stairs, then the building does not have an elevator."
+      },
+      "anticipated_llm_failures": {
+        "contraposition": "Long predicate 'required to take the stairs' is prone to paraphrase that drops the 'required' modality"
+      }
+    },
+    {
+      "id": "S007",
+      "text": "If a meeting is scheduled for Friday, then no team members are available for travel that day.",
+      "category": "C1_basic_implication",
+      "difficulty": "medium",
+      "applicable_rules": ["contraposition", "de_morgan"],
+      "gold_outputs": {
+        "contraposition": "If some team members are available for travel on Friday, then no meeting is scheduled for Friday."
+      },
+      "anticipated_llm_failures": {
+        "contraposition": "Negation of 'no team members are available' often collapsed incorrectly to 'all team members are available' instead of 'some team members are available'"
+      }
+    },
+    {
+      "id": "S008",
+      "text": "If a patient takes the medication and follows the doctor's instructions, then they recover within two weeks.",
+      "category": "C1_basic_implication",
+      "difficulty": "hard",
+      "applicable_rules": ["contraposition", "de_morgan"],
+      "gold_outputs": {
+        "contraposition": "If a patient does not recover within two weeks, then they did not take the medication or did not follow the doctor's instructions."
+      },
+      "anticipated_llm_failures": {
+        "contraposition": "Often produces 'did not take the medication and did not follow instructions' — fails to apply De Morgan when negating the conjoined antecedent"
+      }
+    },
+    {
+      "id": "S009",
+      "text": "The bald eagle is clever and the wolf is fierce.",
+      "category": "C2_conjoined_disjoined",
+      "difficulty": "easy",
+      "applicable_rules": ["commutative"],
+      "gold_outputs": {
+        "commutative": "The wolf is fierce and the bald eagle is clever."
+      },
+      "anticipated_llm_failures": {
+        "commutative": "LLM may apply unnecessary lexical paraphrase ('cunning' for 'clever') changing semantic content beyond the rule"
+      }
+    },
+    {
+      "id": "S010",
+      "text": "Either the report is filed by Monday or the deadline extension is approved.",
+      "category": "C2_conjoined_disjoined",
+      "difficulty": "easy",
+      "applicable_rules": ["commutative", "implication"],
+      "gold_outputs": {
+        "commutative": "Either the deadline extension is approved or the report is filed by Monday.",
+        "implication": "If the report is not filed by Monday, then the deadline extension is approved."
+      },
+      "anticipated_llm_failures": {
+        "implication": "May treat 'either/or' as exclusive disjunction and add 'but not both' constraint absent in the original"
+      }
+    },
+    {
+      "id": "S011",
+      "text": "The athlete trains every morning and competes on weekends.",
+      "category": "C2_conjoined_disjoined",
+      "difficulty": "easy",
+      "applicable_rules": ["commutative"],
+      "gold_outputs": {
+        "commutative": "The athlete competes on weekends and trains every morning."
+      }
+    },
+    {
+      "id": "S012",
+      "text": "The contract is signed or the negotiation continues.",
+      "category": "C2_conjoined_disjoined",
+      "difficulty": "easy",
+      "applicable_rules": ["commutative", "implication"],
+      "gold_outputs": {
+        "commutative": "The negotiation continues or the contract is signed.",
+        "implication": "If the contract is not signed, then the negotiation continues."
+      }
+    },
+    {
+      "id": "S013",
+      "text": "It is not the case that Alice is tall and Bob is short.",
+      "category": "C2_conjoined_disjoined",
+      "difficulty": "medium",
+      "applicable_rules": ["de_morgan"],
+      "gold_outputs": {
+        "de_morgan": "Alice is not tall or Bob is not short."
+      },
+      "anticipated_llm_failures": {
+        "de_morgan": "Often outputs 'Either Alice is not tall, or Bob is not short, but not both' — introduces XOR constraint absent in original; or outputs 'Alice is not tall and Bob is not short' — fails De Morgan entirely"
+      }
+    },
+    {
+      "id": "S014",
+      "text": "Neither the manager nor the assistant attended the meeting.",
+      "category": "C2_conjoined_disjoined",
+      "difficulty": "medium",
+      "applicable_rules": ["de_morgan", "double_negation"],
+      "gold_outputs": {
+        "de_morgan": "The manager did not attend the meeting and the assistant did not attend the meeting."
+      },
+      "anticipated_llm_failures": {
+        "de_morgan": "May produce 'The manager and the assistant did not attend the meeting' — ambiguous between joint and individual readings"
+      }
+    },
+    {
+      "id": "S015",
+      "text": "It is not true that the project is delayed or the budget is exceeded.",
+      "category": "C2_conjoined_disjoined",
+      "difficulty": "medium",
+      "applicable_rules": ["de_morgan"],
+      "gold_outputs": {
+        "de_morgan": "The project is not delayed and the budget is not exceeded."
+      }
+    },
+    {
+      "id": "S016",
+      "text": "Either the patient has a fever and a cough, or the diagnosis is inconclusive.",
+      "category": "C2_conjoined_disjoined",
+      "difficulty": "hard",
+      "applicable_rules": ["commutative", "de_morgan", "implication"],
+      "gold_outputs": {
+        "implication": "If the patient does not have a fever and does not have a cough, or if either is absent, then the diagnosis is inconclusive. (Note: requires care with conjunction inside disjunction)"
+      },
+      "anticipated_llm_failures": {
+        "implication": "Most LLMs flatten 'fever and cough' to 'fever or cough' under negation, mangling the embedded conjunction scope"
+      }
+    },
+    {
+      "id": "S017",
+      "text": "It is not the case that the suspect is not guilty.",
+      "category": "C3_nested_negation",
+      "difficulty": "easy",
+      "applicable_rules": ["double_negation"],
+      "gold_outputs": {
+        "double_negation": "The suspect is guilty."
+      },
+      "anticipated_llm_failures": {
+        "double_negation": "Some LLMs preserve hedging: 'The suspect appears to be guilty' — drift from clean logical equivalence"
+      }
+    },
+    {
+      "id": "S018",
+      "text": "It is false that Alice did not call Bob.",
+      "category": "C3_nested_negation",
+      "difficulty": "easy",
+      "applicable_rules": ["double_negation"],
+      "gold_outputs": {
+        "double_negation": "Alice called Bob."
+      }
+    },
+    {
+      "id": "S019",
+      "text": "It is not impossible that the experiment will succeed.",
+      "category": "C3_nested_negation",
+      "difficulty": "medium",
+      "applicable_rules": ["double_negation", "modal_strength_inversion"],
+      "gold_outputs": {
+        "double_negation": "It is possible that the experiment will succeed.",
+        "modal_strength_inversion": "The experiment is possible (UMR: modal-strength PrtAff vs FullNeg)."
+      },
+      "anticipated_llm_failures": {
+        "double_negation": "'Not impossible' often rewritten as 'likely' — modal strength upgrade not warranted by pure double negation"
+      }
+    },
+    {
+      "id": "S020",
+      "text": "If it is not the case that the alarm did not sound, then the security system did not malfunction.",
+      "category": "C3_nested_negation",
+      "difficulty": "hard",
+      "applicable_rules": ["double_negation", "contraposition"],
+      "gold_outputs": {
+        "double_negation_then_contraposition": "If the security system malfunctioned, then the alarm did not sound."
+      },
+      "anticipated_llm_failures": {
+        "any": "Cascading negations confuse LLMs; common errors include dropping one of the negations or applying contraposition to the wrong clause"
+      }
+    },
+    {
+      "id": "S021",
+      "text": "Every student loves some teacher.",
+      "category": "C4_quantifier_scope",
+      "difficulty": "medium",
+      "applicable_rules": [],
+      "gold_outputs": {
+        "no_equivalent_rewrite": "Surface-level reorderings risk changing scope. ∀x∃y vs ∃y∀x are not equivalent."
+      },
+      "anticipated_llm_failures": {
+        "scope_change": "LLM often produces 'Some teacher is loved by every student' which strengthens to ∃y∀x — logically NOT equivalent",
+        "commutative_misapplied": "If asked to apply 'commutative law' on this, LLM may swap quantifiers"
+      }
+    },
+    {
+      "id": "S022",
+      "text": "If every employee submits their timesheet, then payroll is processed.",
+      "category": "C4_quantifier_scope",
+      "difficulty": "medium",
+      "applicable_rules": ["contraposition"],
+      "gold_outputs": {
+        "contraposition": "If payroll is not processed, then some employee did not submit their timesheet."
+      },
+      "anticipated_llm_failures": {
+        "contraposition": "Negation of universal often incorrectly given as 'no employees submitted' instead of 'some employee did not submit'"
+      }
+    },
+    {
+      "id": "S023",
+      "text": "Some answer in the exam is incorrect.",
+      "category": "C4_quantifier_scope",
+      "difficulty": "easy",
+      "applicable_rules": ["double_negation"],
+      "gold_outputs": {
+        "double_negation_check": "Equivalent to: It is not the case that every answer in the exam is correct."
+      },
+      "anticipated_llm_failures": {
+        "quantifier_negation": "May produce 'No answer is correct' which is much stronger than the original"
+      }
+    },
+    {
+      "id": "S024",
+      "text": "All birds can fly or some birds can swim.",
+      "category": "C4_quantifier_scope",
+      "difficulty": "medium",
+      "applicable_rules": ["commutative", "implication"],
+      "gold_outputs": {
+        "commutative": "Some birds can swim or all birds can fly."
+      },
+      "anticipated_llm_failures": {
+        "commutative": "May 'correct' the factual content (penguins!) and rewrite content, not just reorder"
+      }
+    },
+    {
+      "id": "S025",
+      "text": "Every cat is a mammal and every mammal is a vertebrate.",
+      "category": "C4_quantifier_scope",
+      "difficulty": "hard",
+      "applicable_rules": ["commutative", "transitivity"],
+      "gold_outputs": {
+        "commutative": "Every mammal is a vertebrate and every cat is a mammal.",
+        "transitivity": "Every cat is a vertebrate."
+      },
+      "anticipated_llm_failures": {
+        "transitivity": "LLMs typically do this correctly when prompted, but in a multi-step proof setting often fail to identify when transitivity applies vs when an extra premise is needed"
+      }
+    },
+    {
+      "id": "S026",
+      "text": "If a country produces more goods than it consumes, it exports the surplus to trading partners.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "medium",
+      "applicable_rules": ["contraposition", "implication"],
+      "gold_outputs": {
+        "contraposition": "If a country does not export the surplus to trading partners, then it does not produce more goods than it consumes."
+      },
+      "anticipated_llm_failures": {
+        "contraposition": "Comparative 'more than' is a frequent failure mode: negation 'does not produce more than' is often paraphrased as 'produces less than or equal to' — semantically close but lexically different"
+      }
+    },
+    {
+      "id": "S027",
+      "text": "When the chairperson is unavailable, the vice chair conducts the meeting, and minutes are circulated within 24 hours.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "hard",
+      "applicable_rules": ["commutative", "implication"],
+      "gold_outputs": {
+        "commutative": "When the chairperson is unavailable, minutes are circulated within 24 hours, and the vice chair conducts the meeting."
+      },
+      "anticipated_llm_failures": {
+        "commutative": "Temporal ordering of clauses is often interpreted as causal, leading to refusal or paraphrase that introduces 'after' or 'before'"
+      }
+    },
+    {
+      "id": "S028",
+      "text": "If a software vulnerability is reported and the patch is delayed, then the system is at risk and the security team must be notified.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "hard",
+      "applicable_rules": ["contraposition", "de_morgan", "commutative"],
+      "gold_outputs": {
+        "contraposition": "If the system is not at risk or the security team need not be notified, then either no software vulnerability is reported or the patch is not delayed."
+      },
+      "anticipated_llm_failures": {
+        "contraposition": "Two conjunctions on both sides + modal verb 'must' make this extremely error-prone for LLMs; common failures: dropping De Morgan in one side, weakening 'must' to 'should'"
+      }
+    },
+    {
+      "id": "S029",
+      "text": "Tom Cruise's mother is Mary Lee Pfeiffer.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "easy",
+      "applicable_rules": ["inverse_relation"],
+      "gold_outputs": {
+        "inverse_relation": "Mary Lee Pfeiffer's son is Tom Cruise."
+      },
+      "anticipated_llm_failures": {
+        "reversal_curse_specific": "GPT-4 can write the inverse correctly, but Berglund 2023 shows the model finetuned only on 'A is mother of B' still fails B→A queries — so even when the rewrite text is correct, embedding-level reversal fails. AMR/UMR rule provides explicit symbolic link."
+      }
+    },
+    {
+      "id": "S030",
+      "text": "Marie Curie discovered radium in 1898.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "easy",
+      "applicable_rules": ["inverse_relation", "tense_transformation"],
+      "gold_outputs": {
+        "inverse_relation": "Radium was discovered by Marie Curie in 1898.",
+        "tense_transformation": "Marie Curie discovers radium in 1898. (historical present — UMR aspect distinction)"
+      },
+      "anticipated_llm_failures": {
+        "passive_voice_change": "Inverse relation here = passive voice; LLMs usually do this right but the systematic link between active and passive in semantic graphs is what we want, not pattern matching"
+      }
+    },
+    {
+      "id": "S031",
+      "text": "The teacher praised the student.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "easy",
+      "applicable_rules": ["inverse_relation"],
+      "gold_outputs": {
+        "inverse_relation": "The student was praised by the teacher."
+      }
+    },
+    {
+      "id": "S032",
+      "text": "Alice is married to Bob.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "easy",
+      "applicable_rules": ["symmetric_asymmetric", "inverse_relation"],
+      "gold_outputs": {
+        "symmetric": "Bob is married to Alice. (predicate is symmetric)"
+      },
+      "anticipated_llm_failures": {
+        "asymmetric_misapplied": "Distinguishing 'is married to' (symmetric) from 'is the parent of' (asymmetric) requires predicate-typing knowledge that LLMs sometimes confuse"
+      }
+    },
+    {
+      "id": "S033",
+      "text": "Carlos is taller than Diana.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "easy",
+      "applicable_rules": ["symmetric_asymmetric"],
+      "gold_outputs": {
+        "asymmetric_negation": "Diana is not taller than Carlos.",
+        "inverse_lex": "Diana is shorter than Carlos. (lexical inverse, semantically equivalent if total ordering)"
+      },
+      "anticipated_llm_failures": {
+        "inverse_relation_misapplied": "LLM may produce 'Diana is taller than Carlos' if asked for an 'inverse' without understanding asymmetry"
+      }
+    },
+    {
+      "id": "S034",
+      "text": "Beijing is the capital of China.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "easy",
+      "applicable_rules": ["inverse_relation", "symmetric_asymmetric"],
+      "gold_outputs": {
+        "inverse_relation": "China's capital is Beijing.",
+        "asymmetric_note": "'capital of' is asymmetric — China is not the capital of Beijing"
+      },
+      "anticipated_llm_failures": {
+        "reversal_curse_specific": "Even though LLMs write this correctly, performance on 'What city is the capital of China?' vs 'Of which country is Beijing the capital?' diverges in low-resource fine-tuning"
+      }
+    },
+    {
+      "id": "S035",
+      "text": "The dog barks.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "easy",
+      "applicable_rules": ["predicate_implication"],
+      "gold_outputs": {
+        "predicate_implication": "The dog makes a sound. (barks ⊨ makes_sound via WordNet hypernym)"
+      },
+      "anticipated_llm_failures": {
+        "predicate_implication": "LLM usually does this correctly but inconsistent across predicates; AMR has principled WordNet linkage"
+      }
+    },
+    {
+      "id": "S036",
+      "text": "The robin is a bird.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "easy",
+      "applicable_rules": ["predicate_implication"],
+      "gold_outputs": {
+        "predicate_implication": "The robin is an animal. (bird ⊨ animal)"
+      }
+    },
+    {
+      "id": "S037",
+      "text": "Alice ran a marathon yesterday.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "easy",
+      "applicable_rules": ["tense_transformation", "aspect_equivalence"],
+      "gold_outputs": {
+        "tense_only_naive": "Alice runs a marathon yesterday. (ungrammatical — naive tense swap fails)",
+        "tense_aspect_proper_UMR": "Alice completed a marathon yesterday. (UMR aspect: performance, telic; tense: past)"
+      },
+      "anticipated_llm_failures": {
+        "tense_transformation": "LLM rewrites with shifting aspect (e.g., 'runs' → progressive 'is running') without principled control over UMR's aspect category"
+      }
+    },
+    {
+      "id": "S038",
+      "text": "Alice has been studying for the bar exam.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "medium",
+      "applicable_rules": ["aspect_equivalence"],
+      "gold_outputs": {
+        "aspect_activity": "Alice is engaged in studying for the bar exam. (UMR aspect: activity, atelic ongoing)"
+      },
+      "anticipated_llm_failures": {
+        "aspect_drift": "LLM may paraphrase to 'Alice has studied' (perfect) or 'Alice studies' (habitual), shifting UMR aspect category from activity to performance/habitual"
+      }
+    },
+    {
+      "id": "S039",
+      "text": "Trains depart from this station every hour on weekdays.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "medium",
+      "applicable_rules": ["aspect_equivalence"],
+      "gold_outputs": {
+        "aspect_habitual": "Hourly train departures from this station are a weekday norm. (UMR aspect: habitual)"
+      },
+      "anticipated_llm_failures": {
+        "aspect_drift": "LLM may switch to single-event reading ('A train departs every hour'), losing the habitual quantification"
+      }
+    },
+    {
+      "id": "S040",
+      "text": "Alice must finish her homework before dinner.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "medium",
+      "applicable_rules": ["modal_strength_inversion", "double_negation"],
+      "gold_outputs": {
+        "modal_inversion": "It is not the case that Alice may skip her homework before dinner. (UMR modal-strength: FullAff → not FullNeg)"
+      },
+      "anticipated_llm_failures": {
+        "modal_weakening": "Common output: 'Alice should finish her homework before dinner' — this weakens FullAff to PrtAff, NOT logically equivalent"
+      }
+    },
+    {
+      "id": "S041",
+      "text": "Visitors may use the WiFi after registering at the front desk.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "medium",
+      "applicable_rules": ["modal_strength_inversion"],
+      "gold_outputs": {
+        "modal_inversion": "It is permitted, but not required, for visitors to use the WiFi after registering. (UMR modal-strength: PrtAff)"
+      },
+      "anticipated_llm_failures": {
+        "modal_drift": "LLM may rewrite as 'Visitors can use WiFi after registering' (modal-strength shift may → can, often FullAff in LLM interpretation)"
+      }
+    },
+    {
+      "id": "S042",
+      "text": "The conference cannot be held without proper accreditation.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "medium",
+      "applicable_rules": ["modal_strength_inversion", "double_negation"],
+      "gold_outputs": {
+        "modal_inversion_double_neg": "The conference requires proper accreditation. (cannot...without = FullNeg of FullNeg = FullAff requirement)"
+      },
+      "anticipated_llm_failures": {
+        "modal_weakening": "Common output: 'The conference should have proper accreditation' — should is PrtAff, weaker than FullAff requirement"
+      }
+    },
+    {
+      "id": "S043",
+      "text": "After the manager approved the budget, the team began the project.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "medium",
+      "applicable_rules": ["doc_level_temporal_transitivity"],
+      "gold_outputs": {
+        "temporal_explicit": "Event A: manager approved budget. Event B: team began project. Relation: A :before B"
+      },
+      "anticipated_llm_failures": {
+        "temporal_ambiguity": "When chained with another temporal statement, LLM often fails to compose: A before B + B before C ⇒ A before C is not reliably done in multi-step prompts"
+      }
+    },
+    {
+      "id": "S044",
+      "text": "The flight took off after the weather cleared, which happened after the storm passed.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "hard",
+      "applicable_rules": ["doc_level_temporal_transitivity"],
+      "gold_outputs": {
+        "temporal_chain": "storm passed :before weather cleared :before flight took off (transitivity: storm passed :before flight took off)"
+      },
+      "anticipated_llm_failures": {
+        "temporal_resolution": "LLM may misorder events when relative clause introduces non-default order; explicit UMR :before annotation is unambiguous"
+      }
+    },
+    {
+      "id": "S045",
+      "text": "If every passenger boards by 8 AM and the crew is ready, then the flight departs at 8:15 AM.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "hard",
+      "applicable_rules": ["contraposition", "de_morgan", "doc_level_temporal_transitivity"],
+      "gold_outputs": {
+        "contraposition_with_de_morgan": "If the flight does not depart at 8:15 AM, then either some passenger has not boarded by 8 AM, or the crew is not ready."
+      },
+      "anticipated_llm_failures": {
+        "combined_failure": "Combines quantifier negation, De Morgan, contraposition, and temporal anchor — failure rate cascades multiplicatively"
+      }
+    },
+    {
+      "id": "S046",
+      "text": "The CEO announced the merger, and the stock price rose by 12 percent.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "medium",
+      "applicable_rules": ["commutative", "doc_level_temporal_transitivity"],
+      "gold_outputs": {
+        "commutative_naive": "The stock price rose by 12 percent and the CEO announced the merger. (warning: surface-commutative but implies different causal/temporal reading)",
+        "umr_preserved": "Commutativity holds only at logical level; UMR doc-level temporal :before is preserved separately, so the rule outputs both reorderings as logically equivalent while marking temporal order independently"
+      },
+      "anticipated_llm_failures": {
+        "causal_pragmatics": "LLM refuses to commute when sensing implicit causality, or rewrites with 'after' — both deviate from logical commutativity"
+      }
+    },
+    {
+      "id": "S047",
+      "text": "Marie Curie was awarded the Nobel Prize in Physics in 1903, and she was awarded the Nobel Prize in Chemistry in 1911.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "medium",
+      "applicable_rules": ["commutative", "inverse_relation", "doc_level_temporal_transitivity"],
+      "gold_outputs": {
+        "inverse_per_conjunct": "The Nobel Prize in Physics was awarded to Marie Curie in 1903, and the Nobel Prize in Chemistry was awarded to her in 1911.",
+        "commutative_with_temporal_preserved": "Marie Curie was awarded the Nobel Prize in Chemistry in 1911, and she was awarded the Nobel Prize in Physics in 1903. (logical commutativity OK; temporal order changed)"
+      },
+      "anticipated_llm_failures": {
+        "reversal_curse_compound": "Multiple inverse-relation transforms in sequence; reversal-curse research suggests downstream retrieval performance still degrades for B→A even when text is correct"
+      }
+    },
+    {
+      "id": "S048",
+      "text": "It is mandatory that the report not be released until the audit is complete.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "hard",
+      "applicable_rules": ["modal_strength_inversion", "doc_level_temporal_transitivity", "double_negation"],
+      "gold_outputs": {
+        "modal_temporal": "The report must wait until the audit completes before release. UMR: modal-strength=FullAff on prohibition; temporal :after(audit_complete, report_release)"
+      },
+      "anticipated_llm_failures": {
+        "modal_temporal_mixing": "LLM commonly conflates 'mandatory not' with 'not mandatory', and temporal 'until' anchor is rewritten as 'when' — losing strict ordering"
+      }
+    },
+    {
+      "id": "S049",
+      "text": "If a research finding is significant, it gets published in a top journal, and its citation count grows over time.",
+      "category": "C5_long_complex_prose",
+      "difficulty": "hard",
+      "applicable_rules": ["contraposition", "commutative", "doc_level_temporal_transitivity"],
+      "gold_outputs": {
+        "contraposition_partial": "If a research finding does not get published in a top journal or its citation count does not grow over time, then the finding is not significant."
+      },
+      "anticipated_llm_failures": {
+        "consequent_decomposition": "When the consequent itself is a conjunction with temporal progression, LLMs tend to negate only the first conjunct, losing the temporal claim"
+      }
+    },
+    {
+      "id": "S050",
+      "text": "It is not the case that, if Alice is not invited, then Bob will not attend the party.",
+      "category": "C3_nested_negation",
+      "difficulty": "hard",
+      "applicable_rules": ["double_negation", "contraposition", "implication"],
+      "gold_outputs": {
+        "implication_then_de_morgan": "Alice is not invited, and Bob attends the party.",
+        "explanation": "Apply implication: ¬(¬p → ¬q) ≡ ¬(p ∨ ¬q) ≡ ¬p ∧ q"
+      },
+      "anticipated_llm_failures": {
+        "negated_implication": "Negation of an implication is a famous logic confusion; LLMs often produce 'Alice is not invited and Bob does not attend' (preserving outer negation incorrectly) or 'If Alice is invited, Bob attends' (collapsing to wrong direction)"
+      }
+    }
+  ],
+  "coverage_summary": {
+    "by_rule": {
+      "contraposition": ["S001", "S002", "S003", "S004", "S005", "S006", "S007", "S008", "S020", "S022", "S026", "S028", "S045", "S049", "S050"],
+      "commutative": ["S009", "S010", "S011", "S012", "S016", "S024", "S025", "S027", "S028", "S046", "S047", "S049"],
+      "implication": ["S001", "S002", "S003", "S004", "S005", "S010", "S012", "S016", "S024", "S050"],
+      "double_negation": ["S001", "S002", "S005", "S014", "S017", "S018", "S019", "S020", "S023", "S040", "S042", "S048", "S050"],
+      "de_morgan": ["S007", "S008", "S013", "S014", "S015", "S016", "S028", "S045"],
+      "transitivity": ["S025"],
+      "inverse_relation": ["S029", "S030", "S031", "S032", "S034", "S047"],
+      "symmetric_asymmetric": ["S032", "S033", "S034"],
+      "predicate_implication": ["S035", "S036"],
+      "aspect_equivalence": ["S037", "S038", "S039"],
+      "modal_strength_inversion": ["S019", "S040", "S041", "S042", "S048"],
+      "doc_level_temporal_transitivity": ["S043", "S044", "S045", "S046", "S047", "S048", "S049"],
+      "tense_transformation": ["S030", "S037"]
+    },
+    "by_category": {
+      "C1_basic_implication": ["S001", "S002", "S003", "S004", "S005", "S006", "S007", "S008"],
+      "C2_conjoined_disjoined": ["S009", "S010", "S011", "S012", "S013", "S014", "S015", "S016"],
+      "C3_nested_negation": ["S017", "S018", "S019", "S020", "S050"],
+      "C4_quantifier_scope": ["S021", "S022", "S023", "S024", "S025"],
+      "C5_long_complex_prose": ["S026", "S027", "S028", "S029", "S030", "S031", "S032", "S033", "S034", "S035", "S036", "S037", "S038", "S039", "S040", "S041", "S042", "S043", "S044", "S045", "S046", "S047", "S048", "S049"]
+    },
+    "by_difficulty": {
+      "easy": ["S001", "S002", "S003", "S004", "S005", "S009", "S010", "S011", "S012", "S017", "S018", "S023", "S029", "S030", "S031", "S032", "S033", "S034", "S035", "S036", "S037"],
+      "medium": ["S006", "S007", "S013", "S014", "S015", "S019", "S021", "S022", "S024", "S026", "S038", "S039", "S040", "S041", "S042", "S043", "S046", "S047"],
+      "hard": ["S008", "S016", "S020", "S025", "S027", "S028", "S044", "S045", "S048", "S049", "S050"]
+    }
+  }
+}
