@@ -1,0 +1,288 @@
+{
+  "stock_ok": 8,
+  "v1_ok": 12,
+  "v2_ok": 13,
+  "v3_ok": 16,
+  "items": [
+    {
+      "id": "S004",
+      "rule": "contraposition",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "ok",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "If the water does not boil, it does not reach 100 degrees Celsius at sea level.",
+      "gold": "If the water does not boil, then it does not reach 100 degrees Celsius at sea level."
+    },
+    {
+      "id": "S004",
+      "rule": "implication",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 1, got 2",
+      "v1_status": "self_check_failed: polarity_parity_flipped: expected 1, got 2",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "The water does not reach 100 degrees Celsius at sea level, or it boils.",
+      "gold": null
+    },
+    {
+      "id": "S005",
+      "rule": "contraposition",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "If Mary does not have a driver's license, she does not own a car.",
+      "gold": "If Mary does not have a driver's license, then she does not own a car."
+    },
+    {
+      "id": "S005",
+      "rule": "double_negation",
+      "stock_status": "ok",
+      "v1_status": "ok",
+      "v2_status": "self_check_failed: polarity_parity_flipped: expected 1, got 2",
+      "v3_status": "self_check_failed: polarity_parity_flipped: expected 1, got 2",
+      "v3_output": "If Mary does not own a car, she does not have a driver's license.",
+      "gold": null
+    },
+    {
+      "id": "S005",
+      "rule": "implication",
+      "stock_status": "ok",
+      "v1_status": "ok",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "or a driver's license (Mary does not own a car).",
+      "gold": "Mary does not own a car, or she has a driver's license."
+    },
+    {
+      "id": "S008",
+      "rule": "contraposition",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v2_status": "self_check_failed: polarity_parity_flipped: expected 2, got 3",
+      "v3_status": "self_check_failed: polarity_parity_flipped: expected 2, got 3",
+      "v3_output": "If a patient does not recover within two weeks, they do not take the medication or do not follow the doctor's instructions.",
+      "gold": "If a patient does not recover within two weeks, then they did not take the medication or did not follow the doctor's instructions."
+    },
+    {
+      "id": "S008",
+      "rule": "de_morgan",
+      "stock_status": "rule_did_not_fire: de_morgan",
+      "v1_status": "rule_did_not_fire: de_morgan",
+      "v2_status": "rule_did_not_fire: de_morgan",
+      "v3_status": "rule_did_not_fire: de_morgan",
+      "v3_output": "[rule_did_not_fire: de_morgan]",
+      "gold": null
+    },
+    {
+      "id": "S013",
+      "rule": "de_morgan",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "ok",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "In the case of Alice, she isn't tall or Bob isn't short.",
+      "gold": "Alice is not tall or Bob is not short."
+    },
+    {
+      "id": "S014",
+      "rule": "de_morgan",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v2_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v3_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v3_output": "The meeting was not attended by the manager or the assistant.",
+      "gold": "The manager did not attend the meeting and the assistant did not attend the meeting."
+    },
+    {
+      "id": "S014",
+      "rule": "double_negation",
+      "stock_status": "ok",
+      "v1_status": "ok",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "The managers and assistants attended the meeting.",
+      "gold": null
+    },
+    {
+      "id": "S022",
+      "rule": "contraposition",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "ok",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "If payroll is not processed then, then every employee does not submit their timesheet.",
+      "gold": "If payroll is not processed, then some employee did not submit their timesheet."
+    },
+    {
+      "id": "S026",
+      "rule": "contraposition",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "If a country does not export the surplus to trading partners, it does not produce more goods than it consumes.",
+      "gold": "If a country does not export the surplus to trading partners, then it does not produce more goods than it consumes."
+    },
+    {
+      "id": "S026",
+      "rule": "implication",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 1, got 2",
+      "v1_status": "self_check_failed: polarity_parity_flipped: expected 1, got 2",
+      "v2_status": "self_check_failed: polarity_parity_flipped: expected 1, got 2",
+      "v3_status": "ok",
+      "v3_output": "The country does not produce more goods than it consumes, or it exports the surplus to trading partners.",
+      "gold": null
+    },
+    {
+      "id": "S028",
+      "rule": "commutative",
+      "stock_status": "ok",
+      "v1_status": "ok",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "If a software vulnerability is reported and the patch is delayed, the security team must be notified and the system is at risk.",
+      "gold": null
+    },
+    {
+      "id": "S028",
+      "rule": "contraposition",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "ok",
+      "v2_status": "self_check_failed: polarity_parity_flipped: expected 2, got 3",
+      "v3_status": "self_check_failed: polarity_drift: expected 2, got 4",
+      "v3_output": "If the system is not at risk or the security team must not be notified, the software vulnerability is not reported and the patch is not delayed.",
+      "gold": "If the system is not at risk or the security team need not be notified, then either no software vulnerability is reported or the patch is not delayed."
+    },
+    {
+      "id": "S028",
+      "rule": "de_morgan",
+      "stock_status": "rule_did_not_fire: de_morgan",
+      "v1_status": "rule_did_not_fire: de_morgan",
+      "v2_status": "rule_did_not_fire: de_morgan",
+      "v3_status": "rule_did_not_fire: de_morgan",
+      "v3_output": "[rule_did_not_fire: de_morgan]",
+      "gold": null
+    },
+    {
+      "id": "S040",
+      "rule": "double_negation",
+      "stock_status": "ok",
+      "v1_status": "ok",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "Alice didn't have to finish her homework before dinner.",
+      "gold": null
+    },
+    {
+      "id": "S040",
+      "rule": "modal_strength_inversion",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v2_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v3_status": "ok",
+      "v3_output": "It is not possible that Alice did not finish her homework before dinner.",
+      "gold": null
+    },
+    {
+      "id": "S041",
+      "rule": "modal_strength_inversion",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v2_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v3_status": "ok",
+      "v3_output": "It is not necessary that visitors not use the WiFi after registering at the front desk.",
+      "gold": null
+    },
+    {
+      "id": "S045",
+      "rule": "contraposition",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v2_status": "self_check_failed: polarity_parity_flipped: expected 2, got 3",
+      "v3_status": "self_check_failed: polarity_parity_flipped: expected 2, got 3",
+      "v3_output": "If the flight does not depart at 8:15 am, then every passenger does not board by 8 am and the crew is not ready.",
+      "gold": null
+    },
+    {
+      "id": "S045",
+      "rule": "de_morgan",
+      "stock_status": "rule_did_not_fire: de_morgan",
+      "v1_status": "rule_did_not_fire: de_morgan",
+      "v2_status": "rule_did_not_fire: de_morgan",
+      "v3_status": "rule_did_not_fire: de_morgan",
+      "v3_output": "[rule_did_not_fire: de_morgan]",
+      "gold": null
+    },
+    {
+      "id": "S045",
+      "rule": "doc_level_temporal_transitivity",
+      "stock_status": "rule_did_not_fire: doc_level_temporal_transitivity",
+      "v1_status": "rule_did_not_fire: doc_level_temporal_transitivity",
+      "v2_status": "rule_did_not_fire: doc_level_temporal_transitivity",
+      "v3_status": "rule_did_not_fire: doc_level_temporal_transitivity",
+      "v3_output": "[rule_did_not_fire: doc_level_temporal_transitivity]",
+      "gold": null
+    },
+    {
+      "id": "S048",
+      "rule": "doc_level_temporal_transitivity",
+      "stock_status": "rule_did_not_fire: doc_level_temporal_transitivity",
+      "v1_status": "rule_did_not_fire: doc_level_temporal_transitivity",
+      "v2_status": "rule_did_not_fire: doc_level_temporal_transitivity",
+      "v3_status": "rule_did_not_fire: doc_level_temporal_transitivity",
+      "v3_output": "[rule_did_not_fire: doc_level_temporal_transitivity]",
+      "gold": null
+    },
+    {
+      "id": "S048",
+      "rule": "double_negation",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v2_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v3_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v3_output": "The report is not required to be released until the audit is completed.",
+      "gold": null
+    },
+    {
+      "id": "S048",
+      "rule": "modal_strength_inversion",
+      "stock_status": "ok",
+      "v1_status": "ok",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "The report cannot be released until the audit is completed.",
+      "gold": null
+    },
+    {
+      "id": "S050",
+      "rule": "contraposition",
+      "stock_status": "ok",
+      "v1_status": "ok",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "If Bob did not attend the party, Alice was invited.",
+      "gold": null
+    },
+    {
+      "id": "S050",
+      "rule": "double_negation",
+      "stock_status": "ok",
+      "v1_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v2_status": "ok",
+      "v3_status": "ok",
+      "v3_output": "In the case of Alice, Bob did not attend the party if she was not invited.",
+      "gold": null
+    },
+    {
+      "id": "S050",
+      "rule": "implication",
+      "stock_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v1_status": "ok",
+      "v2_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v3_status": "self_check_failed: polarity_parity_flipped: expected 2, got 1",
+      "v3_output": "Alice was invited or, in no case, Bob did not attend the party.",
+      "gold": null
+    }
+  ]
+}

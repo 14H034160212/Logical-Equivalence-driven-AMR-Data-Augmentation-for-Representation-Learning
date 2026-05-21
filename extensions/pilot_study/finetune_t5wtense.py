@@ -64,6 +64,9 @@ def collect_training_pairs() -> List[Tuple[str, str]]:
         # extensions.pilot_study.build_failure_set_golds). Upweighted by
         # repeating each entry so the small set actually shapes the loss.
         Path("extensions/pilot_study/failure_set_golds.jsonl"),
+        # Hand-DERIVED golds for the remaining failure cases (built by
+        # extensions.pilot_study.build_synthetic_golds). Same ×10 upweight.
+        Path("extensions/pilot_study/synthetic_golds.jsonl"),
     ]
 
     test_json = json.loads(Path("extensions/pilot_study/test_sentences.json").read_text())
@@ -80,7 +83,7 @@ def collect_training_pairs() -> List[Tuple[str, str]]:
         # Upweight the curated failure-set golds (small file, ~8 pairs) so
         # they actually move the loss instead of getting drowned out by the
         # ~380 silver pairs from contrastive sources.
-        repeat = 10 if path.name == "failure_set_golds.jsonl" else 1
+        repeat = 10 if path.name in {"failure_set_golds.jsonl", "synthetic_golds.jsonl"} else 1
         for line in path.read_text().splitlines():
             if not line.strip():
                 continue

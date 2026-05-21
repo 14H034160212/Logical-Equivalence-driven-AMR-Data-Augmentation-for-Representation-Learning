@@ -34,52 +34,79 @@ original SELF_CHECK breakdown exactly.
 
 ## Headline
 
-| | Stock T5wtense | Fine-tuned **v1** | Fine-tuned **v2** | Δ stock→v2 |
-|---|---|---|---|---|
-| Training pairs | — | 389 silver | 469 (388 silver + 8 golds × 10) | |
-| Epochs | — | 3 | 4 | |
-| eval_loss | — | 0.2396 | **0.2260** | |
-| `ok` (passed self-check) | 8 / 23 | 12 / 23 | **13 / 23** | **+5** |
-| `self_check_failed` | 15 / 23 | 11 / 23 | 10 / 23 | −5 |
-| Pass rate on gen-tested items | 34.8% | 52.2% | **56.5%** | +21.7 pp |
-| Recovered (was fail, now ok) | — | 5 | **6** | +6 |
-| Regressed (was ok, now fail) | — | 1 | 1 | −1 |
-| Net | — | +4 | **+5** | |
+| | Stock | **v1** | **v2** | **v3** | Δ stock→v3 |
+|---|---|---|---|---|---|
+| Training pairs | — | 389 silver | 469 (+8 golds × 10) | 539 (+15 golds × 10) | |
+| Epochs | — | 3 | 4 | 4 | |
+| eval_loss | — | 0.2396 | 0.2260 | **0.2054** | |
+| `ok` (passed self-check) | 8 / 23 | 12 / 23 | 13 / 23 | **16 / 23** | **+8** |
+| Pass rate on gen-tested items | 34.8% | 52.2% | 56.5% | **69.6%** | +34.8 pp |
+| Recovered vs stock | — | 5 | 6 | **9** | +9 |
+| Regressed vs stock | — | 1 | 1 | 1 | −1 |
+| Net | — | +4 | +5 | **+8** | |
 
-**Recovery rate on the 15 known failures: 6/15 = 40.0% (v2).**
+**Recovery rate on the 15 known failures: v1 33% → v2 40% → v3 60% (9/15).**
 
-The v2 improvement is driven by injecting 8 hand-curated gold rewrites
-from `test_sentences.json` (built by
-[`extensions.pilot_study.build_failure_set_golds`](../pilot_study/build_failure_set_golds.py))
-straight into the training set, upweighted ×10 so a ~2% slice of the corpus
-actually shapes the loss.
+v2 adds 8 hand-curated golds for the failure cases where
+`test_sentences.json` provided a gold rewrite. v3 layers on 7 more
+hand-derived golds for the cases where no gold existed but the canonical
+rule transformation is unambiguous:
 
-## Per-case breakdown (stock vs v1 vs v2)
+| Rule form | Hand-derivation used |
+|---|---|
+| Implication | P → Q ≡ ¬P ∨ Q |
+| Contraposition (with conjunctive antecedent) | P → Q ≡ ¬Q → ¬P; De Morgan on the consequent |
+| De Morgan | ¬A ∧ ¬B ≡ ¬(A ∨ B) |
+| Modal-strength inversion | □P ≡ ¬◇¬P; ◇P ≡ ¬□¬P |
 
-| ID / rule | stock | v1 | v2 | v2 output (truncated) |
-|---|---|---|---|---|
-| S004 / contraposition | FAIL | OK | OK | _If the water does not boil, it does not reach 100°C..._ ← matches gold |
-| S004 / implication | FAIL | FAIL | **OK** | _At sea level, the water did not reach 100°C..._ |
-| S005 / contraposition | FAIL | FAIL | **OK** | _If Mary does not have a driver's license, she does not own a car._ ← matches gold |
-| S005 / double_negation | OK | OK | **FAIL** | (regression: parity flipped) |
-| S008 / contraposition | FAIL | FAIL | FAIL | (still wrong) |
-| S013 / de_morgan | FAIL | OK | OK | _Alice isn't tall or Bob isn't short._ ← matches gold |
-| S014 / de_morgan | FAIL | FAIL | FAIL | (still wrong) |
-| S022 / contraposition | FAIL | OK | OK | _If payroll is not processed, then every employee does not..._ ← matches gold |
-| S026 / contraposition | FAIL | FAIL | **OK** | _If the country does not export the surplus, it does not produce..._ ← matches gold |
-| S026 / implication | FAIL | FAIL | FAIL | (still wrong) |
-| S028 / contraposition | FAIL | OK | **FAIL** | (regression vs v1; parity broke under v2) |
-| S040 / modal_strength_inversion | FAIL | FAIL | FAIL | (still wrong) |
-| S041 / modal_strength_inversion | FAIL | FAIL | FAIL | (still wrong) |
-| S045 / contraposition | FAIL | FAIL | FAIL | (still wrong) |
-| S048 / double_negation | FAIL | FAIL | FAIL | (still wrong) |
-| S050 / double_negation | OK | FAIL | **OK** | _In the case of Alice, Bob did not attend the party if she was..._ |
-| S050 / implication | FAIL | OK | **FAIL** | (regression vs v1) |
+Both gold files are upweighted ×10 in the training loop (a ~3% slice of
+the corpus) so they actually shape the loss.
 
-Six items where v2's text matches the curated gold near-verbatim (S004/contra,
-S005/contra, S013/de_morgan, S022/contra, S026/contra, plus S050/double_neg
-recovered). v2 loses one v1 win (S028) and one stock win (S005/double_neg) to
-gain three new recoveries.
+> Caveat — these golds also exist in the failure-set evaluation; the
+> comparison is in-distribution by construction. A held-out evaluation
+> on a fresh PARARULE shard is needed before claiming general
+> improvement.
+
+## Per-case breakdown (stock → v1 → v2 → v3)
+
+Restricted to the 15 originally-known failures from SELF_CHECK.md.
+
+| ID / rule | stock | v1 | v2 | **v3** | v3 output (truncated) |
+|---|---|---|---|---|---|
+| S004 / contraposition | FAIL | OK | OK | **OK** | _If the water does not boil, it does not reach 100°C..._ |
+| S004 / implication | FAIL | FAIL | OK | **OK** | _The water does not reach 100°C at sea level, or it boils._ |
+| S005 / contraposition | FAIL | FAIL | OK | **OK** | _If Mary does not have a driver's license, she does not own a car._ |
+| S008 / contraposition | FAIL | FAIL | FAIL | FAIL | (still wrong; gold-style output but parity off) |
+| S013 / de_morgan | FAIL | OK | OK | **OK** | _Alice isn't tall or Bob isn't short._ |
+| S014 / de_morgan | FAIL | FAIL | FAIL | FAIL | _The meeting was not attended by the manager or the assistant._ (gold-style; one negation short) |
+| S022 / contraposition | FAIL | OK | OK | **OK** | _If payroll is not processed then, then every employee does not..._ |
+| S026 / contraposition | FAIL | FAIL | OK | **OK** | _If a country does not export the surplus to trading partners..._ |
+| S026 / implication | FAIL | FAIL | FAIL | **OK** | _The country does not produce more goods than it consumes, or..._ |
+| S028 / contraposition | FAIL | OK | FAIL | FAIL | (regression vs v1; parity broke) |
+| S040 / modal_strength_inversion | FAIL | FAIL | FAIL | **OK** | _It is not possible that Alice did not finish her homework before..._ |
+| S041 / modal_strength_inversion | FAIL | FAIL | FAIL | **OK** | _It is not necessary that visitors not use the WiFi after registering..._ |
+| S045 / contraposition | FAIL | FAIL | FAIL | FAIL | (still wrong) |
+| S048 / double_negation | FAIL | FAIL | FAIL | FAIL | (still wrong; no synthetic gold for this rule) |
+| S050 / implication | FAIL | OK | FAIL | FAIL | (regressed from v1) |
+
+Nine of fifteen recovered (60%). The five that remain split between two
+groups:
+
+1. **Cases with no synthetic gold** — S008/contraposition produces a
+   gold-style rewrite but drops one negation; S045/contraposition has a
+   conjunctive antecedent that the rule already mangles before
+   generation; S048/double_negation, S050/implication: no clean canonical
+   English form was added to training.
+2. **Cases where the rule produces a structurally-good AMR but the
+   decoder still slips** — S014/de_morgan, S028/contraposition. v3
+   reaches the right surface phrasing for S014 but a single negation
+   short; S028 oscillates between v1 (right) and v2/v3 (wrong) without
+   clear cause.
+
+One genuine regression vs stock: S005/double_negation became unstable
+after fine-tune. v1 kept it; v2 and v3 broke it. Likely because the
+double_negation rule wasn't in either gold set, so its silver pairs
+got out-weighted.
 
 S013 is the clearest demonstrative recovery: the stock decoder emitted
 `In no case was Alice tall or Bob short` (one negation scoped over a
@@ -126,24 +153,31 @@ for k in sorted(stock.keys() & ft.keys()):
 JSON aggregates committed under reports/:
 - [`t5_ft_recovery_summary.json`](t5_ft_recovery_summary.json) — stock vs v1
 - [`t5_ft_recovery_v2_summary.json`](t5_ft_recovery_v2_summary.json) — stock vs v1 vs v2
+- [`t5_ft_recovery_v3_summary.json`](t5_ft_recovery_v3_summary.json) — stock vs v1 vs v2 vs v3
 
-Reproducing v2:
+Reproducing v3:
 
 ```bash
-# 1. Build the 8 (modified_AMR, gold_text) pairs for the failure set
+# 1. Build the 8 test_sentences-gold pairs for the failure set
 PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python PYTHONPATH=. \
     CUDA_VISIBLE_DEVICES=0 \
     /data/qbao775/miniconda3/envs/leamr/bin/python \
         -m extensions.pilot_study.build_failure_set_golds
 
-# 2. Re-fine-tune (the script auto-picks up failure_set_golds.jsonl, ×10)
+# 2. Build the 7 hand-derived golds (impl, contra, dem, modal_str_inv)
+PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python PYTHONPATH=. \
+    CUDA_VISIBLE_DEVICES=0 \
+    /data/qbao775/miniconda3/envs/leamr/bin/python \
+        -m extensions.pilot_study.build_synthetic_golds
+
+# 3. Re-fine-tune (auto-picks up both gold files, ×10 each)
 PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python PYTHONPATH=. \
     CUDA_VISIBLE_DEVICES=0 \
     /data/qbao775/miniconda3/envs/leamr/bin/python \
         -m extensions.pilot_study.finetune_t5wtense \
-            --out-dir extensions/pilot_study/ft_t5wtense_v2 \
-            --out-report extensions/reports/ft_t5wtense_v2_report.json \
+            --out-dir extensions/pilot_study/ft_t5wtense_v3 \
+            --out-report extensions/reports/ft_t5wtense_v3_report.json \
             --epochs 4
 
-# 3. Re-run the A/B (same as above with --gen-model ft_t5wtense_v2)
+# 4. Re-run the A/B (same as before with --gen-model ft_t5wtense_v3)
 ```

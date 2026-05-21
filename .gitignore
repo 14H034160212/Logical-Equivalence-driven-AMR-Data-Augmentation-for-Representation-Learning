@@ -28,6 +28,7 @@ extensions/umr/aspect_classifier.pkl
 extensions/rl/ckpts/
 extensions/pilot_study/ft_t5wtense/
 extensions/pilot_study/ft_t5wtense_v2/
+extensions/pilot_study/ft_t5wtense_v3/
 
 # IDE
 .vscode/
