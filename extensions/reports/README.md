@@ -59,6 +59,10 @@ JSON aggregates ship alongside the markdown:
   AMR-to-text generator to preserve `:polarity -` edges. 389 silver pairs
   harvested from the pilot, 3 epochs, eval_loss **0.278 → 0.240**.
   JSON: [ft_t5wtense_report.json](ft_t5wtense_report.json).
+- [T5_FT_RECOVERY.md](T5_FT_RECOVERY.md) — A/B of the AMR-LDA pipeline
+  on the 15 known polarity-flips with stock vs fine-tuned T5wtense.
+  Pass rate **34.8% → 52.2%**; recovered 5/15, regressed 1.
+  JSON: [t5_ft_recovery_summary.json](t5_ft_recovery_summary.json).
 
 ## AMR → UMR converter
 
