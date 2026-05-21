@@ -141,7 +141,7 @@ def _parse_sentence_block(block: str, doc_id: str) -> Optional[UMRSentence]:
         return None
 
     text = " ".join(tokens) if tokens else (english or "")
-    return UMRSentence(
+    sent = UMRSentence(
         sent_id=sent_id or f"{doc_id}_unknown",
         doc_id=doc_id,
         text=text,
@@ -153,6 +153,9 @@ def _parse_sentence_block(block: str, doc_id: str) -> Optional[UMRSentence]:
         aspect_attrs=_extract_attr(umr_penman, "aspect"),
         modal_attrs=_extract_attr(umr_penman, "modal-strength"),
     )
+    # Attach raw document lines so callers can parse them via document.py
+    sent._document_lines = document_lines  # type: ignore[attr-defined]
+    return sent
 
 
 def _parse_alignment(lines: List[str]) -> List[Tuple[str, Tuple[int, int]]]:
