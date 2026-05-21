@@ -37,6 +37,12 @@ JSON aggregates ship alongside the markdown:
 - [run6_summary_by_verifier.json](run6_summary_by_verifier.json) — V1 vs V2 EQ rates
 - [run6_summary_by_system.json](run6_summary_by_system.json) — consensus per system
 
+## Integration guides
+
+- [MULTI_LLM_SETUP.md](MULTI_LLM_SETUP.md) — how to add Claude / DeepSeek /
+  Llama-3-70B baselines (code already supports them; needs API keys + a
+  small re-run)
+
 ## AMR → UMR converter
 
 - [UMR_CONVERTER.md](UMR_CONVERTER.md) — Post et al. 2024 reproduction.
