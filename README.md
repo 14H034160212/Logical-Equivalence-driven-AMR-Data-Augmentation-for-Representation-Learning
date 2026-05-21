@@ -87,6 +87,7 @@ AMR-LDA quality improved **8.6% → 43.8%** (5×) across 4 patch rounds. See:
 - 📊 **[Three-way comparison](extensions/reports/THREE_WAY_v4.md)** — system × rule × verifier breakdown
 - 📈 **[Improvement trajectory](extensions/reports/TRAJECTORY_v2.md)** — per-run gains across all patches
 - 🔬 **[Self-check analysis](extensions/reports/SELF_CHECK.md)** — 15 detected generator polarity-flips
+- 🧬 **[AMR → UMR converter](extensions/reports/UMR_CONVERTER.md)** — Post et al. 2024 reproduction, F1 43.7% (aspect) / 27.2% (modal)
 - 🔧 **[Reports index](extensions/reports/README.md)** — all generated reports + JSON aggregates
 - 📝 **[Red-line failure cases](extensions/pilot_study/red_line_cases.md)** — 5 paper-ready exhibits
 - 🎯 **[Human-eval rubric](extensions/pilot_study/human_eval_rubric.md)** — spot-check protocol for verifier disagreement

@@ -36,3 +36,10 @@ JSON aggregates ship alongside the markdown:
 - [pilot_summary.json](pilot_summary.json) — per-rule equivalence rates per LLM
 - [run6_summary_by_verifier.json](run6_summary_by_verifier.json) — V1 vs V2 EQ rates
 - [run6_summary_by_system.json](run6_summary_by_system.json) — consensus per system
+
+## AMR → UMR converter
+
+- [UMR_CONVERTER.md](UMR_CONVERTER.md) — rule-based reproduction of Post et al. 2024,
+  validated against UMR 2.0 English gold (596 sentences). Achieves F1 43.7%
+  on aspect, F1 27.2% on modal-strength using ~100-frame dictionary + heuristics.
+- [umr_validation_report.json](umr_validation_report.json) — full per-label breakdown
