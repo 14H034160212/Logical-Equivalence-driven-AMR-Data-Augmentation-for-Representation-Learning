@@ -6,6 +6,34 @@ amrlib/data
 *.egg-info/
 .private/
 __pycache__
+__pycache__/
 *.pyc
 *.swp
 *.log
+
+# Large training artifacts (kept locally, never committed)
+BERT/Checkpoints/
+BERT/Transformers/
+BERT/wandb/
+BERT/logiqa_data/cached_*
+BERT/reclor_data/cached_*
+
+# Extensions runtime outputs
+extensions/pilot_study/results/
+extensions/auto_verifier/results/
+extensions/umr/umr-data/
+extensions/umr/*.json
+
+# IDE
+.vscode/
+.idea/
+
+# Secrets — NEVER commit
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+.openai_*
+.anthropic_*
