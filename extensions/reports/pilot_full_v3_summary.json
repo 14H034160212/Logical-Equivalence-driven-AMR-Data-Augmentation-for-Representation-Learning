@@ -1,0 +1,74 @@
+{
+  "total": 90,
+  "stock_ok": 62,
+  "v3_ok": 67,
+  "recovered": 9,
+  "lost": 4,
+  "by_rule": {
+    "contraposition": {
+      "stock_ok": 8,
+      "v3_ok": 11,
+      "total": 15
+    },
+    "double_negation": {
+      "stock_ok": 13,
+      "v3_ok": 11,
+      "total": 14
+    },
+    "implication": {
+      "stock_ok": 9,
+      "v3_ok": 10,
+      "total": 12
+    },
+    "de_morgan": {
+      "stock_ok": 1,
+      "v3_ok": 2,
+      "total": 8
+    },
+    "commutative": {
+      "stock_ok": 12,
+      "v3_ok": 12,
+      "total": 12
+    },
+    "modal_strength_inversion": {
+      "stock_ok": 3,
+      "v3_ok": 5,
+      "total": 5
+    },
+    "transitivity": {
+      "stock_ok": 0,
+      "v3_ok": 0,
+      "total": 1
+    },
+    "inverse_relation": {
+      "stock_ok": 5,
+      "v3_ok": 5,
+      "total": 6
+    },
+    "tense_transformation": {
+      "stock_ok": 2,
+      "v3_ok": 2,
+      "total": 2
+    },
+    "symmetric_asymmetric": {
+      "stock_ok": 2,
+      "v3_ok": 2,
+      "total": 3
+    },
+    "predicate_implication": {
+      "stock_ok": 2,
+      "v3_ok": 2,
+      "total": 2
+    },
+    "aspect_equivalence": {
+      "stock_ok": 3,
+      "v3_ok": 3,
+      "total": 3
+    },
+    "doc_level_temporal_transitivity": {
+      "stock_ok": 2,
+      "v3_ok": 2,
+      "total": 7
+    }
+  }
+}

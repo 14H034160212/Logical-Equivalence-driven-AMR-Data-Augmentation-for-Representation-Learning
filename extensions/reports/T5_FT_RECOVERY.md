@@ -133,6 +133,69 @@ not the De Morgan target). The fine-tuned decoder emits the correct
   to seed the fine-tune, and where the stock decoder emits a fluent but
   logically wrong surface that the v2 model still can't override.
 
+## Full-pilot replication with v3 (the 49-sentence × 13-rule run, not just the failure subset)
+
+The numbers above are restricted to the 15 SELF_CHECK failure IDs. Re-running
+the same `generate_amr_lda` script on the full 49-sentence pilot (the run-6
+configuration, 90 (sentence, rule) items) with the v3 checkpoint gives the
+broader picture:
+
+| | Stock T5wtense | **v3 T5wtense** | Δ |
+|---|---|---|---|
+| Self-check pass rate | 62 / 90 (68.9%) | **67 / 90 (74.4%)** | **+5.5 pp** |
+| Recovered (stock FAIL → v3 OK) | — | **9** | |
+| Regressed (stock OK → v3 FAIL) | — | 4 | |
+| Net | — | **+5** | |
+
+By-rule (only rules with a change shown):
+
+| Rule | Stock | v3 |
+|---|---|---|
+| contraposition | 8 / 15 | **11 / 15** |
+| de_morgan | 1 / 8 | 2 / 8 |
+| double_negation | 13 / 14 | **11 / 14** ← regressed |
+| implication | 9 / 12 | 10 / 12 |
+| modal_strength_inversion | 3 / 5 | **5 / 5** |
+
+The four rules that received gold injection (contra, de_morgan, impl,
+modal_str_inv) all show net improvement on the full pilot. The one rule
+that did not (double_negation) regresses by 2 items, confirming the v2/v3
+oscillation on S005 was not noise — without a gold anchor, the silver
+training pairs were pulling the model away from the stock-correct
+double_negation pattern.
+
+Recovered cases on the full pilot (9 — all from the failure set, no
+spurious wins on stock-passing items):
+
+```
+S004 contraposition           → If the water does not boil, it does not reach 100°C…
+S004 implication              → The water does not reach 100°C at sea level, or it boils.
+S005 contraposition           → If Mary does not have a driver's license, she does not own a car.
+S013 de_morgan                → In the case of Alice, she isn't tall or Bob isn't short.
+S022 contraposition           → If payroll is not processed then, then every employee does not…
+S026 contraposition           → If a country does not export the surplus to trading partners…
+S026 implication              → The country does not produce more goods than it consumes, or…
+S040 modal_strength_inversion → It is not possible that Alice did not finish her homework before…
+S041 modal_strength_inversion → It is not necessary that visitors not use the WiFi after registering…
+```
+
+Regressed cases (4):
+
+```
+S001 implication              → "Not studying hard or passing the exam, Alice."   (fluency loss)
+S005 double_negation          → polarity parity flipped (no double_neg gold)
+S006 contraposition           → polarity parity flipped (silver overrode stock)
+S042 double_negation          → polarity parity flipped (no double_neg gold)
+```
+
+JSON: [`pilot_full_v3_summary.json`](pilot_full_v3_summary.json).
+
+Implication: the gold-injection approach generalises beyond the failure
+subset, but the rules without gold anchors give up small ground. The
+next-step fix is to extend the gold curation to double_negation (and
+keep the silver-only rules from drifting). See [SELF_CHECK.md](SELF_CHECK.md)
+for the original failure inventory.
+
 ## Reproducing the diff
 
 ```bash
