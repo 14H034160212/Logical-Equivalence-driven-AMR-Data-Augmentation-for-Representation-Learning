@@ -1,0 +1,88 @@
+{
+  "total": 90,
+  "stock_ok": 62,
+  "v4_ok": 71,
+  "rulefix_ok": 74,
+  "rulefix_recovered_vs_v4": 3,
+  "rulefix_regressed_vs_v4": 0,
+  "by_rule": {
+    "contraposition": {
+      "total": 15,
+      "stock": 8,
+      "v4": 12,
+      "rulefix": 15
+    },
+    "double_negation": {
+      "total": 14,
+      "stock": 13,
+      "v4": 13,
+      "rulefix": 13
+    },
+    "implication": {
+      "total": 12,
+      "stock": 9,
+      "v4": 11,
+      "rulefix": 11
+    },
+    "de_morgan": {
+      "total": 8,
+      "stock": 1,
+      "v4": 2,
+      "rulefix": 2
+    },
+    "commutative": {
+      "total": 12,
+      "stock": 12,
+      "v4": 12,
+      "rulefix": 12
+    },
+    "modal_strength_inversion": {
+      "total": 5,
+      "stock": 3,
+      "v4": 5,
+      "rulefix": 5
+    },
+    "transitivity": {
+      "total": 1,
+      "stock": 0,
+      "v4": 0,
+      "rulefix": 0
+    },
+    "inverse_relation": {
+      "total": 6,
+      "stock": 5,
+      "v4": 5,
+      "rulefix": 5
+    },
+    "tense_transformation": {
+      "total": 2,
+      "stock": 2,
+      "v4": 2,
+      "rulefix": 2
+    },
+    "symmetric_asymmetric": {
+      "total": 3,
+      "stock": 2,
+      "v4": 2,
+      "rulefix": 2
+    },
+    "predicate_implication": {
+      "total": 2,
+      "stock": 2,
+      "v4": 2,
+      "rulefix": 2
+    },
+    "aspect_equivalence": {
+      "total": 3,
+      "stock": 3,
+      "v4": 3,
+      "rulefix": 3
+    },
+    "doc_level_temporal_transitivity": {
+      "total": 7,
+      "stock": 2,
+      "v4": 2,
+      "rulefix": 2
+    }
+  }
+}

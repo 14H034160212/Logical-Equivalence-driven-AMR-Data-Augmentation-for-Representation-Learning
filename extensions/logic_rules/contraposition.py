@@ -25,6 +25,7 @@ from .base import (
     LogicRule,
     RuleMatch,
     has_polarity_neg,
+    negate_with_demorgan,
     register,
     swap_roles,
     toggle_polarity_neg,
@@ -85,8 +86,11 @@ class ContrapositionRule(LogicRule):
             a, b = swap_roles(g, anchor, ":ARG1", ":ARG2")
             if a is None:
                 return None
-            toggle_polarity_neg(g, arg1)
-            toggle_polarity_neg(g, arg2)
+            # Use De Morgan-aware negation so conjunctive antecedents/
+            # consequents (e.g. S008/S028/S045) end up with the polarity
+            # count that matches how T5wtense renders them.
+            negate_with_demorgan(g, arg1)
+            negate_with_demorgan(g, arg2)
             return g
 
         if style == "condition_role":
@@ -99,9 +103,9 @@ class ContrapositionRule(LogicRule):
                 return None
             # Reverse the condition direction
             g.triples.append((ant, ":condition", cons))
-            # Toggle polarity on both sides — implements ¬B → ¬A
-            toggle_polarity_neg(g, cons)
-            toggle_polarity_neg(g, ant)
+            # ¬B → ¬A with De Morgan distribution over and/or operands.
+            negate_with_demorgan(g, cons)
+            negate_with_demorgan(g, ant)
             # Re-root the graph at the new top (formerly antecedent)
             # penman.Graph stores the top in `_top` (penman >= 1.1); fall back if missing.
             try:

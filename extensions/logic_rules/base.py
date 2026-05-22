@@ -171,6 +171,33 @@ def toggle_polarity_neg(g: penman.Graph, node: str) -> None:
         g.triples.append(triple)
 
 
+def negate_with_demorgan(g: penman.Graph, node: str) -> None:
+    """Apply ¬ to `node` and distribute over conjunction/disjunction via De Morgan.
+
+    - ¬(A ∧ B) → (¬A) ∨ (¬B)  → in AMR: switch `and` → `or`, recurse into each :op
+    - ¬(A ∨ B) → (¬A) ∧ (¬B)  → switch `or` → `and`, recurse into each :op
+    - ¬atom    → toggle `:polarity -` on the atom
+
+    The distributed form keeps the polarity count aligned with how T5wtense
+    actually renders negated conjunctions ("not A or not B"), so the
+    self-consistency check passes on conjunctive-antecedent contraposition
+    cases like S008, S028, S045.
+    """
+    concept = find_instance_target(g, node)
+    if concept == "and":
+        replace_instance(g, node, "or")
+        for s, role, t in list(g.triples):
+            if s == node and role.startswith(":op"):
+                negate_with_demorgan(g, t)
+    elif concept == "or":
+        replace_instance(g, node, "and")
+        for s, role, t in list(g.triples):
+            if s == node and role.startswith(":op"):
+                negate_with_demorgan(g, t)
+    else:
+        toggle_polarity_neg(g, node)
+
+
 def find_instance_target(g: penman.Graph, node: str) -> Optional[str]:
     """Return the AMR concept (e.g. 'have-condition-91') for a given node."""
     for s, role, t in g.triples:
