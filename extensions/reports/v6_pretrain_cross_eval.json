@@ -1,0 +1,27 @@
+{
+  "metadata": {
+    "model": "microsoft/deberta-large",
+    "max_length": 256,
+    "batch_size": 32,
+    "epochs": 10,
+    "learning_rate": 2e-5,
+    "weight_decay": 0.0,
+    "seed": 2021,
+    "hardware": "1x A100 80GB",
+    "wallclock_min": 23
+  },
+  "in_distribution": {
+    "v5_train_v5_eval": 0.9931531531531531,
+    "v6_train_v6_eval": 0.9842857142857143,
+    "v5_train_v6_eval": 0.8385714285714285,
+    "v6_train_v5_eval": 0.9448648648648649
+  },
+  "out_of_distribution_drop": {
+    "v5_trained": 0.15458,
+    "v6_trained": 0.03942
+  },
+  "val_set_size": {
+    "v5_val": 2775,
+    "v6_val": 2800
+  }
+}
