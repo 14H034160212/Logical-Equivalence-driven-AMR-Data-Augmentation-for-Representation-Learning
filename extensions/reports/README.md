@@ -59,6 +59,27 @@ JSON aggregates ship alongside the markdown:
   AMR-to-text generator to preserve `:polarity -` edges. 389 silver pairs
   harvested from the pilot, 3 epochs, eval_loss **0.278 → 0.240**.
   JSON: [ft_t5wtense_report.json](ft_t5wtense_report.json).
+
+## v6 contrastive + ReClor + held-out (full downstream story)
+
+- [V6_CONTRASTIVE_PRETRAIN.md](V6_CONTRASTIVE_PRETRAIN.md) — v4 T5 →
+  v6 contrastive corpus → DeBERTa-large. In-distribution v6 98.4% vs
+  v5 99.3%, but cross-eval shows v6-trained generalises +10pp better.
+- [V6_RECLOR.md](V6_RECLOR.md) — ReClor downstream fine-tune on top
+  of the two backbones. v6 **wins +0.8 pp dev_acc (63.6% vs 62.8%)**.
+- [HELDOUT_PARARULE.md](HELDOUT_PARARULE.md) — 60-sentence held-out
+  PARARULE-Plus Depth5 shard, self-check pass rate **70.6% → 72.0%**.
+
+## Paper figures
+
+Auto-generated from the JSON aggregates by
+[`extensions/pilot_study/make_paper_figures.py`](../pilot_study/make_paper_figures.py).
+Saved to [figures/](figures/):
+
+- ![fig1](figures/fig1_t5_trajectory.png) — T5wtense fine-tune trajectory v1→v4
+- ![fig2](figures/fig2_v6_cross_eval.png) — v5/v6 contrastive cross-eval heatmap
+- ![fig3](figures/fig3_reclor_trajectory.png) — ReClor dev-acc trajectory
+- ![fig4](figures/fig4_heldout_pararule.png) — held-out PARARULE by-rule pass rate
 - [T5_FT_RECOVERY.md](T5_FT_RECOVERY.md) — A/B of the AMR-LDA pipeline
   on the 15 known polarity-flips with stock vs fine-tuned T5wtense across
   v1/v2/v3/v4. Final pass rate **34.8% → 73.9%** (subset),
