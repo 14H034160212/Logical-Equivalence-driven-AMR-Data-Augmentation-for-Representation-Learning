@@ -1,0 +1,38 @@
+{
+  "metadata": {
+    "backbone": "microsoft/deberta-large",
+    "task": "reclor",
+    "max_length": 256,
+    "per_gpu_train_batch_size": 4,
+    "gradient_accumulation_steps": 6,
+    "epochs": 10,
+    "learning_rate": 1e-5,
+    "weight_decay": 0.01,
+    "warmup_proportion": 0.1,
+    "fp16": true,
+    "seed": 21,
+    "hardware": "1x A100 80GB",
+    "wallclock_min_each": 55
+  },
+  "best_dev_acc": {
+    "v5_stock": 0.628,
+    "v6_v4_t5": 0.636
+  },
+  "delta_v6_minus_v5": 0.008,
+  "best_step": {
+    "v5": 1600,
+    "v6": 1600
+  },
+  "dev_acc_per_step": {
+    "200":  {"v5": 0.316, "v6": 0.386},
+    "400":  {"v5": 0.482, "v6": 0.552},
+    "600":  {"v5": 0.530, "v6": 0.548},
+    "800":  {"v5": 0.554, "v6": 0.580},
+    "1000": {"v5": 0.584, "v6": 0.588},
+    "1200": {"v5": 0.598, "v6": 0.622},
+    "1400": {"v5": 0.608, "v6": 0.618},
+    "1600": {"v5": 0.628, "v6": 0.636},
+    "1800": {"v5": 0.628, "v6": 0.628},
+    "1930": {"v5": 0.628, "v6": 0.634}
+  }
+}

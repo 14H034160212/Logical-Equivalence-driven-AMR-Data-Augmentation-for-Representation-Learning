@@ -46,8 +46,11 @@ from transformers import (
     DebertaV2Config,
     DebertaV2ForMultipleChoice,
     DebertaV2Tokenizer,
+    DebertaConfig,
+    DebertaTokenizer,
     get_linear_schedule_with_warmup,
 )
+from deberta_multiple_choice import DebertaForMultipleChoice
 from utils_multiple_choice import convert_examples_to_features, processors
 
 
@@ -69,6 +72,7 @@ MODEL_CLASSES = {
     "roberta": (RobertaConfig, RobertaForMultipleChoice, RobertaTokenizer),
     "albert": (AlbertConfig, AlbertForMultipleChoice, AlbertTokenizer),
     "debertav2": (DebertaV2Config, DebertaV2ForMultipleChoice, DebertaV2Tokenizer),
+    "deberta": (DebertaConfig, DebertaForMultipleChoice, DebertaTokenizer),
 }
 
 

@@ -34,6 +34,8 @@ extensions/pilot_study/ft_t5wtense_v4/
 # Heavy v6 contrastive pretrain checkpoints (~1.6GB each)
 BERT/Transformers/deberta-large-our-model-v6/
 BERT/Transformers/deberta-large-our-model-v5-fresh/
+BERT/Checkpoints/reclor/deberta-large-v5-fresh/
+BERT/Checkpoints/reclor/deberta-large-v6/
 
 # IDE
 .vscode/

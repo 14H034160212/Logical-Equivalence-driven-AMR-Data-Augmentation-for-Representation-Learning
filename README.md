@@ -94,6 +94,7 @@ AMR-LDA quality improved **8.6% → 43.8%** (5×) across 4 patch rounds. See:
 - 🛠 **[T5wtense fine-tune](extensions/reports/T5_FINETUNE_RESULTS.md)** — 389 (AMR, text) pairs from pilot; eval_loss 0.278 → 0.240 over 3 epochs (~50 s on one A100), targeting the 19% polarity-drop failure mode
 - 🎯 **[T5 fine-tune end-to-end recovery](extensions/reports/T5_FT_RECOVERY.md)** — pilot A/B on the 15 known polarity-flips: pass rate **34.8% → 73.9%** (v4). **Full 49-sentence pilot self-check pass rate: 68.9% → 78.9%** (+9 recoveries, 0 regressions vs stock).
 - 🧪 **[v6 contrastive pretraining](extensions/reports/V6_CONTRASTIVE_PRETRAIN.md)** — DeBERTa-large pretrained on v4-T5-regenerated contrastive data; in-distribution 98.4% vs v5 99.3% but **v6-trained model loses only 3.9 pp out-of-distribution vs v5-trained's 15.5 pp** — cleaner generator → more robust classifier.
+- 🏆 **[v6 ReClor downstream](extensions/reports/V6_RECLOR.md)** — DeBERTa-large fine-tuned on ReClor on top of v5 vs v6 backbones, same hparams. **v6 wins +0.8 pp on dev_acc (63.6% vs 62.8%)** and leads at every evaluation step.
 - 📑 **[v4 T5 consensus impact](extensions/reports/T5_FT_CONSENSUS.md)** — re-running the AMR+SMATCH consensus verifier on the v4 pilot output: AMR-LDA V1 EQ-rate 75.4% → 76.5% (modest at the consensus level; the bigger win is upstream at self-check).
 - 🔌 **[Multi-LLM setup guide](extensions/reports/MULTI_LLM_SETUP.md)** — adding Claude / DeepSeek / Llama-3-70B baselines
 - 🔧 **[Reports index](extensions/reports/README.md)** — all generated reports + JSON aggregates
