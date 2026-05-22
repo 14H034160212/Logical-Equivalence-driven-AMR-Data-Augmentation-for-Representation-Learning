@@ -1,0 +1,33 @@
+{
+  "shard": "PARARULE-Plus Depth5 test (60 held-out sentences)",
+  "total_items": 300,
+  "gen_tested_stock": 143,
+  "gen_tested_v4": 143,
+  "intersected": 143,
+  "stock_ok": 101,
+  "v4_ok": 103,
+  "recovered": 16,
+  "regressed": 14,
+  "by_rule": {
+    "double_negation": {
+      "total": 60,
+      "stock_ok": 49,
+      "v4_ok": 55
+    },
+    "contraposition": {
+      "total": 37,
+      "stock_ok": 22,
+      "v4_ok": 23
+    },
+    "implication": {
+      "total": 37,
+      "stock_ok": 21,
+      "v4_ok": 18
+    },
+    "commutative": {
+      "total": 9,
+      "stock_ok": 9,
+      "v4_ok": 7
+    }
+  }
+}

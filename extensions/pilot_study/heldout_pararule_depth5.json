@@ -1,0 +1,664 @@
+{
+  "sentences": [
+    {
+      "id": "HO_000",
+      "text": "The bald eagle is boring.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_001",
+      "text": "The dinosaur is heavy.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_002",
+      "text": "The bald eagle likes the dog.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_003",
+      "text": "The dinosaur attacks the rabbit.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_004",
+      "text": "The rabbit is furry.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_005",
+      "text": "If something is not round then it chases the dog.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_006",
+      "text": "If something chases the dog then it is reckless.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_007",
+      "text": "If something is lovely and not fierce then it is funny.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_008",
+      "text": "If something is heavy and not kind then it is powerful.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_009",
+      "text": "If something is boring and rough then it is fierce.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_010",
+      "text": "If something is fierce and not lovely then it is big.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_011",
+      "text": "If something is small then it is smart.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_012",
+      "text": "If something is smart then it is kind.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_013",
+      "text": "All kind animals are quiet.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_014",
+      "text": "All funny animals are clever.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_015",
+      "text": "If something is clever then it is nice.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_016",
+      "text": "All nice animals are beautiful.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_017",
+      "text": "If something is powerful then it is strong.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_018",
+      "text": "If something is strong then it is sleepy.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_019",
+      "text": "All sleepy animals are tired.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_020",
+      "text": "If something is big then it is awful.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_021",
+      "text": "If something is awful then it is dull.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_022",
+      "text": "All dull animals are slow.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_023",
+      "text": "All reckless animals are lazy.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_024",
+      "text": "If something is lazy then it is angry.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_025",
+      "text": "All angry animals are horrible.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_026",
+      "text": "Dave is big.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_027",
+      "text": "Dave is huge.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_028",
+      "text": "If someone is not poor then they are nice.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_029",
+      "text": "If someone is kind then they are clever.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_030",
+      "text": "If someone is clever and not rough then they are wealthy.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_031",
+      "text": "If someone is bad then they are short.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_032",
+      "text": "If someone is short then they are little.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_033",
+      "text": "All little people are poor.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_034",
+      "text": "If someone is rough and not clever then they are sad.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_035",
+      "text": "If someone is sad then they are fashion.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_036",
+      "text": "If someone is fashion then they are energetic.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_037",
+      "text": "If someone is energetic then they are young.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_038",
+      "text": "If someone is nice then they are smart.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_039",
+      "text": "If someone is smart then they are quiet.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_040",
+      "text": "If someone is quiet then they are clever.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_041",
+      "text": "All clever people are smart.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_042",
+      "text": "If someone is wealthy then they are famous.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_043",
+      "text": "If someone is famous then they are old.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_044",
+      "text": "All old people are experienced.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_045",
+      "text": "Alan is strong.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_046",
+      "text": "Alan is huge.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_047",
+      "text": "Erin is tiny.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_048",
+      "text": "Harry is rough.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_049",
+      "text": "If someone is thin and tiny then they are little.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_050",
+      "text": "If someone is poor and bad then they are sad.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_051",
+      "text": "If someone is smart and quiet then they are nice.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_052",
+      "text": "If someone is little then they are small.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_053",
+      "text": "If someone is small then they are short.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_054",
+      "text": "If someone is short then they are rough.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_055",
+      "text": "All rough people are bad.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_056",
+      "text": "If someone is smart then they are quiet.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_057",
+      "text": "If someone is quiet then they are kind.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_058",
+      "text": "If someone is kind then they are big.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    },
+    {
+      "id": "HO_059",
+      "text": "All big people are heavy.",
+      "applicable_rules": [
+        "contraposition",
+        "double_negation",
+        "implication",
+        "de_morgan",
+        "commutative"
+      ]
+    }
+  ]
+}
