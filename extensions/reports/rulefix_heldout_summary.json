@@ -1,0 +1,32 @@
+{
+  "total": 143,
+  "stock_ok": 101,
+  "v4_ok": 103,
+  "rulefix_ok": 105,
+  "by_rule": {
+    "double_negation": {
+      "total": 60,
+      "stock": 49,
+      "v4": 55,
+      "fix": 55
+    },
+    "contraposition": {
+      "total": 37,
+      "stock": 22,
+      "v4": 23,
+      "fix": 25
+    },
+    "implication": {
+      "total": 37,
+      "stock": 21,
+      "v4": 18,
+      "fix": 18
+    },
+    "commutative": {
+      "total": 9,
+      "stock": 9,
+      "v4": 7,
+      "fix": 7
+    }
+  }
+}
