@@ -1,0 +1,32 @@
+{
+  "dataset": {
+    "v8_list_csv": "legacy/data/Synthetic_xfm_t5wtense_logical_equivalence_list_v8.csv",
+    "v8_rows": 14178,
+    "train_rows": 11342,
+    "val_rows": 2836,
+    "label_balance_train": {"0": 5778, "1": 5564},
+    "tag_breakdown": {
+      "Implication law": 6858,
+      "Commutative law": 3680,
+      "Contraposition law": 3458,
+      "Double negation law": 182
+    }
+  },
+  "contrastive_pretrain_eval_acc": {
+    "v5": 0.9931531531531531,
+    "v6": 0.9842857142857143,
+    "v7": 0.9842857142857143,
+    "v8": 0.9844851904090268
+  },
+  "downstream_seed21": {
+    "reclor": {"v5": 0.628, "v6": 0.636, "v7": 0.636, "v8": 0.630},
+    "logiqa": {"v5": 0.4101, "v6": 0.3917, "v7": 0.3917, "v8": 0.3871}
+  },
+  "logiqa_v8_trajectory": {
+    "200": 0.2673, "400": 0.2550, "600": 0.3410, "800": 0.3456, "1000": 0.3502,
+    "1200": 0.3410, "1400": 0.3364, "1600": 0.3610, "1800": 0.3410, "2000": 0.3702,
+    "2200": 0.3656, "2400": 0.3825, "2600": 0.3794, "2800": 0.3871, "3000": 0.3825,
+    "3070": 0.3779
+  },
+  "conclusion": "Adding the 182 legacy double_negation rows does NOT close the v6 LogiQA reverse. The LogiQA gap is not a missing-rule problem; more likely v4 T5 produces structurally tighter pairs that strip surface-form diversity helpful for LogiQA's multi-hop reasoning."
+}
