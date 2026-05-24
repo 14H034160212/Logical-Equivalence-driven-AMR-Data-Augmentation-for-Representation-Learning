@@ -1,0 +1,156 @@
+{
+  "v5_stock": {
+    "n_rows": 14180,
+    "n_pos": 6980,
+    "n_neg": 7200,
+    "avg_len_pos": 9.117191977077363,
+    "avg_len_neg": 8.373055555555556,
+    "ttr_pos": 0.0040227537006191265,
+    "ttr_neg": 0.004329363367946123,
+    "distinct_1_pos": 0.0040227537006191265,
+    "distinct_2_pos": 0.0576088107592926,
+    "distinct_3_pos": 0.21796368613873343,
+    "distinct_1_neg": 0.004329363367946123,
+    "distinct_2_neg": 0.06461213879365557,
+    "near_dup_rate_pos_0.8": 0.0175,
+    "near_dup_rate_pos_0.7": 0.06925,
+    "mean_pair_jaccard": 0.46204097405893785,
+    "pair_jaccard_low_q": 0.3333333333333333,
+    "pair_jaccard_high_q": 0.5555555555555556,
+    "per_rule_pos": {
+      "Commutative law": {
+        "n": 1840,
+        "ttr": 0.007746933505487412,
+        "distinct_2": 0.08073260073260073
+      },
+      "Contraposition law": {
+        "n": 1618,
+        "ttr": 0.010498854670399592,
+        "distinct_2": 0.105759682224429
+      },
+      "Double negation law": {
+        "n": 92,
+        "ttr": 0.08747044917257683,
+        "distinct_2": 0.22054380664652568
+      },
+      "Implication law": {
+        "n": 3430,
+        "ttr": 0.007029273016963979,
+        "distinct_2": 0.08453759753665278
+      }
+    }
+  },
+  "v6_v4_t5": {
+    "n_rows": 13996,
+    "n_pos": 6887,
+    "n_neg": 7109,
+    "avg_len_pos": 9.465659939015536,
+    "avg_len_neg": 9.349838233225489,
+    "ttr_pos": 0.002853198343304188,
+    "ttr_neg": 0.002798339050370103,
+    "distinct_1_pos": 0.002853198343304188,
+    "distinct_2_pos": 0.04373702896934978,
+    "distinct_3_pos": 0.1803135210829314,
+    "distinct_1_neg": 0.002798339050370103,
+    "distinct_2_neg": 0.044390909550363046,
+    "near_dup_rate_pos_0.8": 0.0265,
+    "near_dup_rate_pos_0.7": 0.1085,
+    "mean_pair_jaccard": 0.4894929874317696,
+    "pair_jaccard_low_q": 0.36363636363636365,
+    "pair_jaccard_high_q": 0.6,
+    "per_rule_pos": {
+      "Commutative law": {
+        "n": 1840,
+        "ttr": 0.006837922749953798,
+        "distinct_2": 0.060723963037587717
+      },
+      "Contraposition law": {
+        "n": 1618,
+        "ttr": 0.008651720871487212,
+        "distinct_2": 0.09031441232327496
+      },
+      "Implication law": {
+        "n": 3429,
+        "ttr": 0.005192923132661071,
+        "distinct_2": 0.06735594247802512
+      }
+    }
+  },
+  "v7_rulefix": {
+    "n_rows": 13996,
+    "n_pos": 6887,
+    "n_neg": 7109,
+    "avg_len_pos": 9.465659939015536,
+    "avg_len_neg": 9.349838233225489,
+    "ttr_pos": 0.002853198343304188,
+    "ttr_neg": 0.002798339050370103,
+    "distinct_1_pos": 0.002853198343304188,
+    "distinct_2_pos": 0.04373702896934978,
+    "distinct_3_pos": 0.1803135210829314,
+    "distinct_1_neg": 0.002798339050370103,
+    "distinct_2_neg": 0.044390909550363046,
+    "near_dup_rate_pos_0.8": 0.0265,
+    "near_dup_rate_pos_0.7": 0.1085,
+    "mean_pair_jaccard": 0.4894929874317696,
+    "pair_jaccard_low_q": 0.36363636363636365,
+    "pair_jaccard_high_q": 0.6,
+    "per_rule_pos": {
+      "Commutative law": {
+        "n": 1840,
+        "ttr": 0.006837922749953798,
+        "distinct_2": 0.060723963037587717
+      },
+      "Contraposition law": {
+        "n": 1618,
+        "ttr": 0.008651720871487212,
+        "distinct_2": 0.09031441232327496
+      },
+      "Implication law": {
+        "n": 3429,
+        "ttr": 0.005192923132661071,
+        "distinct_2": 0.06735594247802512
+      }
+    }
+  },
+  "v8_with_dn": {
+    "n_rows": 14178,
+    "n_pos": 6979,
+    "n_neg": 7199,
+    "avg_len_pos": 9.401490184840235,
+    "avg_len_neg": 9.277816363383803,
+    "ttr_pos": 0.00285004496060232,
+    "ttr_neg": 0.0028147504903355243,
+    "distinct_1_pos": 0.00285004496060232,
+    "distinct_2_pos": 0.043592454889654464,
+    "distinct_3_pos": 0.1796921885587068,
+    "distinct_1_neg": 0.0028147504903355243,
+    "distinct_2_neg": 0.044334810041616324,
+    "near_dup_rate_pos_0.8": 0.0245,
+    "near_dup_rate_pos_0.7": 0.1115,
+    "mean_pair_jaccard": 0.4876442408401703,
+    "pair_jaccard_low_q": 0.36363636363636365,
+    "pair_jaccard_high_q": 0.6,
+    "per_rule_pos": {
+      "Commutative law": {
+        "n": 1840,
+        "ttr": 0.006837922749953798,
+        "distinct_2": 0.060723963037587717
+      },
+      "Contraposition law": {
+        "n": 1618,
+        "ttr": 0.008651720871487212,
+        "distinct_2": 0.09031441232327496
+      },
+      "Double negation law": {
+        "n": 92,
+        "ttr": 0.08747044917257683,
+        "distinct_2": 0.22054380664652568
+      },
+      "Implication law": {
+        "n": 3429,
+        "ttr": 0.005192923132661071,
+        "distinct_2": 0.06735594247802512
+      }
+    }
+  }
+}
