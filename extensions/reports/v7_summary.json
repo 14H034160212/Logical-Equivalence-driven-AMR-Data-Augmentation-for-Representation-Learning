@@ -1,0 +1,36 @@
+{
+  "metadata": {
+    "backbone": "microsoft/deberta-large",
+    "rule_fix_commit": "3dc22ec",
+    "v7_dataset_rows": 13996,
+    "train": 11196,
+    "val": 2800
+  },
+  "contrastive_pretrain": {
+    "v5_train_v5_val": 0.9931531531531531,
+    "v6_train_v6_val": 0.9842857142857143,
+    "v7_train_v7_val": 0.9842857142857143
+  },
+  "cross_eval": {
+    "v5_train_v6_val": 0.8385714285714285,
+    "v5_train_v7_val": 0.8385714285714285,
+    "v6_train_v5_val": 0.9448648648648649,
+    "v6_train_v7_val": 0.9889285714285714,
+    "v7_train_v5_val": 0.9448648648648649,
+    "v7_train_v6_val": 0.9889285714285714
+  },
+  "reclor": {
+    "v5_best_dev_acc": 0.628,
+    "v6_best_dev_acc": 0.636,
+    "v7_best_dev_acc": 0.636,
+    "best_step": 1600
+  },
+  "logiqa": {
+    "v5_best_dev_acc": 0.4101382488,
+    "v6_best_dev_acc": 0.3917050691,
+    "v7_best_dev_acc": 0.3917050691,
+    "v5_best_step": 2000,
+    "v6_best_step": 2400,
+    "v7_best_step": 2400
+  }
+}
