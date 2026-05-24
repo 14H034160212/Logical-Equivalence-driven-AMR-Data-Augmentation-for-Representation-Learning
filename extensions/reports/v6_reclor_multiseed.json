@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "backbone": "microsoft/deberta-large",
+    "task": "reclor",
+    "max_length": 256,
+    "per_gpu_train_batch_size": 4,
+    "gradient_accumulation_steps": 6,
+    "epochs": 10,
+    "learning_rate": 1e-5,
+    "weight_decay": 0.01,
+    "warmup_proportion": 0.1,
+    "fp16": true,
+    "seeds": [21, 42]
+  },
+  "best_dev_acc": {
+    "v5": {"seed_21": 0.628, "seed_42": 0.630, "mean": 0.629},
+    "v6": {"seed_21": 0.636, "seed_42": 0.634, "mean": 0.635}
+  },
+  "delta_v6_minus_v5": {"seed_21": 0.008, "seed_42": 0.004, "mean": 0.006},
+  "best_step": {
+    "v5": {"seed_21": 1600, "seed_42": 1930},
+    "v6": {"seed_21": 1600, "seed_42": 1800}
+  },
+  "trajectory_seed42": {
+    "v5": {"200": 0.356, "400": 0.472, "600": 0.514, "800": 0.570, "1000": 0.584,
+            "1200": 0.614, "1400": 0.606, "1600": 0.618, "1800": 0.622, "1930": 0.630},
+    "v6": {"200": 0.396, "400": 0.512, "600": 0.572, "800": 0.596, "1000": 0.620,
+            "1200": 0.606, "1400": 0.624, "1600": 0.624, "1800": 0.634, "1930": 0.632}
+  }
+}
