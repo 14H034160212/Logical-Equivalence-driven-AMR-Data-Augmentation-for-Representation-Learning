@@ -1,0 +1,39 @@
+{
+  "dataset": {
+    "v9_list_csv": "legacy/data/Synthetic_xfm_t5wtense_logical_equivalence_list_v9.csv",
+    "rows": 27992,
+    "unique_generated_sentence": 26352,
+    "avg_unique_per_anchor": 4.80,
+    "source": "v4 T5 with do_sample=True, top_p=0.9, temperature=1.0, num_return_sequences=2",
+    "train_rows": 22393,
+    "val_rows": 5599
+  },
+  "contrastive_pretrain_eval_acc": {
+    "v5": 0.9931531531531531,
+    "v6": 0.9842857142857143,
+    "v7": 0.9842857142857143,
+    "v8": 0.9844851904090268,
+    "v10": 0.9822569198012775,
+    "v9": 0.9794606179674942
+  },
+  "downstream_seed21": {
+    "reclor": {
+      "v5": 0.628, "v6": 0.636, "v7": 0.636,
+      "v8": 0.630, "v10": 0.624, "v9": 0.596
+    },
+    "logiqa": {
+      "v5": 0.4101, "v6": 0.3917, "v7": 0.3917,
+      "v8": 0.3871, "v10": 0.3810, "v9": 0.2934
+    }
+  },
+  "v9_reclor_trajectory": {
+    "200": 0.29, "400": 0.432, "600": 0.464, "800": 0.518,
+    "1000": 0.572, "1200": 0.584, "1400": 0.576, "1600": 0.594,
+    "1800": 0.596, "1930": 0.59
+  },
+  "v9_logiqa_trajectory_subset": {
+    "200": 0.2350, "400": 0.2688, "600": 0.1843, "800": 0.2412,
+    "1000": 0.2442, "1200": 0.2550, "2600_best": 0.2934
+  },
+  "conclusion": "Sampled v4 T5 decoding adds noise faster than diversity. Each anchor gets 2 samples that are surface-different but ~10% of them are subtly wrong (top_p=0.9, T=1.0 lets the model occasionally drop a negation or pick a wrong subject). This contradicts the polarity-preservation that motivated v4 in the first place and the contrastive head ends up trained on partially-incorrect supervision. LogiQA's multi-step deductive chains amplify the noise -> near-random 29.3%."
+}
