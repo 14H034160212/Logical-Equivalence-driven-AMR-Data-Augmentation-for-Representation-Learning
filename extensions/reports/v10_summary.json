@@ -1,0 +1,32 @@
+{
+  "dataset": {
+    "v10_list_csv": "legacy/data/Synthetic_xfm_t5wtense_logical_equivalence_list_v10.csv",
+    "rows": 28176,
+    "source": "concat(v5_list 14180 rows, v6_list 13996 rows)",
+    "train_rows": 22540,
+    "val_rows": 5636
+  },
+  "contrastive_pretrain_eval_acc": {
+    "v5": 0.9931531531531531,
+    "v6": 0.9842857142857143,
+    "v7": 0.9842857142857143,
+    "v8": 0.9844851904090268,
+    "v10": 0.9822569198012775
+  },
+  "downstream_seed21": {
+    "reclor": {"v5": 0.628, "v6": 0.636, "v7": 0.636, "v8": 0.630, "v10": 0.624},
+    "logiqa": {"v5": 0.4101, "v6": 0.3917, "v7": 0.3917, "v8": 0.3871, "v10": 0.3810}
+  },
+  "v10_reclor_trajectory": {
+    "200": 0.324, "400": 0.450, "600": 0.500, "800": 0.532,
+    "1000": 0.588, "1200": 0.584, "1400": 0.592, "1600": 0.608,
+    "1800": 0.624, "2000": 0.622
+  },
+  "v10_logiqa_trajectory": {
+    "200": 0.2903, "400": 0.2826, "600": 0.3195, "800": 0.3241, "1000": 0.3041,
+    "1200": 0.3318, "1400": 0.3425, "1600": 0.3472, "1800": 0.3763, "2000": 0.3810,
+    "2200": 0.3641, "2400": 0.3779, "2600": 0.3717, "2800": 0.3625, "3000": 0.3656,
+    "3070": 0.3702
+  },
+  "conclusion": "Naive concat(v5,v6) loses on BOTH tasks. The 2x corpus size with mixed-quality positives dilutes the contrastive signal rather than combining v5 diversity with v6 polarity preservation. Surface diversity matters, but contradictory examples within the SAME (anchor, label) class confuse the head more than they help."
+}
