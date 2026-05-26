@@ -1,0 +1,33 @@
+{
+  "dataset": {
+    "list_csv": "legacy/data/Synthetic_xfm_t5wtense_logical_equivalence_list_v12.csv",
+    "rows": 26393,
+    "source": "sampled v4 T5 (T=0.8, p=0.9, k=4) filtered by triple_f1 >= 0.85",
+    "pass_rate": 0.471,
+    "mean_f1_kept": 0.839,
+    "threshold_sweep_smoke": {
+      "0.55": {"pass_rate": 0.978, "mean_f1": 0.892},
+      "0.85": {"pass_rate": 0.695, "mean_f1": 0.894},
+      "0.95": {"pass_rate": 0.532, "mean_f1": 0.883}
+    }
+  },
+  "contrastive_pretrain_eval_acc": {
+    "v5":  0.9931, "v6":  0.9843, "v9":  0.9795,
+    "v10": 0.9823, "v11": 0.9981, "v12": 0.9958
+  },
+  "downstream_seed21": {
+    "reclor": {"v5": 0.628, "v6": 0.636, "v9": 0.596, "v11": 0.598, "v12": 0.608},
+    "logiqa": {"v5": 0.4101, "v6": 0.3917, "v9": 0.2934, "v11": 0.3226, "v12": 0.3733}
+  },
+  "v1_filter_lift": {
+    "vs_polarity_filter_on_reclor":  0.012,
+    "vs_polarity_filter_on_logiqa":  0.0507,
+    "vs_no_filter_on_reclor":  0.012,
+    "vs_no_filter_on_logiqa":  0.0799
+  },
+  "remaining_gap_vs_v6_seed21": {
+    "reclor":  -0.028,
+    "logiqa":  -0.018
+  },
+  "conclusion": "V1 AMR-struct verifier filter at threshold 0.85 is the best sampled-based mitigation tried so far. Lifts LogiQA by +8.0 pp over no-filter (v9) and +5.1 pp over polarity-only (v11), but doesn't fully close the gap to v6. Confirms semantic verification beyond polarity catches real generation errors."
+}
