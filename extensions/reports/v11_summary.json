@@ -1,0 +1,31 @@
+{
+  "dataset": {
+    "v11_list_csv": "legacy/data/Synthetic_xfm_t5wtense_logical_equivalence_list_v11.csv",
+    "rows": 52018,
+    "source": "v4 T5 sampled (T=0.8, top_p=0.9, num_samples=4) + polarity-parity verifier filter on each candidate",
+    "candidates_generated": 55984,
+    "candidates_passed_filter": 52018,
+    "filter_pass_rate": 0.929,
+    "train_rows": 41614,
+    "val_rows": 10404
+  },
+  "contrastive_pretrain_eval_acc_trajectory": {
+    "step_1301": 0.9967,
+    "step_2602": 0.9983,
+    "step_3903": 0.9989,
+    "step_5204": 0.9981
+  },
+  "note_on_early_kill": "v11 contrastive pretrain was killed by an external signal at ~epoch 4 of 10. The saved pytorch_model.bin and tokenizer files are complete; the all_results.json was not written but tensorboard event files show the eval trajectory above. Downstream uses this epoch-4 checkpoint.",
+  "downstream_seed21": {
+    "reclor": {
+      "v5": 0.628, "v6": 0.636, "v7": 0.636, "v8": 0.630,
+      "v10": 0.624, "v9": 0.596, "v11": 0.598
+    },
+    "logiqa": {
+      "v5": 0.4101, "v6": 0.3917, "v7": 0.3917, "v8": 0.3871,
+      "v10": 0.3810, "v9": 0.2934, "v11": 0.3226
+    }
+  },
+  "v11_logiqa_best_step": 2000,
+  "conclusion": "Generator-verifier filtering recovers some of the diversity benefit (LogiQA 29.3 -> 32.3 vs v9) but cannot close the gap to v5/v6. The polarity-parity verifier passes 92.9% of sampled candidates but does not catch semantic errors beyond polarity (wrong subject, scope, predicate). All three diversity mitigations (v8 dn-readd, v10 v5+v6 concat, v9 sampled, v11 sampled+verifier) fail; the v4 T5 polarity-cleaning and surface diversity are structurally coupled."
+}
