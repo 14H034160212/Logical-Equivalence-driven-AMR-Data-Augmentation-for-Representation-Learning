@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "backbone": "microsoft/deberta-large",
+    "task": "logiqa",
+    "train_size": 7376,
+    "dev_size": 651,
+    "max_length": 256,
+    "per_gpu_train_batch_size": 4,
+    "gradient_accumulation_steps": 6,
+    "epochs": 10,
+    "learning_rate": 1e-5,
+    "seeds": [21, 42]
+  },
+  "best_dev_acc": {
+    "v5": {"seed_21": 0.4101, "seed_42": 0.4363, "mean": 0.4232},
+    "v6": {"seed_21": 0.3917, "seed_42": 0.4147, "mean": 0.4032}
+  },
+  "delta_v6_minus_v5": {"seed_21": -0.0184, "seed_42": -0.0216, "mean": -0.0200},
+  "complete_multiseed_picture": {
+    "reclor": {"v5_mean": 0.629, "v6_mean": 0.635, "delta": 0.006, "both_seeds_agree": true},
+    "logiqa": {"v5_mean": 0.4232, "v6_mean": 0.4032, "delta": -0.020, "both_seeds_agree": true}
+  },
+  "conclusion": "Both trade-offs are seed-robust: v6 wins ReClor on both seeds (+0.6pp mean), v5 wins LogiQA on both seeds (-2.0pp mean). The v4 T5 fine-tune helps single-step entailment but hurts multi-step deductive reasoning, reproducibly."
+}
