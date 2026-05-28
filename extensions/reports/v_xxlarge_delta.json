@@ -1,0 +1,28 @@
+{
+  "recipe": {
+    "contrastive": {
+      "lr": 1e-6,
+      "warmup_steps": 1000,
+      "epochs": 6,
+      "batch_size": 8,
+      "data": "plain v5/v6 (non-merged)"
+    },
+    "reclor": {
+      "lr": 1e-5,
+      "warmup_proportion": 0.1,
+      "epochs": 10,
+      "per_gpu_train_batch_size": 2,
+      "gradient_accumulation_steps": 48,
+      "gradient_checkpointing": true,
+      "seed": 21
+    }
+  },
+  "contrastive_eval_acc": {"v5_matched": 0.9921, "v6_matched": 0.9879},
+  "reclor_best_dev_acc": {"v5_matched": 0.452, "v6_matched": 0.648, "delta": 0.196},
+  "reclor_final_dev_acc": {"v5_matched": 0.244, "v6_matched": 0.648, "delta": 0.404},
+  "caveats": [
+    "v5 matched ReClor collapsed after step 100 (peak 45.2% -> final 24.4%)",
+    "magnitude unreliable; direction agrees with deberta-large multi-seed",
+    "paper v5 xxlarge ckpt (mismatched recipe) reaches 78.8%"
+  ]
+}
