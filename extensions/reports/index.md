@@ -44,11 +44,66 @@ flowchart LR
 
 <sub>Yellow boxes are this extension's contributions vs the original paper. Green is the win, red is the documented honest reverse.</sub>
 
-**Key fix at each stage:**
+### Contributions vs reuse — what's actually new
 
-- **Rule library**: 4 → 14 rules (added De Morgan, transitivity, symmetric / asymmetric, predicate implication, inverse relation, plus 4 UMR-style rules); also patched contraposition to distribute negation over conjunctive antecedents (`negate_with_demorgan` in `extensions/logic_rules/base.py`)
-- **Generator (v4 T5)**: gold-augmented fine-tune over 4 iterations — closes the polarity-drop bug (pilot self-check 68.9% → 82.2%)
-- **Backbone (v6)**: same hparams as the paper's v5, but contrastive corpus regenerated with v4 T5
+We want to be precise about what we propose versus what we apply. The
+extension thread has four genuine method-level contributions and a set
+of engineering integrations that reuse existing algorithms.
+
+**Method-level contributions (new):**
+
+1. **`negate_with_demorgan` helper** in
+   [`extensions/logic_rules/base.py`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/blob/main/extensions/logic_rules/base.py).
+   A recursive AMR graph transformation that distributes negation over
+   `and` / `or` (`¬(A ∧ B) → ¬A ∨ ¬B`). Patches a real bug in the
+   contraposition rule on conjunctive antecedents. Pilot contraposition
+   pass rate: **8/15 → 15/15**.
+2. **Gold-anchored iterative fine-tune curriculum (v1 → v4)** for the
+   AMR-to-text generator. Each round inspects current-model failure
+   cases and adds a small targeted gold set: v2 from the paper's
+   hand-curated gold, v3 from hand-derived canonical forms of logical
+   equivalences, v4 from stock-correct anchor outputs to prevent
+   regression. This incremental fine-tune *strategy* — not the
+   underlying T5 — closes the polarity-drop failure mode (pilot
+   self-check **68.9% → 82.2%**).
+3. **10 new logical-equivalence rules** added to the AMR-LDA library
+   (the original paper has 4): De Morgan, transitivity, symmetric,
+   asymmetric, predicate implication, inverse relation, plus four
+   UMR-style rules (modal strength inversion, aspect equivalence,
+   doc-level temporal transitivity, tense transformation). Each is a
+   new AMR graph transformation in `extensions/logic_rules/`.
+4. **Diversity-vs-polarity trade-off finding (empirical).** Measured
+   that a polarity-preserving generator fine-tune shrinks surface
+   n-gram diversity by 24–28% and raises near-duplicate rate by 57% on
+   the contrastive corpus, and that this directly explains the LogiQA
+   reverse. Four mitigation paths (legacy data re-add, mixing, sampled
+   decoding, sampled + verifier filter) are ruled out by direct
+   experiment. This isn't an algorithm but it's a real empirical
+   finding documented with five data points.
+
+**Engineering applications (existing algorithms reused):**
+
+- **GRPO** (Shao et al., DeepSeek 2024) for the RL POC — we use it
+  off the shelf via `trl.GRPOTrainer`, no algorithmic change.
+- **LoRA / PEFT** (Hu et al. 2021) for parameter-efficient adapter
+  training of Qwen2.5-3B in the RL POC.
+- **DeBERTa-large / -v2-xxlarge** contrastive head — same as the
+  original paper, only the training data changes.
+- **Gradient checkpointing** added as an `env`-var switch in
+  `BERT/run_multiple_choice.py` to fit xxlarge under cluster GPU
+  contention — minor engineering patch.
+- **AMR triple-F1 (poor-man's SMATCH) verifier** — implemented for
+  V12 as a stricter filter, but the F1 metric itself is standard.
+
+**Reward-function design (somewhere between contribution and reuse):**
+
+- Using the **AMR-struct verifier (V1) as a binary RL reward signal**
+  for logical-equivalence paraphrasing. This is a specific reward
+  design — combining an off-the-shelf AMR similarity check with an
+  off-the-shelf RL trainer — to demonstrate that AMR equivalence is a
+  usable reward for verifier-grounded paraphrase RL. We've shown it
+  works in a POC (reward 0.375 → 0.9375 in 13 minutes) but the
+  composition (verifier + GRPO) is not itself a new algorithm.
 
 ### Where RL fits in (and where it doesn't)
 
