@@ -19,27 +19,23 @@ trade-off root cause, and a robustness check at DeBERTa-v2-xxlarge.
 ### The best method we have (core modules)
 
 ```mermaid
-flowchart TB
-    subgraph X [" "]
-        direction LR
-        A["Logic Rules<br/><b>14 rules</b><br/>(+10 vs paper)"]
-        B["Generator<br/><b>v4 T5wtense</b><br/>polarity-clean"]
-    end
-    X --> C["DeBERTa-large<br/>contrastive backbone"]
-    C --> D1["ReClor<br/><b>+0.6 pp</b>"]
-    C --> D2["LogiQA<br/><b>−2.0 pp</b>"]
+flowchart LR
+    I["Input<br/>sentence"] --> M["<b>Method</b><br/>14 logic rules + v4 T5 generator<br/>→ DeBERTa-large contrastive backbone"]
+    M --> O["Output<br/>reasoning classifier"]
 
-    classDef new fill:#fff3e0,stroke:#e65100,stroke-width:2.5px,font-size:18px
-    classDef back fill:#e3f2fd,stroke:#1565c0,stroke-width:2.5px,font-size:18px
-    classDef win fill:#e8f5e9,stroke:#2e7d32,stroke-width:2.5px,font-size:18px
-    classDef lose fill:#ffebee,stroke:#c62828,stroke-width:2.5px,font-size:18px
-    class A,B new
-    class C back
-    class D1 win
-    class D2 lose
+    classDef io fill:#f5f5f5,stroke:#616161,stroke-width:2px,font-size:18px
+    classDef method fill:#fff3e0,stroke:#e65100,stroke-width:2.5px,font-size:18px
+    class I,O io
+    class M method
 ```
 
-<sub>Yellow = new contributions (rules + generator). Blue = downstream backbone. Green = win, red = honest reverse.</sub>
+The **method box** is the contribution: a 14-rule logical-equivalence
+library (+10 new vs the original paper), a polarity-clean
+T5wtense generator (v4 fine-tune), and a DeBERTa-large contrastive
+backbone trained on the resulting (anchor, paraphrase) pairs.
+
+Downstream results — *ReClor +0.6 pp seed-robust, LogiQA −2.0 pp
+honest reverse* — are reported in the [Downstream impact](#downstream-impact-deberta-large-2-seeds-each) and [Why LogiQA goes down](#why-logiqa-goes-down-the-interesting-science) sections.
 
 ### Contributions vs reuse — what's actually new
 
