@@ -28,6 +28,7 @@ theme:
     - navigation.expand
     - navigation.top
     - toc.follow
+    - toc.integrate
     - search.suggest
     - content.code.copy
 
