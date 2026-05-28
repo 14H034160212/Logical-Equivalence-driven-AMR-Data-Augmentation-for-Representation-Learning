@@ -20,29 +20,27 @@ trade-off root cause, and a robustness check at DeBERTa-v2-xxlarge.
 
 ```mermaid
 flowchart LR
-    A["Input sentence<br/><i>e.g. 'If the eagle is kind,<br/>then the mouse is not clever.'</i>"]
-    A --> B["BART-large AMR parser<br/><sub>amrlib parse_xfm</sub>"]
-    B --> C[["Original AMR graph"]]
-    C --> D["Logic Rule library<br/><b>14 rules</b><br/><sub>+10 vs the paper</sub>"]
-    D --> E[["Modified AMR<br/>(rule-applied)"]]
-    E --> F["<b>v4 fine-tuned T5wtense</b><br/>polarity-preservation"]
-    F --> G["Paraphrase / counter-paraphrase<br/><i>e.g. 'If the mouse is clever,<br/>the eagle is not kind.'</i>"]
-    A --> H["<b>(anchor, paraphrase, label)</b><br/>14,000 contrastive rows"]
+    A[Sentence] --> B[AMR parser]
+    B --> C[AMR]
+    C --> D["14 logic rules<br/>(+10 new)"]
+    D --> E[Modified AMR]
+    E --> F[v4 T5wtense<br/>polarity-clean]
+    F --> G[Paraphrase]
+    A --> H[Contrastive pairs<br/>14k rows]
     G --> H
-    H --> I["<b>DeBERTa-large contrastive pretrain</b><br/>10 epochs, lr 2e-5"]
-    I --> J["Contrastive-pretrained<br/>DeBERTa backbone (v6)"]
-    J --> K1["ReClor fine-tune<br/><b>63.5%</b> (mean of 2 seeds)<br/><sub>+0.6 pp vs paper baseline</sub>"]
-    J --> K2["LogiQA fine-tune<br/><b>40.3%</b> (mean of 2 seeds)<br/><sub>-2.0 pp — honest reverse</sub>"]
+    H --> I[DeBERTa-large<br/>contrastive pretrain]
+    I --> J1[ReClor<br/>+0.6 pp]
+    I --> J2[LogiQA<br/>−2.0 pp]
 
     classDef new fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef result fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef regress fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef win fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef lose fill:#ffebee,stroke:#c62828,stroke-width:2px
     class D,F new
-    class K1 result
-    class K2 regress
+    class J1 win
+    class J2 lose
 ```
 
-<sub>Yellow boxes are this extension's contributions vs the original paper. Green is the win, red is the documented honest reverse.</sub>
+<sub>Yellow = new contribution. Green = win. Red = honest reverse.</sub>
 
 ### Contributions vs reuse — what's actually new
 
@@ -113,18 +111,14 @@ We have a working GRPO + AMR-verifier-reward POC at `extensions/rl/` — Qwen2.5
 
 ```mermaid
 flowchart LR
-    R1[v4 T5 generator] -.->|reward via| R2[AMR-struct verifier]
-    R1 -->|generate| R3[Candidate text]
-    R3 --> R2
-    R2 -->|RL signal| R1
-    R4["GRPO POC <b>done</b><br/><sub>Qwen2.5-3B + LoRA<br/>reward 0.375 → 0.9375 (13 min)</sub>"]
-    R5["Plumb RL-trained generator<br/>into v6 contrastive corpus<br/><b>(un-run)</b>"]
-    R4 -.-> R5
-    R5 -.-> R6["Hypothesis:<br/>recover diversity<br/>without losing polarity"]
+    R1[Generator] -->|sample| R3[Text]
+    R3 -->|verify| R2[AMR verifier]
+    R2 -->|reward| R1
+    R4[POC: GRPO<br/>0.375→0.94] -.-> R5[Plumb into<br/>v6 corpus<br/>un-run]
     classDef done fill:#e8f5e9,stroke:#2e7d32
     classDef todo fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:5 5
     class R4 done
-    class R5,R6 todo
+    class R5 todo
 ```
 
 ### What's new vs the paper
