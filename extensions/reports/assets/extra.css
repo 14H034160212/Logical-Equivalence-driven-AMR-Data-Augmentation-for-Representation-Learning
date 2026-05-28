@@ -1,0 +1,10 @@
+/* Center all Mermaid diagrams on the page. */
+.mermaid {
+  text-align: center;
+}
+
+.mermaid svg {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+}
