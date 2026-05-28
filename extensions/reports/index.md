@@ -276,6 +276,294 @@ file in [`extensions/reports/`](https://github.com/14H034160212/Logical-Equivale
 of the repository, paired with a JSON aggregate so any number on this
 site can be checked against the source data.
 
+## Rule gallery — 14 logical-equivalence rules
+
+The original ACL Findings 2024 paper implemented 4 rules; this extension
+adds 10 more. Each rule is a structural transformation on the AMR graph
+that preserves logical equivalence. For every rule below: a formal
+equivalence statement on the left, an AMR transformation in the middle
+(showing the key node / edge changes), and a concrete English example
+on the right.
+
+Code: each rule is one subclass of `LogicRule` in
+[`extensions/logic_rules/`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/tree/main/extensions/logic_rules).
+
+### Original paper rules (4)
+
+#### 1. Contraposition
+
+**Equivalence:** `P → Q  ⇔  ¬Q → ¬P`
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        H1["have-condition-91"] -->|":ARG1 (consequent)"| Q1["Q"]
+        H1 -->|":ARG2 (antecedent)"| P1["P"]
+    end
+    BEF -->|"swap + ¬both"| AFT
+    subgraph AFT["AMR after"]
+        H2["have-condition-91"] -->|":ARG1"| nP["¬P"]
+        H2 -->|":ARG2"| nQ["¬Q"]
+    end
+```
+
+- **Input:** *If the eagle is kind, then the mouse is not clever.*
+- **Output:** *If the mouse is clever, the eagle is not kind.*
+
+#### 2. Commutative
+
+**Equivalence:** `A ∧ B ⇔ B ∧ A`, `A ∨ B ⇔ B ∨ A`
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        N1["and / or"] -->|":op1"| A1["A"]
+        N1 -->|":op2"| B1["B"]
+    end
+    BEF -->|"swap op1 ↔ op2"| AFT
+    subgraph AFT["AMR after"]
+        N2["and / or"] -->|":op1"| B2["B"]
+        N2 -->|":op2"| A2["A"]
+    end
+```
+
+- **Input:** *The eagle is kind and the mouse is clever.*
+- **Output:** *The mouse is clever and the eagle is kind.*
+
+#### 3. Implication
+
+**Equivalence:** `P → Q  ⇔  ¬P ∨ Q`
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        H1["have-condition-91"] -->|":ARG1"| Q1["Q"]
+        H1 -->|":ARG2"| P1["P"]
+    end
+    BEF -->|"rebuild as disjunction"| AFT
+    subgraph AFT["AMR after"]
+        O["or"] -->|":op1"| nP["¬P"]
+        O -->|":op2"| Q2["Q"]
+    end
+```
+
+- **Input:** *If the eagle is kind, then the mouse is not clever.*
+- **Output:** *The eagle is not kind, or the mouse is not clever.*
+
+#### 4. Double negation
+
+**Equivalence:** `P  ⇔  ¬¬P`
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        N1["pred"]
+    end
+    BEF -->|"toggle :polarity -<br/>+ WordNet antonym swap"| AFT
+    subgraph AFT["AMR after"]
+        N2["pred<br/>:polarity -"] -.- ANT["(antonym in surface text)"]
+    end
+```
+
+- **Input:** *The bald eagle is beautiful.*
+- **Output:** *The bald eagle is not ugly.*
+
+### New rules added by this extension (10)
+
+#### 5. De Morgan
+
+**Equivalence:** `¬(A ∧ B)  ⇔  ¬A ∨ ¬B`,    `¬(A ∨ B)  ⇔  ¬A ∧ ¬B`
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        N1["and<br/>:polarity -"] -->|":op1"| A1["A"]
+        N1 -->|":op2"| B1["B"]
+    end
+    BEF -->|"switch and ↔ or<br/>push ¬ into ops"| AFT
+    subgraph AFT["AMR after"]
+        N2["or"] -->|":op1"| A2["¬A"]
+        N2 -->|":op2"| B2["¬B"]
+    end
+```
+
+- **Input:** *It is not the case that the manager and the assistant attended the meeting.*
+- **Output:** *The manager did not attend the meeting or the assistant did not attend the meeting.*
+
+#### 6. Inverse relation (PropBank frame inversion)
+
+**Equivalence:** `buy(x, y, z)  ⇔  sell(z, y, x)` (and other PropBank inverse pairs)
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        B["buy-01"] -->|":ARG0 (buyer)"| X1["X"]
+        B -->|":ARG1 (thing)"| Y1["Y"]
+        B -->|":ARG2 (seller)"| Z1["Z"]
+    end
+    BEF -->|"swap frame + roles"| AFT
+    subgraph AFT["AMR after"]
+        S["sell-01"] -->|":ARG0 (seller)"| Z2["Z"]
+        S -->|":ARG1 (thing)"| Y2["Y"]
+        S -->|":ARG2 (buyer)"| X2["X"]
+    end
+```
+
+- **Input:** *Alice bought the book from Bob.*
+- **Output:** *Bob sold the book to Alice.*
+
+#### 7. Symmetric relation
+
+**Equivalence:** `sibling(x, y)  ⇔  sibling(y, x)` (and other symmetric PropBank frames)
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        S1["sibling"] -->|":ARG0"| X1["X"]
+        S1 -->|":ARG1"| Y1["Y"]
+    end
+    BEF -->|"swap ARG0 ↔ ARG1"| AFT
+    subgraph AFT["AMR after"]
+        S2["sibling"] -->|":ARG0"| Y2["Y"]
+        S2 -->|":ARG1"| X2["X"]
+    end
+```
+
+- **Input:** *Alice is a sibling of Bob.*
+- **Output:** *Bob is a sibling of Alice.*
+
+#### 8. Asymmetric relation (negative-only)
+
+**Equivalence:** `parent(x, y)  ⇒  ¬parent(y, x)` (used to construct contrastive negatives)
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before (positive)"]
+        P1["parent"] -->|":ARG0"| X1["X"]
+        P1 -->|":ARG1"| Y1["Y"]
+    end
+    BEF -->|"swap ARG0 ↔ ARG1<br/>→ negative sample"| AFT
+    subgraph AFT["AMR after (NEGATIVE)"]
+        P2["parent"] -->|":ARG0"| Y2["Y"]
+        P2 -->|":ARG1"| X2["X"]
+    end
+```
+
+- **Input:** *Alice is a parent of Bob.*
+- **Negative output:** *Bob is a parent of Alice.* (used as a contrastive negative)
+
+#### 9. Predicate implication
+
+**Equivalence (one-way):** `kill(x, y)  ⇒  die(y)`, `buy(x, y)  ⇒  have(x, y)` (lexical entailment)
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        K["kill-01"] -->|":ARG0"| X1["X"]
+        K -->|":ARG1"| Y1["Y"]
+    end
+    BEF -->|"lexical entailment<br/>(predicate substitution)"| AFT
+    subgraph AFT["AMR after"]
+        D["die-01"] -->|":ARG1"| Y2["Y"]
+    end
+```
+
+- **Input:** *The hunter killed the deer.*
+- **Output:** *The deer died.*
+
+#### 10. Transitivity
+
+**Equivalence:** `a > b  ∧  b > c  ⇒  a > c`
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        AND["and"] -->|":op1"| F1["a > b"]
+        AND -->|":op2"| F2["b > c"]
+    end
+    BEF -->|"compose transitive chain"| AFT
+    subgraph AFT["AMR after"]
+        F3["a > c"]
+    end
+```
+
+- **Input:** *Alice is taller than Bob, and Bob is taller than Carol.*
+- **Output:** *Alice is taller than Carol.*
+
+#### 11. Modal strength inversion
+
+**Equivalence:** `□P  ⇔  ¬◇¬P`,    `◇P  ⇔  ¬□¬P`
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        N1["obligate-01<br/>(□)"] -->|":ARG2"| P1["P"]
+    end
+    BEF -->|"swap modal +<br/>double-negate scope"| AFT
+    subgraph AFT["AMR after"]
+        N2["possible-01<br/>(◇)<br/>:polarity -"] -->|":ARG1"| P2["¬P"]
+    end
+```
+
+- **Input:** *Alice must finish her homework before dinner.*
+- **Output:** *It is not possible that Alice does not finish her homework before dinner.*
+
+#### 12. Aspect equivalence
+
+**Equivalence:** `perfective(eat, x, y)  ⇔  resultative(eaten, y)` (UMR-style aspect overlay)
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        E1["eat-01<br/>:aspect perfective"] -->|":ARG0"| X1["X"]
+        E1 -->|":ARG1"| Y1["Y"]
+    end
+    BEF -->|"perfective → resultative"| AFT
+    subgraph AFT["AMR after"]
+        E2["eat-01<br/>:aspect resultative"] -->|":ARG1"| Y2["Y (was eaten)"]
+    end
+```
+
+- **Input:** *Alice ate the apple.*
+- **Output:** *The apple has been eaten.*
+
+#### 13. Document-level temporal transitivity
+
+**Equivalence:** `before(A, B)  ∧  before(B, C)  ⇒  before(A, C)` (across sentences in a document)
+
+```mermaid
+flowchart LR
+    subgraph BEF["Doc before"]
+        S1["sentence 1: A before B"]
+        S2["sentence 2: B before C"]
+    end
+    BEF -->|"transitive composition<br/>across sentences"| AFT
+    subgraph AFT["Doc after"]
+        S3["entailed: A before C"]
+    end
+```
+
+- **Input:** *Alice woke up. Then she had breakfast. Then she left for work.*
+- **Output:** *Alice woke up before leaving for work.*
+
+#### 14. Tense transformation
+
+**Equivalence:** `past(P)  ⇔  has-been(perfective(P))`
+
+```mermaid
+flowchart LR
+    subgraph BEF["AMR before"]
+        E1["pred<br/>:tense past"]
+    end
+    BEF -->|"recast as<br/>perfective auxiliary"| AFT
+    subgraph AFT["AMR after"]
+        E2["pred<br/>:tense present<br/>:aspect perfective"]
+    end
+```
+
+- **Input:** *Alice finished the project.*
+- **Output:** *Alice has finished the project.*
+
 ## License and citation
 
 Original paper: Bao et al. ACL Findings 2024,
