@@ -1,0 +1,103 @@
+site_name: AMR-LDA Extensions
+site_description: Logical-equivalence-driven AMR data augmentation — extension research (T5 fine-tune, De Morgan rule fix, contrastive backbones, downstream ReClor / LogiQA, diversity root cause, xxlarge robustness).
+site_url: https://amrlda-extensions.pages.dev/
+repo_url: https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning
+repo_name: 14H034160212/AMR-LDA
+
+docs_dir: extensions/reports
+site_dir: _site
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - footnotes
+  - attr_list
+  - md_in_html
+
+nav:
+  - Overview: index.md
+  - Headline summary:
+      - Project landing: index.md
+      - All reports index: README.md
+
+  - "T5 fine-tune (polarity preservation)":
+      - "v1→v4 fine-tune trajectory": T5_FT_RECOVERY.md
+      - "Initial fine-tune setup": T5_FINETUNE_RESULTS.md
+      - "Consensus verifier impact": T5_FT_CONSENSUS.md
+
+  - "De Morgan rule fix":
+      - "Rule fix + pilot": RULEFIX_DEMORGAN.md
+      - "Self-check baseline": SELF_CHECK.md
+
+  - "Generalization":
+      - "Held-out PARARULE Depth5": HELDOUT_PARARULE.md
+      - "Trajectory across runs": TRAJECTORY_v2.md
+
+  - "Contrastive backbone (DeBERTa-large)":
+      - "v6 contrastive pretrain + cross-eval": V6_CONTRASTIVE_PRETRAIN.md
+      - "v7: rule fix downstream": V7_DOWNSTREAM.md
+
+  - "Downstream — ReClor":
+      - "v5 vs v6 single seed": V6_RECLOR.md
+      - "Multi-seed (v6 wins +0.6 pp robustly)": V6_RECLOR_MULTISEED.md
+
+  - "Downstream — LogiQA":
+      - "v5 vs v6 single seed (v6 loses)": V6_LOGIQA.md
+      - "Multi-seed (reverse is seed-robust)": V6_LOGIQA_MULTISEED.md
+
+  - "Diversity root cause + mitigations":
+      - "Diversity drop is the root cause": DIVERSITY_ROOT_CAUSE.md
+      - "v8 — re-add legacy double_negation (fails)": V8_DOUBLENEG_REINTRO.md
+      - "v10 — concat(v5, v6) (fails)": V10_MIX_NEGATIVE.md
+      - "v9 — sampled v4 T5 (collapses)": V9_SAMPLED_NEGATIVE.md
+      - "v11 — sampled + polarity verifier": V11_VERIFIED_NEGATIVE.md
+      - "v12 — sampled + V1 AMR-struct verifier": V12_V1VERIFIER.md
+      - "Final summary across v5–v12": DIVERSITY_FINAL.md
+
+  - "xxlarge robustness":
+      - "Progress + caveats": V_XXLARGE_PROGRESS.md
+      - "v5 vs v6 matched recipe ReClor": V_XXLARGE_DELTA.md
+
+  - "Three-way comparison + earlier reports":
+      - "3-way: amr_lda vs gpt-4o vs gpt-4o-mini": THREE_WAY_v4.md
+      - "run3→run4 before/after": BEFORE_AFTER.md
+      - "run4→run5 (UMR rules)": BEFORE_AFTER_UMR.md
+      - "run5→run6 (self-check patches)": BEFORE_AFTER_SELFCHECK.md
+
+  - "Other extensions":
+      - "GRPO RL (Qwen2.5-0.5B POC)": GRPO_RESULTS.md
+      - "GRPO at 3B + LoRA": GRPO_3B_RESULTS.md
+      - "AMR → UMR converter": UMR_CONVERTER.md
+      - "Document-level UMR": DOC_LEVEL_UMR.md
+      - "Multi-LLM baseline setup": MULTI_LLM_SETUP.md
