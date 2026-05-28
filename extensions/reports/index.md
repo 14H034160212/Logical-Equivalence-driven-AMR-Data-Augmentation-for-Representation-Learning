@@ -20,22 +20,26 @@ trade-off root cause, and a robustness check at DeBERTa-v2-xxlarge.
 
 ```mermaid
 flowchart LR
-    I["Input<br/>sentence"] --> M["<b>Method</b><br/>14 logic rules + v4 T5 generator<br/>→ DeBERTa-large contrastive backbone"]
-    M --> O["Output<br/>reasoning classifier"]
+    I["<b>Input</b><br/><i>If the bald eagle is kind,<br/>then the mouse is not clever.</i>"]
+    I --> M["<b>Method</b><br/>14 logic rules + v4 T5 generator<br/>→ DeBERTa-large contrastive backbone"]
+    M --> O["<b>Output</b><br/>contrastive pair, e.g.<br/>positive: <i>If the mouse is clever,<br/>the eagle is not kind.</i><br/>negative: <i>The mouse is not clever<br/>unless the eagle is kind.</i>"]
 
-    classDef io fill:#f5f5f5,stroke:#616161,stroke-width:2px,font-size:18px
-    classDef method fill:#fff3e0,stroke:#e65100,stroke-width:2.5px,font-size:18px
+    classDef io fill:#f5f5f5,stroke:#616161,stroke-width:2px,font-size:16px
+    classDef method fill:#fff3e0,stroke:#e65100,stroke-width:2.5px,font-size:16px
     class I,O io
     class M method
 ```
 
-The **method box** is the contribution: a 14-rule logical-equivalence
-library (+10 new vs the original paper), a polarity-clean
-T5wtense generator (v4 fine-tune), and a DeBERTa-large contrastive
-backbone trained on the resulting (anchor, paraphrase) pairs.
+A worked example: the input sentence is parsed to an AMR graph,
+contraposition (one of the 14 rules) flips antecedent and consequent
+and negates both, the v4-fine-tuned T5wtense renders the modified AMR
+back to fluent English (positive paraphrase), and a single-flip
+variant of the same rule produces a logically inequivalent negative.
+The (anchor, positive, negative) triple becomes one row in the
+DeBERTa-large contrastive backbone's training corpus.
 
 Downstream results — *ReClor +0.6 pp seed-robust, LogiQA −2.0 pp
-honest reverse* — are reported in the [Downstream impact](#downstream-impact-deberta-large-2-seeds-each) and [Why LogiQA goes down](#why-logiqa-goes-down-the-interesting-science) sections.
+honest reverse* — are reported below.
 
 ### Contributions vs reuse — what's actually new
 
