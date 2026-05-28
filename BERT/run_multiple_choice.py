@@ -681,6 +681,18 @@ def main():
     if args.local_rank == 0:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
+    # Optional gradient checkpointing to fit large models (e.g. deberta-v2-xxlarge)
+    # on a single GPU under cluster contention. Enabled via env var to avoid
+    # touching the argparse surface.
+    if os.environ.get("GRADIENT_CHECKPOINTING", "0") == "1":
+        try:
+            model.gradient_checkpointing_enable()
+            if hasattr(model, "config"):
+                model.config.use_cache = False
+            logger.info("Gradient checkpointing ENABLED")
+        except Exception as e:
+            logger.warning("Could not enable gradient checkpointing: %s", e)
+
     model.to(args.device)
 
     logger.info("Training/evaluation parameters %s", args)
