@@ -16,31 +16,30 @@ trade-off root cause, and a robustness check at DeBERTa-v2-xxlarge.
 
 **Base paper:** Bao et al. ACL Findings 2024 — <https://aclanthology.org/2024.findings-acl.353/>
 
-### The best method we have (architecture)
+### The best method we have (core modules)
 
 ```mermaid
-flowchart LR
-    A[Sentence] --> B[AMR parser]
-    B --> C[AMR]
-    C --> D["14 logic rules<br/>(+10 new)"]
-    D --> E[Modified AMR]
-    E --> F[v4 T5wtense<br/>polarity-clean]
-    F --> G[Paraphrase]
-    A --> H[Contrastive pairs<br/>14k rows]
-    G --> H
-    H --> I[DeBERTa-large<br/>contrastive pretrain]
-    I --> J1[ReClor<br/>+0.6 pp]
-    I --> J2[LogiQA<br/>−2.0 pp]
+flowchart TB
+    subgraph X [" "]
+        direction LR
+        A["Logic Rules<br/><b>14 rules</b><br/>(+10 vs paper)"]
+        B["Generator<br/><b>v4 T5wtense</b><br/>polarity-clean"]
+    end
+    X --> C["DeBERTa-large<br/>contrastive backbone"]
+    C --> D1["ReClor<br/><b>+0.6 pp</b>"]
+    C --> D2["LogiQA<br/><b>−2.0 pp</b>"]
 
-    classDef new fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef win fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef lose fill:#ffebee,stroke:#c62828,stroke-width:2px
-    class D,F new
-    class J1 win
-    class J2 lose
+    classDef new fill:#fff3e0,stroke:#e65100,stroke-width:2.5px,font-size:18px
+    classDef back fill:#e3f2fd,stroke:#1565c0,stroke-width:2.5px,font-size:18px
+    classDef win fill:#e8f5e9,stroke:#2e7d32,stroke-width:2.5px,font-size:18px
+    classDef lose fill:#ffebee,stroke:#c62828,stroke-width:2.5px,font-size:18px
+    class A,B new
+    class C back
+    class D1 win
+    class D2 lose
 ```
 
-<sub>Yellow = new contribution. Green = win. Red = honest reverse.</sub>
+<sub>Yellow = new contributions (rules + generator). Blue = downstream backbone. Green = win, red = honest reverse.</sub>
 
 ### Contributions vs reuse — what's actually new
 
@@ -103,6 +102,51 @@ of engineering integrations that reuse existing algorithms.
   works in a POC (reward 0.375 → 0.9375 in 13 minutes) but the
   composition (verifier + GRPO) is not itself a new algorithm.
 
+### Proposed novel direction — Logic-Equivalent Rule Composition (LeRC)
+
+The four mitigations in [DIVERSITY_FINAL.md](DIVERSITY_FINAL.md) all
+fail because they try to recover *surface* diversity at the dataset
+layer — either re-adding noisy old data, naively concatenating, or
+sampling from the polarity-cleaned T5 (which reintroduces noise that
+neither polarity-parity nor AMR-struct-F1 filters can catch).
+
+LeRC attacks the same goal but at the **logic layer**: treat the 14
+rules in `extensions/logic_rules/` as a small algebra of
+equivalence-preserving operators, and **compose** them. For each
+anchor's AMR, apply *different rule orderings and combinations* to
+produce K modified AMRs that are pairwise logically equivalent (by
+composition of equivalence-preserving operators) but structurally
+distinct. Feed each to v4 T5 and you get K surface variants of the
+same logical content — all *provably* polarity-preserving, no
+sampling, no verifier filter needed.
+
+```mermaid
+flowchart LR
+    A["AMR"] --> P["K rule compositions<br/>(contra · impl · commut)"]
+    P --> T["v4 T5"]
+    T --> K["K surface variants<br/>same logical content"]
+
+    classDef new fill:#fff3e0,stroke:#e65100,stroke-width:2.5px,font-size:18px
+    class P new
+```
+
+**Why this could work where the four mitigations failed:**
+
+| Approach | Where diversity comes from | Logical correctness |
+|---|---|---|
+| v9 (sampled T5) | T5 stochastic decoding | needs noisy filter |
+| v11 (sampled + polarity verifier) | T5 stochastic decoding | weak filter |
+| v12 (sampled + AMR-struct F1) | T5 stochastic decoding | tighter but still misses scope errors |
+| v10 (mix v5+v6) | two surface distributions | mixed quality |
+| **LeRC** | **rule-composition algebra** | **logic-guaranteed by construction** |
+
+**Engineering footprint:** ~100 lines. Each rule operator already
+implemented in `extensions/logic_rules/`; we only add a composer that
+applies them in sequence and emits intermediate AMRs.
+
+**Status:** prototyping now as `build_v14_lerc.py`; v14 dataset →
+contrastive pretrain → ReClor + LogiQA chain to follow.
+
 ### Where RL fits in (and where it doesn't)
 
 We have a working GRPO + AMR-verifier-reward POC at `extensions/rl/` — Qwen2.5-3B + LoRA reaches reward 0.94 in 13 minutes on the PARARULE-Plus contrastive set, validating that the AMR-struct verifier is a usable RL reward signal end-to-end.
@@ -111,15 +155,14 @@ We have a working GRPO + AMR-verifier-reward POC at `extensions/rl/` — Qwen2.5
 
 ```mermaid
 flowchart LR
-    R1[Generator] -->|sample| R3[Text]
-    R3 -->|verify| R2[AMR verifier]
-    R2 -->|reward| R1
-    R4[POC: GRPO<br/>0.375→0.94] -.-> R5[Plumb into<br/>v6 corpus<br/>un-run]
-    classDef done fill:#e8f5e9,stroke:#2e7d32
-    classDef todo fill:#f5f5f5,stroke:#9e9e9e,stroke-dasharray:5 5
-    class R4 done
-    class R5 todo
+    G["Generator"] -->|sample| V["AMR verifier"]
+    V -->|reward| G
+
+    classDef poc fill:#e8f5e9,stroke:#2e7d32,stroke-width:2.5px,font-size:18px
+    class G,V poc
 ```
+
+POC done (Qwen2.5-3B + LoRA + GRPO, reward 0.375 → 0.94 in 13 min). Plumbing the RL-trained generator into the v6 contrastive corpus is **un-run**.
 
 ### What's new vs the paper
 
