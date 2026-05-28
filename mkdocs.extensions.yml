@@ -54,9 +54,7 @@ markdown_extensions:
 
 nav:
   - Overview: index.md
-  - Headline summary:
-      - Project landing: index.md
-      - All reports index: README.md
+  - All reports index: README.md
 
   - "T5 fine-tune (polarity preservation)":
       - "v1→v4 fine-tune trajectory": T5_FT_RECOVERY.md
