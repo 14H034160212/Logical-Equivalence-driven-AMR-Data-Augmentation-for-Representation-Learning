@@ -318,6 +318,41 @@ def main():
         ignore_mismatched_sizes=args.ignore_mismatched_sizes,
     )
 
+    # Optional gradient checkpointing to fit under cluster GPU contention.
+    if os.environ.get("GRADIENT_CHECKPOINTING", "0") == "1":
+        try:
+            model.gradient_checkpointing_enable()
+            if hasattr(model, "config"):
+                model.config.use_cache = False
+            logger.info("Gradient checkpointing ENABLED")
+        except Exception as e:
+            logger.warning("Could not enable gradient checkpointing: %s", e)
+
+    # Best-effort W&B init: if WANDB_MODE != "disabled" and a key is in env,
+    # try to start a run named WANDB_RUN_NAME (or auto). On any error (no key,
+    # offline, etc.) fall through silently — training proceeds unchanged.
+    if os.environ.get("WANDB_MODE", "disabled") != "disabled":
+        try:
+            import wandb
+            wandb.init(
+                project=os.environ.get("WANDB_PROJECT", "amr-lda-extensions"),
+                name=os.environ.get("WANDB_RUN_NAME"),
+                config={
+                    "model": args.model_name_or_path,
+                    "train_file": args.train_file,
+                    "validation_file": args.validation_file,
+                    "lr": args.learning_rate,
+                    "epochs": args.num_train_epochs,
+                    "bs": args.per_device_train_batch_size,
+                    "accum": args.gradient_accumulation_steps,
+                    "seed": args.seed,
+                },
+                reinit=True,
+            )
+            logger.info("W&B run: %s", wandb.run.get_url() if wandb.run else "(none)")
+        except Exception as e:
+            logger.warning("W&B init failed (continuing without): %s", e)
+
     # Preprocessing the datasets
     if args.task_name is not None:
         sentence1_key, sentence2_key = task_to_keys[args.task_name]

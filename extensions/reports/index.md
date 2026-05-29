@@ -20,73 +20,86 @@ trade-off root cause, and a robustness check at DeBERTa-v2-xxlarge.
 
 Every experiment in chronological order. ✅ = complete, 🟡 = data ready / training blocked, ⏳ = planned.
 
+Every numeric cell links to its source: a JSON aggregate or markdown
+report committed in [`extensions/reports/`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/tree/main/extensions/reports).
+Future runs will also carry [W&B](https://wandb.ai/) links (`WANDB_MODE=online`
+configured for new launches; older runs were `WANDB_MODE=disabled` for
+speed and have only the JSON / markdown trail).
+
 #### T5wtense generator fine-tune (polarity preservation)
 
-| Version | Training set | eval_loss | Pilot self-check pass | Status |
-|---|---|---|---|---|
-| Stock T5wtense | — | — | 68.9% | ✅ paper baseline |
-| **v1** | 389 silver pairs | 0.2396 | 52.2% on 15-flip subset | ✅ |
-| **v2** | + 8 curated golds (×10) | 0.2260 | 56.5% | ✅ |
-| **v3** | + 7 synthetic golds (×10) | 0.2054 | 69.6% | ✅ |
-| **v4** | + 4 anchor golds (×10) | 0.1900 | **73.9%** on subset / **78.9%** full pilot | ✅ current production |
-| **v4 + De Morgan rule fix** | (same v4 T5; rule library patched) | — | **82.2%** on full pilot, contraposition **15/15 perfect** | ✅ |
+| Version | Training set | eval_loss | Pilot self-check pass | Status | Logs |
+|---|---|---|---|---|---|
+| Stock T5wtense | — | — | 68.9% | ✅ paper baseline | — |
+| **v1** | 389 silver pairs | 0.2396 | 52.2% on 15-flip subset | ✅ | [`ft_t5wtense_report.json`](ft_t5wtense_report.json) · [`t5_ft_recovery_summary.json`](t5_ft_recovery_summary.json) |
+| **v2** | + 8 curated golds (×10) | 0.2260 | 56.5% | ✅ | [`ft_t5wtense_v2_report.json`](ft_t5wtense_v2_report.json) · [`t5_ft_recovery_v2_summary.json`](t5_ft_recovery_v2_summary.json) |
+| **v3** | + 7 synthetic golds (×10) | 0.2054 | 69.6% | ✅ | [`ft_t5wtense_v3_report.json`](ft_t5wtense_v3_report.json) · [`t5_ft_recovery_v3_summary.json`](t5_ft_recovery_v3_summary.json) |
+| **v4** | + 4 anchor golds (×10) | 0.1900 | **73.9%** subset / **78.9%** full | ✅ | [`ft_t5wtense_v4_report.json`](ft_t5wtense_v4_report.json) · [`t5_ft_recovery_v4_summary.json`](t5_ft_recovery_v4_summary.json) |
+| **v4 + De Morgan rule fix** | (rule library patched) | — | **82.2%** full pilot, contraposition **15/15** | ✅ | [`rulefix_pilot_summary.json`](rulefix_pilot_summary.json) · [`RULEFIX_DEMORGAN.md`](RULEFIX_DEMORGAN.md) |
 
 #### Contrastive corpus generation + DeBERTa-large pretrain
 
-| Version | Generator | Filter / strategy | Rows | Contrastive eval acc | Status |
-|---|---|---|---|---|---|
-| **v5** | stock T5wtense (beam) | — (paper recipe) | 14,180 | 99.31% | ✅ baseline |
-| **v6** | v4 fine-tuned T5 (beam) | — | 13,996 | 98.43% | ✅ |
-| **v7** | v4 T5 + De Morgan rule fix | — | 13,996 | 98.43% | ✅ (= v6 in practice) |
-| **v8** | v6 + re-added 182 legacy double_negation | — | 14,178 | 98.45% | ✅ mitigation #1 |
-| **v9** | v4 T5 sampled (T=1.0) | none | 27,992 | 97.95% | ✅ mitigation #2 |
-| **v10** | concat(v5, v6) | — | 28,176 | 98.23% | ✅ mitigation #3 |
-| **v11** | v4 T5 sampled | polarity-parity filter | 52,018 | 99.81% | ✅ mitigation #4 |
-| **v12** | v4 T5 sampled | AMR-struct triple-F1 ≥ 0.85 | 26,393 | 99.58% | ✅ mitigation #5 |
-| **v13_llama** | v4 T5 + Llama 3.1 8B paraphrase | T=0.4 instruct prompt | 20,883 | — | 🟡 data ready, pretrain blocked on GPU |
-| **v14 (LeRC, NEW algorithm)** | v4 T5 + rule-composition algebra | provably equivalence-preserving (no filter) | 22,280 | — | 🟡 data ready, pretrain blocked on GPU |
-| v13_qwen3 | Qwen 3 8B paraphrase | — | — | — | ⏳ |
-| v13_gemma4_4b | Gemma 4 E4B paraphrase | — | — | — | ⏳ (need transformers from source) |
-| v13_gemma4_31b | Gemma 4 31B paraphrase | — | — | — | ⏳ |
-| v13_llama70 | Llama 3.3 70B paraphrase | — | — | — | ⏳ |
+| Version | Generator | Filter / strategy | Rows | Contrastive eval acc | Status | Logs |
+|---|---|---|---|---|---|---|
+| **v5** | stock T5wtense (beam) | — (paper recipe) | 14,180 | 99.31% | ✅ baseline | [`v6_pretrain_cross_eval.json`](v6_pretrain_cross_eval.json) |
+| **v6** | v4 fine-tuned T5 (beam) | — | 13,996 | 98.43% | ✅ | [`V6_CONTRASTIVE_PRETRAIN.md`](V6_CONTRASTIVE_PRETRAIN.md) · [`v6_pretrain_cross_eval.json`](v6_pretrain_cross_eval.json) |
+| **v7** | v4 T5 + De Morgan rule fix | — | 13,996 | 98.43% | ✅ (= v6) | [`V7_DOWNSTREAM.md`](V7_DOWNSTREAM.md) · [`v7_summary.json`](v7_summary.json) |
+| **v8** | v6 + 182 legacy double_negation | — | 14,178 | 98.45% | ✅ mitigation #1 | [`V8_DOUBLENEG_REINTRO.md`](V8_DOUBLENEG_REINTRO.md) · [`v8_summary.json`](v8_summary.json) |
+| **v9** | v4 T5 sampled (T=1.0) | none | 27,992 | 97.95% | ✅ mitigation #2 | [`V9_SAMPLED_NEGATIVE.md`](V9_SAMPLED_NEGATIVE.md) · [`v9_summary.json`](v9_summary.json) |
+| **v10** | concat(v5, v6) | — | 28,176 | 98.23% | ✅ mitigation #3 | [`V10_MIX_NEGATIVE.md`](V10_MIX_NEGATIVE.md) · [`v10_summary.json`](v10_summary.json) |
+| **v11** | v4 T5 sampled | polarity-parity filter | 52,018 | 99.81% | ✅ mitigation #4 | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) · [`v11_summary.json`](v11_summary.json) |
+| **v12** | v4 T5 sampled | AMR-struct F1 ≥ 0.85 | 26,393 | 99.58% | ✅ mitigation #5 | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) · [`v12_summary.json`](v12_summary.json) |
+| **v13_llama** | v4 T5 + Llama 3.1 8B paraphrase | T=0.4 instruct prompt | 20,883 | — | 🟡 pretrain blocked | — |
+| **v14 (LeRC, NEW)** | v4 T5 + rule-composition algebra | provably equivalence-preserving | 22,280 | — | 🟡 pretrain blocked | — |
+| v13_qwen3 | Qwen 3 8B paraphrase | — | — | — | ⏳ | — |
+| v13_gemma4_4b | Gemma 4 E4B paraphrase | — | — | — | ⏳ | — |
+| v13_gemma4_31b | Gemma 4 31B paraphrase | — | — | — | ⏳ | — |
+| v13_llama70 | Llama 3.3 70B paraphrase | — | — | — | ⏳ | — |
 
 #### Downstream — DeBERTa-large fine-tune (seed=21 unless noted)
 
-| Backbone | ReClor dev_acc | LogiQA dev_acc | Notes |
-|---|---|---|---|
-| **v5** | 62.8% (seed=21), 63.0% (seed=42) — **mean 62.9%** | 41.0% (seed=21), 43.6% (seed=42) — **mean 42.3%** | ✅ baseline (seed-robust) |
-| **v6** | 63.6% (seed=21), 63.4% (seed=42) — **mean 63.5%** | 39.2% (seed=21), 41.5% (seed=42) — **mean 40.3%** | ✅ **+0.6 / −2.0 pp** (seed-robust) |
-| **v7** | 63.6% | 39.2% | ✅ (= v6, single seed) |
-| **v8** | 63.0% | 38.7% | ✅ mitigation #1 fails |
-| **v9** | 59.6% | 29.3% | ✅ mitigation #2 collapses |
-| **v10** | 62.4% | 38.1% | ✅ mitigation #3 fails |
-| **v11** | 59.8% | 32.3% | ✅ mitigation #4 fails |
-| **v12** | **60.8%** | **37.3%** | ✅ best of sampled-based, still below v6 |
-| **v13_llama** | TBD | TBD | 🟡 |
-| **v14 (LeRC)** | TBD | TBD | 🟡 **first test of the new algorithm** |
+| Backbone | ReClor dev_acc | LogiQA dev_acc | Notes | Logs |
+|---|---|---|---|---|
+| **v5** | 62.8 / 63.0 — **mean 62.9** | 41.0 / 43.6 — **mean 42.3** | ✅ baseline (seed-robust) | [`v6_reclor_summary.json`](v6_reclor_summary.json) · [`v6_reclor_multiseed.json`](v6_reclor_multiseed.json) · [`v6_logiqa_summary.json`](v6_logiqa_summary.json) · [`v6_logiqa_multiseed.json`](v6_logiqa_multiseed.json) |
+| **v6** | 63.6 / 63.4 — **mean 63.5** | 39.2 / 41.5 — **mean 40.3** | ✅ **+0.6 / −2.0 pp** | [`V6_RECLOR_MULTISEED.md`](V6_RECLOR_MULTISEED.md) · [`V6_LOGIQA_MULTISEED.md`](V6_LOGIQA_MULTISEED.md) |
+| **v7** | 63.6 | 39.2 | ✅ (= v6) | [`V7_DOWNSTREAM.md`](V7_DOWNSTREAM.md) |
+| **v8** | 63.0 | 38.7 | ✅ mitigation #1 fails | [`V8_DOUBLENEG_REINTRO.md`](V8_DOUBLENEG_REINTRO.md) |
+| **v9** | 59.6 | 29.3 | ✅ mitigation #2 collapses | [`V9_SAMPLED_NEGATIVE.md`](V9_SAMPLED_NEGATIVE.md) |
+| **v10** | 62.4 | 38.1 | ✅ mitigation #3 fails | [`V10_MIX_NEGATIVE.md`](V10_MIX_NEGATIVE.md) |
+| **v11** | 59.8 | 32.3 | ✅ mitigation #4 fails | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) |
+| **v12** | **60.8** | **37.3** | ✅ best of sampled-based | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) |
+| **v13_llama** | TBD | TBD | 🟡 | — |
+| **v14 (LeRC)** | TBD | TBD | 🟡 **first test of new algorithm** | — |
+
+#### Diversity root cause + mitigation summary
+
+| Document | Description | Link |
+|---|---|---|
+| DIVERSITY_ROOT_CAUSE.md | n-gram diversity drop, near-duplicate rise; LogiQA reverse explained | [report](DIVERSITY_ROOT_CAUSE.md) · [`diversity_v5_v6_v7_v8.json`](diversity_v5_v6_v7_v8.json) |
+| DIVERSITY_FINAL.md | Unified summary across all v5–v12 mitigation attempts | [report](DIVERSITY_FINAL.md) |
 
 #### Held-out generalization (PARARULE-Plus Depth5)
 
-| Method | Pass rate (60 sentences, 143 gen-tested items) | Status |
-|---|---|---|
-| Stock T5 | 70.6% | ✅ |
-| **v4 T5 + rule fix** | **73.4%** | ✅ (+2.8 pp vs stock) |
+| Method | Pass rate (60 sentences, 143 gen-tested items) | Status | Logs |
+|---|---|---|---|
+| Stock T5 | 70.6% | ✅ | [`HELDOUT_PARARULE.md`](HELDOUT_PARARULE.md) · [`heldout_pararule_summary.json`](heldout_pararule_summary.json) |
+| **v4 T5 + rule fix** | **73.4%** | ✅ +2.8 pp | [`rulefix_heldout_summary.json`](rulefix_heldout_summary.json) |
 
-#### DeBERTa-v2-xxlarge robustness (matched recipe: lr 1e-6, warmup 1000, 6 ep, bs 2×accum 48, gradient ckpt)
+#### DeBERTa-v2-xxlarge robustness (matched recipe)
 
-| Backbone | Contrastive eval | ReClor best | ReClor final | Status |
-|---|---|---|---|---|
-| **v5 xxlarge matched** | 99.21% | 45.2% @ step 100 | 24.4% (collapsed) | ✅ |
-| **v6 xxlarge matched** | 98.79% | **64.8%** @ step 480 | 64.8% (stable) | ✅ |
-| paper v5 xxlarge (mismatched recipe) | — | 78.8% | — | reference only, not comparable |
+| Backbone | Contrastive eval | ReClor best | ReClor final | Status | Logs |
+|---|---|---|---|---|---|
+| **v5 xxlarge matched** | 99.21% | 45.2% @ step 100 | 24.4% (collapsed) | ✅ | [`V_XXLARGE_DELTA.md`](V_XXLARGE_DELTA.md) · [`v_xxlarge_delta.json`](v_xxlarge_delta.json) |
+| **v6 xxlarge matched** | 98.79% | **64.8%** @ step 480 | 64.8% (stable) | ✅ | [`V_XXLARGE_PROGRESS.md`](V_XXLARGE_PROGRESS.md) |
+| paper v5 xxlarge (mismatched recipe) | — | 78.8% | — | reference only | — |
 
 #### RL POC (GRPO + AMR-verifier reward) — separate thread, NOT plumbed into downstream
 
-| Run | Model | Adapter | Train steps | Reward trajectory | Status |
-|---|---|---|---|---|---|
-| GRPO Qwen2.5-0.5B | full | none | 1 epoch × 16 examples | 43.75% → 62.50% (113 sec) | ✅ POC #1 |
-| GRPO Qwen2.5-3B + LoRA | LoRA r=16 | yes | 3 epochs × 64 × 4 gen | **37.5% → 93.75%** (13 min) | ✅ POC #2 |
-| Plumb RL generator into v6 corpus | — | — | — | — | ⏳ un-run |
+| Run | Model | Adapter | Train steps | Reward trajectory | Status | Logs |
+|---|---|---|---|---|---|---|
+| GRPO Qwen2.5-0.5B | full | none | 1 epoch × 16 examples | 43.75% → 62.50% (113 sec) | ✅ POC #1 | [`GRPO_RESULTS.md`](GRPO_RESULTS.md) |
+| GRPO Qwen2.5-3B + LoRA | LoRA r=16 | yes | 3 epochs × 64 × 4 gen | **37.5% → 93.75%** (13 min) | ✅ POC #2 | [`GRPO_3B_RESULTS.md`](GRPO_3B_RESULTS.md) |
+| Plumb RL generator into v6 corpus | — | — | — | — | ⏳ un-run | — |
 
 ### The best method we have (core modules)
 

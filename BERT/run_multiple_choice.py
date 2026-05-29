@@ -693,6 +693,29 @@ def main():
         except Exception as e:
             logger.warning("Could not enable gradient checkpointing: %s", e)
 
+    # Best-effort W&B init (see run_glue_no_trainer.py for the same hook).
+    if os.environ.get("WANDB_MODE", "disabled") != "disabled":
+        try:
+            import wandb
+            wandb.init(
+                project=os.environ.get("WANDB_PROJECT", "amr-lda-extensions"),
+                name=os.environ.get("WANDB_RUN_NAME"),
+                config={
+                    "model": args.model_name_or_path,
+                    "task": args.task_name,
+                    "data_dir": args.data_dir,
+                    "lr": args.learning_rate,
+                    "epochs": args.num_train_epochs,
+                    "bs": args.per_gpu_train_batch_size,
+                    "accum": args.gradient_accumulation_steps,
+                    "seed": args.seed,
+                },
+                reinit=True,
+            )
+            logger.info("W&B run: %s", wandb.run.get_url() if wandb.run else "(none)")
+        except Exception as e:
+            logger.warning("W&B init failed (continuing without): %s", e)
+
     model.to(args.device)
 
     logger.info("Training/evaluation parameters %s", args)
