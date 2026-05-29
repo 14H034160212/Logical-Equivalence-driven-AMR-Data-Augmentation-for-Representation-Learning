@@ -8,3 +8,21 @@
   max-width: 100%;
   height: auto;
 }
+
+/* Make inline-code-wrapped links (used in the dashboard) visually clickable.
+   Default mkdocs-material renders [`code`](url) with the code background
+   hiding the link color and underline. */
+a > code,
+a:link > code,
+a:visited > code {
+  color: var(--md-primary-fg-color, #5e35b1);
+  background-color: rgba(94, 53, 177, 0.08);
+  border-bottom: 1px dashed rgba(94, 53, 177, 0.4);
+}
+
+a:hover > code,
+a:focus > code {
+  background-color: rgba(94, 53, 177, 0.18);
+  border-bottom: 1px solid rgba(94, 53, 177, 1);
+  text-decoration: none;
+}
