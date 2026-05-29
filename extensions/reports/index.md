@@ -16,6 +16,78 @@ trade-off root cause, and a robustness check at DeBERTa-v2-xxlarge.
 
 **Base paper:** Bao et al. ACL Findings 2024 — <https://aclanthology.org/2024.findings-acl.353/>
 
+### Results dashboard
+
+Every experiment in chronological order. ✅ = complete, 🟡 = data ready / training blocked, ⏳ = planned.
+
+#### T5wtense generator fine-tune (polarity preservation)
+
+| Version | Training set | eval_loss | Pilot self-check pass | Status |
+|---|---|---|---|---|
+| Stock T5wtense | — | — | 68.9% | ✅ paper baseline |
+| **v1** | 389 silver pairs | 0.2396 | 52.2% on 15-flip subset | ✅ |
+| **v2** | + 8 curated golds (×10) | 0.2260 | 56.5% | ✅ |
+| **v3** | + 7 synthetic golds (×10) | 0.2054 | 69.6% | ✅ |
+| **v4** | + 4 anchor golds (×10) | 0.1900 | **73.9%** on subset / **78.9%** full pilot | ✅ current production |
+| **v4 + De Morgan rule fix** | (same v4 T5; rule library patched) | — | **82.2%** on full pilot, contraposition **15/15 perfect** | ✅ |
+
+#### Contrastive corpus generation + DeBERTa-large pretrain
+
+| Version | Generator | Filter / strategy | Rows | Contrastive eval acc | Status |
+|---|---|---|---|---|---|
+| **v5** | stock T5wtense (beam) | — (paper recipe) | 14,180 | 99.31% | ✅ baseline |
+| **v6** | v4 fine-tuned T5 (beam) | — | 13,996 | 98.43% | ✅ |
+| **v7** | v4 T5 + De Morgan rule fix | — | 13,996 | 98.43% | ✅ (= v6 in practice) |
+| **v8** | v6 + re-added 182 legacy double_negation | — | 14,178 | 98.45% | ✅ mitigation #1 |
+| **v9** | v4 T5 sampled (T=1.0) | none | 27,992 | 97.95% | ✅ mitigation #2 |
+| **v10** | concat(v5, v6) | — | 28,176 | 98.23% | ✅ mitigation #3 |
+| **v11** | v4 T5 sampled | polarity-parity filter | 52,018 | 99.81% | ✅ mitigation #4 |
+| **v12** | v4 T5 sampled | AMR-struct triple-F1 ≥ 0.85 | 26,393 | 99.58% | ✅ mitigation #5 |
+| **v13_llama** | v4 T5 + Llama 3.1 8B paraphrase | T=0.4 instruct prompt | 20,883 | — | 🟡 data ready, pretrain blocked on GPU |
+| **v14 (LeRC, NEW algorithm)** | v4 T5 + rule-composition algebra | provably equivalence-preserving (no filter) | 22,280 | — | 🟡 data ready, pretrain blocked on GPU |
+| v13_qwen3 | Qwen 3 8B paraphrase | — | — | — | ⏳ |
+| v13_gemma4_4b | Gemma 4 E4B paraphrase | — | — | — | ⏳ (need transformers from source) |
+| v13_gemma4_31b | Gemma 4 31B paraphrase | — | — | — | ⏳ |
+| v13_llama70 | Llama 3.3 70B paraphrase | — | — | — | ⏳ |
+
+#### Downstream — DeBERTa-large fine-tune (seed=21 unless noted)
+
+| Backbone | ReClor dev_acc | LogiQA dev_acc | Notes |
+|---|---|---|---|
+| **v5** | 62.8% (seed=21), 63.0% (seed=42) — **mean 62.9%** | 41.0% (seed=21), 43.6% (seed=42) — **mean 42.3%** | ✅ baseline (seed-robust) |
+| **v6** | 63.6% (seed=21), 63.4% (seed=42) — **mean 63.5%** | 39.2% (seed=21), 41.5% (seed=42) — **mean 40.3%** | ✅ **+0.6 / −2.0 pp** (seed-robust) |
+| **v7** | 63.6% | 39.2% | ✅ (= v6, single seed) |
+| **v8** | 63.0% | 38.7% | ✅ mitigation #1 fails |
+| **v9** | 59.6% | 29.3% | ✅ mitigation #2 collapses |
+| **v10** | 62.4% | 38.1% | ✅ mitigation #3 fails |
+| **v11** | 59.8% | 32.3% | ✅ mitigation #4 fails |
+| **v12** | **60.8%** | **37.3%** | ✅ best of sampled-based, still below v6 |
+| **v13_llama** | TBD | TBD | 🟡 |
+| **v14 (LeRC)** | TBD | TBD | 🟡 **first test of the new algorithm** |
+
+#### Held-out generalization (PARARULE-Plus Depth5)
+
+| Method | Pass rate (60 sentences, 143 gen-tested items) | Status |
+|---|---|---|
+| Stock T5 | 70.6% | ✅ |
+| **v4 T5 + rule fix** | **73.4%** | ✅ (+2.8 pp vs stock) |
+
+#### DeBERTa-v2-xxlarge robustness (matched recipe: lr 1e-6, warmup 1000, 6 ep, bs 2×accum 48, gradient ckpt)
+
+| Backbone | Contrastive eval | ReClor best | ReClor final | Status |
+|---|---|---|---|---|
+| **v5 xxlarge matched** | 99.21% | 45.2% @ step 100 | 24.4% (collapsed) | ✅ |
+| **v6 xxlarge matched** | 98.79% | **64.8%** @ step 480 | 64.8% (stable) | ✅ |
+| paper v5 xxlarge (mismatched recipe) | — | 78.8% | — | reference only, not comparable |
+
+#### RL POC (GRPO + AMR-verifier reward) — separate thread, NOT plumbed into downstream
+
+| Run | Model | Adapter | Train steps | Reward trajectory | Status |
+|---|---|---|---|---|---|
+| GRPO Qwen2.5-0.5B | full | none | 1 epoch × 16 examples | 43.75% → 62.50% (113 sec) | ✅ POC #1 |
+| GRPO Qwen2.5-3B + LoRA | LoRA r=16 | yes | 3 epochs × 64 × 4 gen | **37.5% → 93.75%** (13 min) | ✅ POC #2 |
+| Plumb RL generator into v6 corpus | — | — | — | — | ⏳ un-run |
+
 ### The best method we have (core modules)
 
 ```mermaid
