@@ -50,7 +50,7 @@ speed and have only the JSON / markdown trail).
 | **v11** | v4 T5 sampled | polarity-parity filter | 52,018 | 99.81% | ✅ mitigation #4 | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) · [`v11_summary.json`](v11_summary.json) |
 | **v12** | v4 T5 sampled | AMR-struct F1 ≥ 0.85 | 26,393 | 99.58% | ✅ mitigation #5 | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) · [`v12_summary.json`](v12_summary.json) |
 | **v13_llama** | v4 T5 + Llama 3.1 8B paraphrase | T=0.4 instruct prompt | 20,883 | — | 🟡 pretrain blocked | — |
-| **v14 (LeRC, NEW)** | v4 T5 + rule-composition algebra | provably equivalence-preserving | 22,280 | — | 🟡 pretrain blocked | — |
+| **v14 (LeRC, NEW)** | v4 T5 + rule-composition algebra | provably equivalence-preserving | 22,280 | **99.80%** | ✅ **highest of any backbone** | [W&B run](https://wandb.ai/qbao775/amr-lda-extensions/runs/11p97wfg) |
 | v13_qwen3 | Qwen 3 8B paraphrase | — | — | — | ⏳ | — |
 | v13_gemma4_4b | Gemma 4 E4B paraphrase | — | — | — | ⏳ | — |
 | v13_gemma4_31b | Gemma 4 31B paraphrase | — | — | — | ⏳ | — |
@@ -69,7 +69,7 @@ speed and have only the JSON / markdown trail).
 | **v11** | 59.8 | 32.3 | ✅ mitigation #4 fails | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) |
 | **v12** | **60.8** | **37.3** | ✅ best of sampled-based | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) |
 | **v13_llama** | TBD | TBD | 🟡 | — |
-| **v14 (LeRC)** | TBD | TBD | 🟡 **first test of new algorithm** | — |
+| **v14 (LeRC)** | running (PID 3413276) | TBD | 🟡 ReClor in progress; LogiQA next | [W&B (contrastive)](https://wandb.ai/qbao775/amr-lda-extensions/runs/11p97wfg) |
 
 #### Diversity root cause + mitigation summary
 
