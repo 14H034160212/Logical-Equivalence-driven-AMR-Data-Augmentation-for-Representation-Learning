@@ -1,0 +1,38 @@
+{
+  "algorithm": "Logic-Equivalent Rule Composition (LeRC) — NEW",
+  "description": "Treat the 14 logical-equivalence rules as an algebra of equivalence-preserving operators and compose them in 5 templates: [contraposition], [implication], [commutative], [contraposition+commutative], [implication+commutative]. Each composition is provably equivalence-preserving (no sampling, no verifier filter needed).",
+  "dataset": {
+    "rows": 22280,
+    "label_1": 15170,
+    "label_0": 7110,
+    "csv": "legacy/data/Synthetic_xfm_t5wtense_logical_equivalence_list_v14.csv"
+  },
+  "contrastive_pretrain": {
+    "eval_acc_per_epoch": [0.9928, 0.9955, 0.9969, 0.9962, 0.9948, 0.9964, 0.998, 0.998, 0.9975, 0.998],
+    "final_eval_acc": 0.998,
+    "wandb": "https://wandb.ai/qbao775/amr-lda-extensions/runs/11p97wfg",
+    "rank_among_v_variants": "highest (tied with v11 99.81%)"
+  },
+  "downstream_seed21": {
+    "reclor": {
+      "best_dev_acc": 0.612,
+      "best_step": 1800,
+      "wandb": "https://wandb.ai/qbao775/amr-lda-extensions/runs/375ehyob"
+    },
+    "logiqa": {
+      "best_dev_acc": 0.3733,
+      "best_step": 1400,
+      "wandb": "https://wandb.ai/qbao775/amr-lda-extensions/runs/3fd7tmcr"
+    }
+  },
+  "comparison": {
+    "vs_v5_reclor_delta": -1.6,
+    "vs_v6_reclor_delta": -2.4,
+    "vs_v5_logiqa_delta": -3.7,
+    "vs_v6_logiqa_delta": -2.9,
+    "vs_v12_reclor_delta": 0.4,
+    "vs_v12_logiqa_delta": 0.0,
+    "verdict": "matches v12 (best previous mitigation), still below v5 (LogiQA winner) and v6 (ReClor winner)"
+  },
+  "interpretation": "LeRC produces a contrastive corpus that the head learns very cleanly in-distribution (99.80% eval), but the 5 composition templates are too regular for OOD transfer. The diversity-vs-polarity trade-off observed across v8/v9/v10/v11/v12 mitigations is reconfirmed even at the logic layer — rule-composition diversity does not substitute for the wider surface diversity stock T5 provides."
+}
