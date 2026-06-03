@@ -68,7 +68,7 @@ speed and have only the JSON / markdown trail).
 | **v10** | 62.4 | 38.1 | ✅ mitigation #3 fails | [`V10_MIX_NEGATIVE.md`](V10_MIX_NEGATIVE.md) |
 | **v11** | 59.8 | 32.3 | ✅ mitigation #4 fails | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) |
 | **v12** | **60.8** | **37.3** | ✅ best of sampled-based | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) |
-| **v13_llama** | **64.4** ⭐ | running... | ✅/🟡 **+0.8 pp vs v6 — NEW BEST on ReClor** | [W&B reclor](https://wandb.ai/qbao775/amr-lda-extensions/runs/1ydkhzku) · W&B logiqa (in flight) |
+| **v13_llama** | **64.4** ⭐ | 39.0 | ✅ **+0.8 vs v6 ReClor (new best) · ties v6 LogiQA** | [W&B reclor](https://wandb.ai/qbao775/amr-lda-extensions/runs/1ydkhzku) · [W&B logiqa](https://wandb.ai/qbao775/amr-lda-extensions) |
 | **v14 (LeRC)** | 61.2 | 37.3 | ✅ ties v12, below v5/v6 | [W&B reclor](https://wandb.ai/qbao775/amr-lda-extensions/runs/375ehyob) · [W&B logiqa](https://wandb.ai/qbao775/amr-lda-extensions/runs/3fd7tmcr) · [V14_LERC_RESULTS.md](V14_LERC_RESULTS.md) |
 
 #### Diversity root cause + mitigation summary
