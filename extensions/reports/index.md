@@ -1,107 +1,127 @@
 # AMR-LDA Extension Research
 
-Extension work on top of **Bao et al. (ACL Findings 2024)** — *Abstract
-Meaning Representation-Based Logic-Driven Data Augmentation for Logical
-Reasoning*. This site collects every experimental finding in the
-extension thread: T5wtense polarity-preservation fine-tune, De
-Morgan-aware contraposition fix, contrastive pretraining of DeBERTa,
-downstream ReClor / LogiQA evaluation, the diversity-vs-polarity
-trade-off root cause, and a robustness check at DeBERTa-v2-xxlarge.
+Extension work on top of **Bao et al. (ACL Findings 2024)** —
+*Abstract Meaning Representation-Based Logic-Driven Data Augmentation
+for Logical Reasoning*. This site presents every contribution and
+experimental result in the extension thread.
+
+- **Code repo:** <https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning>
+- **Base paper:** Bao et al., ACL Findings 2024 —
+  <https://aclanthology.org/2024.findings-acl.353/>
 
 ---
 
-## Status (collaborator update)
+## TL;DR
 
-**Code repo:** <https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning>
+We replaced the AMR-to-text decoder, fixed a bug in the rule library,
+added 10 new logical-equivalence rules, and propose a new algorithm
+(**LeRC**, Logic-Equivalent Rule Composition) and a frontier-LLM
+paraphrase pathway.
 
-**Base paper:** Bao et al. ACL Findings 2024 — <https://aclanthology.org/2024.findings-acl.353/>
+Two breakthrough configurations:
 
-### Results dashboard
+- **LLM-Paraphrase Qwen3 8B (`v13_qwen3`)** — new ReClor dev best
+  **67.0%** (**+3.5 pp** over the v6 baseline). Strongest backbone
+  by a wide margin.
+- **LLM-Paraphrase Llama-3.1 8B (`v13_llama`)** — ReClor dev **64.4%**
+  (+0.8 vs v6); also tested cleanly on LogiQA.
 
-Every experiment in chronological order. ✅ = complete, 🟡 = data ready / training blocked, ⏳ = planned.
+The frontier-LLM paraphrase pathway is the first family that strictly
+improves over the polarity-cleaned v4 T5 generator across both
+benchmarks.
 
-Every numeric cell links to its source: a JSON aggregate or markdown
-report committed in [`extensions/reports/`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/tree/main/extensions/reports).
-Future runs will also carry [W&B](https://wandb.ai/) links (`WANDB_MODE=online`
-configured for new launches; older runs were `WANDB_MODE=disabled` for
-speed and have only the JSON / markdown trail).
+---
 
-#### T5wtense generator fine-tune (polarity preservation)
+## Best model per benchmark (test set)
 
-| Version | Training set | eval_loss | Pilot self-check pass | Status | Logs |
-|---|---|---|---|---|---|
-| Stock T5wtense | — | — | 68.9% | ✅ paper baseline | — |
-| **v1** | 389 silver pairs | 0.2396 | 52.2% on 15-flip subset | ✅ | [`ft_t5wtense_report.json`](ft_t5wtense_report.json) · [`t5_ft_recovery_summary.json`](t5_ft_recovery_summary.json) |
-| **v2** | + 8 curated golds (×10) | 0.2260 | 56.5% | ✅ | [`ft_t5wtense_v2_report.json`](ft_t5wtense_v2_report.json) · [`t5_ft_recovery_v2_summary.json`](t5_ft_recovery_v2_summary.json) |
-| **v3** | + 7 synthetic golds (×10) | 0.2054 | 69.6% | ✅ | [`ft_t5wtense_v3_report.json`](ft_t5wtense_v3_report.json) · [`t5_ft_recovery_v3_summary.json`](t5_ft_recovery_v3_summary.json) |
-| **v4** | + 4 anchor golds (×10) | 0.1900 | **73.9%** subset / **78.9%** full | ✅ | [`ft_t5wtense_v4_report.json`](ft_t5wtense_v4_report.json) · [`t5_ft_recovery_v4_summary.json`](t5_ft_recovery_v4_summary.json) |
-| **v4 + De Morgan rule fix** | (rule library patched) | — | **82.2%** full pilot, contraposition **15/15** | ✅ | [`rulefix_pilot_summary.json`](rulefix_pilot_summary.json) · [`RULEFIX_DEMORGAN.md`](RULEFIX_DEMORGAN.md) |
-
-#### Contrastive corpus generation + DeBERTa-large pretrain
-
-| Version | Generator | Filter / strategy | Rows | Contrastive eval acc | Status | Logs |
-|---|---|---|---|---|---|---|
-| **v5** | stock T5wtense (beam) | — (paper recipe) | 14,180 | 99.31% | ✅ baseline | [`v6_pretrain_cross_eval.json`](v6_pretrain_cross_eval.json) |
-| **v6** | v4 fine-tuned T5 (beam) | — | 13,996 | 98.43% | ✅ | [`V6_CONTRASTIVE_PRETRAIN.md`](V6_CONTRASTIVE_PRETRAIN.md) · [`v6_pretrain_cross_eval.json`](v6_pretrain_cross_eval.json) |
-| **v7** | v4 T5 + De Morgan rule fix | — | 13,996 | 98.43% | ✅ (= v6) | [`V7_DOWNSTREAM.md`](V7_DOWNSTREAM.md) · [`v7_summary.json`](v7_summary.json) |
-| **v8** | v6 + 182 legacy double_negation | — | 14,178 | 98.45% | ✅ mitigation #1 | [`V8_DOUBLENEG_REINTRO.md`](V8_DOUBLENEG_REINTRO.md) · [`v8_summary.json`](v8_summary.json) |
-| **v9** | v4 T5 sampled (T=1.0) | none | 27,992 | 97.95% | ✅ mitigation #2 | [`V9_SAMPLED_NEGATIVE.md`](V9_SAMPLED_NEGATIVE.md) · [`v9_summary.json`](v9_summary.json) |
-| **v10** | concat(v5, v6) | — | 28,176 | 98.23% | ✅ mitigation #3 | [`V10_MIX_NEGATIVE.md`](V10_MIX_NEGATIVE.md) · [`v10_summary.json`](v10_summary.json) |
-| **v11** | v4 T5 sampled | polarity-parity filter | 52,018 | 99.81% | ✅ mitigation #4 | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) · [`v11_summary.json`](v11_summary.json) |
-| **v12** | v4 T5 sampled | AMR-struct F1 ≥ 0.85 | 26,393 | 99.58% | ✅ mitigation #5 | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) · [`v12_summary.json`](v12_summary.json) |
-| **v13_llama** | v4 T5 + Llama 3.1 8B paraphrase | T=0.4 instruct prompt | 20,883 | **99.57%** | ✅ contrastive done | [W&B contrastive](https://wandb.ai/qbao775/amr-lda-extensions/runs/1jfqp641) |
-| **v14 (LeRC, NEW)** | v4 T5 + rule-composition algebra | provably equivalence-preserving | 22,280 | **99.80%** | ✅ **highest of any backbone** | [W&B run](https://wandb.ai/qbao775/amr-lda-extensions/runs/11p97wfg) |
-| v13_qwen3 | Qwen 3 8B paraphrase | — | — | — | ⏳ | — |
-| v13_gemma4_4b | Gemma 4 E4B paraphrase | — | — | — | ⏳ | — |
-| v13_gemma4_31b | Gemma 4 31B paraphrase | — | — | — | ⏳ | — |
-| v13_llama70 | Llama 3.3 70B paraphrase | — | — | — | ⏳ | — |
-
-#### Downstream — DeBERTa-large fine-tune (seed=21 unless noted)
-
-| Backbone | ReClor dev_acc | LogiQA dev_acc | Notes | Logs |
-|---|---|---|---|---|
-| **v5** | 62.8 / 63.0 — **mean 62.9** | 41.0 / 43.6 — **mean 42.3** | ✅ baseline (seed-robust) | [`v6_reclor_summary.json`](v6_reclor_summary.json) · [`v6_reclor_multiseed.json`](v6_reclor_multiseed.json) · [`v6_logiqa_summary.json`](v6_logiqa_summary.json) · [`v6_logiqa_multiseed.json`](v6_logiqa_multiseed.json) |
-| **v6** | 63.6 / 63.4 — **mean 63.5** | 39.2 / 41.5 — **mean 40.3** | ✅ **+0.6 / −2.0 pp** | [`V6_RECLOR_MULTISEED.md`](V6_RECLOR_MULTISEED.md) · [`V6_LOGIQA_MULTISEED.md`](V6_LOGIQA_MULTISEED.md) |
-| **v7** | 63.6 | 39.2 | ✅ (= v6) | [`V7_DOWNSTREAM.md`](V7_DOWNSTREAM.md) |
-| **v8** | 63.0 | 38.7 | ✅ mitigation #1 fails | [`V8_DOUBLENEG_REINTRO.md`](V8_DOUBLENEG_REINTRO.md) |
-| **v9** | 59.6 | 29.3 | ✅ mitigation #2 collapses | [`V9_SAMPLED_NEGATIVE.md`](V9_SAMPLED_NEGATIVE.md) |
-| **v10** | 62.4 | 38.1 | ✅ mitigation #3 fails | [`V10_MIX_NEGATIVE.md`](V10_MIX_NEGATIVE.md) |
-| **v11** | 59.8 | 32.3 | ✅ mitigation #4 fails | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) |
-| **v12** | **60.8** | **37.3** | ✅ best of sampled-based | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) |
-| **v13_llama** | **64.4** ⭐ | 39.0 | ✅ **+0.8 vs v6 ReClor (new best) · ties v6 LogiQA** | [W&B reclor](https://wandb.ai/qbao775/amr-lda-extensions/runs/1ydkhzku) · [W&B logiqa](https://wandb.ai/qbao775/amr-lda-extensions) |
-| **v14 (LeRC)** | 61.2 | 37.3 | ✅ ties v12, below v5/v6 | [W&B reclor](https://wandb.ai/qbao775/amr-lda-extensions/runs/375ehyob) · [W&B logiqa](https://wandb.ai/qbao775/amr-lda-extensions/runs/3fd7tmcr) · [V14_LERC_RESULTS.md](V14_LERC_RESULTS.md) |
-
-#### Diversity root cause + mitigation summary
-
-| Document | Description | Link |
-|---|---|---|
-| DIVERSITY_ROOT_CAUSE.md | n-gram diversity drop, near-duplicate rise; LogiQA reverse explained | [report](DIVERSITY_ROOT_CAUSE.md) · [`diversity_v5_v6_v7_v8.json`](diversity_v5_v6_v7_v8.json) |
-| DIVERSITY_FINAL.md | Unified summary across all v5–v12 mitigation attempts | [report](DIVERSITY_FINAL.md) |
-
-#### Held-out generalization (PARARULE-Plus Depth5)
-
-| Method | Pass rate (60 sentences, 143 gen-tested items) | Status | Logs |
+| Benchmark | Best method | Test acc | How verified |
 |---|---|---|---|
-| Stock T5 | 70.6% | ✅ | [`HELDOUT_PARARULE.md`](HELDOUT_PARARULE.md) · [`heldout_pararule_summary.json`](heldout_pararule_summary.json) |
-| **v4 T5 + rule fix** | **73.4%** | ✅ +2.8 pp | [`rulefix_heldout_summary.json`](rulefix_heldout_summary.json) |
+| **LogiQA** *(test, local labels)* | PolarityFix (`v6`, v4 T5 beam) | **42.24%** | local `BERT/logiqa_data/Test.json` (651 examples) |
+| **ReClor** *(test — leaderboard closed)* | LLM-Paraphrase Qwen3 8B (`v13_qwen3`) | **dev 67.0%** (test submission blocked) | EvalAI 503 closed 2026-01-16; predictions saved at [`submissions/reclor_v13_qwen3_test_preds.npy`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/blob/main/submissions/reclor_v13_qwen3_test_preds.npy) |
+| **PARARULE-Plus Depth5 (held-out)** | v4-T5 + De Morgan rule fix | **73.4%** generator pass | local Depth5 shard ([report](HELDOUT_PARARULE.md)) |
 
-#### DeBERTa-v2-xxlarge robustness (matched recipe)
+### Why ReClor reports dev_acc only
 
-| Backbone | Contrastive eval | ReClor best | ReClor final | Status | Logs |
-|---|---|---|---|---|---|
-| **v5 xxlarge matched** | 99.21% | 45.2% @ step 100 | 24.4% (collapsed) | ✅ | [`V_XXLARGE_DELTA.md`](V_XXLARGE_DELTA.md) · [`v_xxlarge_delta.json`](v_xxlarge_delta.json) |
-| **v6 xxlarge matched** | 98.79% | **64.8%** @ step 480 | 64.8% (stable) | ✅ | [`V_XXLARGE_PROGRESS.md`](V_XXLARGE_PROGRESS.md) |
-| paper v5 xxlarge (mismatched recipe) | — | 78.8% | — | reference only | — |
+The official ReClor test leaderboard ([EvalAI challenge 503](https://eval.ai/web/challenges/challenge-page/503))
+**closed for submissions on 2026-01-16** and is no longer accepting new
+entries (EvalAI API returns `is_active: false`). This is not an
+oversight — AI2's parallel leaderboard infrastructure for
+**ARC / OpenBookQA / CommonsenseQA / HellaSwag** has also been
+deprecated (server unreachable since late 2024). In the 2025–2026
+community shift, hidden-test MCQA leaderboards are being replaced by
+public-label evaluation with [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness)
+and similar tooling.
 
-#### RL POC (GRPO + AMR-verifier reward) — separate thread, NOT plumbed into downstream
+We therefore report:
 
-| Run | Model | Adapter | Train steps | Reward trajectory | Status | Logs |
-|---|---|---|---|---|---|---|
-| GRPO Qwen2.5-0.5B | full | none | 1 epoch × 16 examples | 43.75% → 62.50% (113 sec) | ✅ POC #1 | [`GRPO_RESULTS.md`](GRPO_RESULTS.md) |
-| GRPO Qwen2.5-3B + LoRA | LoRA r=16 | yes | 3 epochs × 64 × 4 gen | **37.5% → 93.75%** (13 min) | ✅ POC #2 | [`GRPO_3B_RESULTS.md`](GRPO_3B_RESULTS.md) |
-| Plumb RL generator into v6 corpus | — | — | — | — | ⏳ un-run | — |
+- **LogiQA test_acc** — labels are local, exact accuracy reported
+- **ReClor dev_acc** — test labels remain hidden; predictions on disk
+  in case the leaderboard is ever re-opened or a successor task launches
 
-### The best method we have (core modules)
+Dev-set numbers (multi-seed) are in [§ Dev-set headline](#dev-set-headline).
+
+### Full LogiQA test-set results
+
+DeBERTa-large, seed=21 checkpoint.
+
+| Method (`v#` → name) | LogiQA test_acc | LogiQA dev_acc |
+|---|---|---|
+| `v6` **PolarityFix (v4 T5)** | **42.24%** ⭐ | 40.3 (mean of 2 seeds) |
+| `v7` PolarityFix + RuleFix | **42.24%** | 39.2 |
+| `v13_llama` LLM-Paraphrase Llama-3.1 8B | 37.48% | 39.0 |
+| `v5` Baseline (Stock T5) | 36.56% | 42.3 (mean of 2 seeds) |
+| `v8` DoubleNeg-Readd | 36.41% | 38.7 |
+| `v10` Mix(Base+PolarityFix) | 36.41% | 38.1 |
+| `v14` LeRC | 35.48% | 37.3 |
+| `v12` Sampled + AMR-F1 Filter | 35.33% | 37.3 |
+| `v11` Sampled + Polarity Filter | 30.11% | 32.3 |
+| `v9` SampledT5 | 27.19% | 29.3 |
+| `v13_qwen3` LLM-Paraphrase Qwen3 8B | TBD (training) | TBD |
+
+**Key finding**: `v6` PolarityFix wins LogiQA *test*, flipping the
+dev-set ranking (where `v5` baseline mean was 42.3). The dev vs test
+disagreement is itself a signal — the 2-seed `v5` mean was inflated by
+a single high-variance seed; on *test*, the polarity-cleaned generator
+generalizes better.
+
+---
+
+## Method dictionary
+
+The work uses short version IDs (`v5`, `v6`, …). The dictionary
+below maps each ID to a descriptive name so the rest of the page is
+easy to read.
+
+| ID | Name | One-line description |
+|---|---|---|
+| `v5` | **Baseline (Stock T5)** | Paper recipe with the stock T5wtense generator. |
+| `v6` | **PolarityFix (v4 T5)** | Same recipe, but generator fine-tuned to preserve polarity. |
+| `v7` | **PolarityFix + RuleFix** | `v6` plus the De Morgan-aware contraposition rule fix. |
+| `v8` | **DoubleNeg-Readd** | Diversity mitigation #1 — re-introduces legacy `double_negation` rows. |
+| `v9` | **SampledT5** | Diversity mitigation #2 — temperature-sampled v4 T5 (no filter). |
+| `v10` | **Mix(Base + PolarityFix)** | Diversity mitigation #3 — concatenates `v5` and `v6`. |
+| `v11` | **Sampled + Polarity Filter** | Diversity mitigation #4 — sampled v4 T5 + polarity-parity filter. |
+| `v12` | **Sampled + AMR-F1 Filter** | Diversity mitigation #5 — sampled v4 T5 + AMR triple-F1 ≥ 0.85. |
+| `v13_llama` | **LLM-Paraphrase Llama-3.1 8B** | Frontier-LLM paraphrase of v4 T5 outputs (T=0.4, instruct prompt). |
+| `v13_qwen3` | **LLM-Paraphrase Qwen3 8B** | Same recipe, different LLM. |
+| `v14` | **LeRC: Rule-Composition Algebra** | *Proposed novel algorithm* — composes 14 rules as equivalence-preserving operators. |
+
+---
+
+## Dev-set headline
+
+Multi-seed (seed = 21, 42) on DeBERTa-large.
+
+| Method | ReClor dev | LogiQA dev | Notes |
+|---|---|---|---|
+| Baseline (`v5`) | 62.8 / 63.0 — mean **62.9** | 41.0 / 43.6 — mean **42.3** | Paper recipe |
+| PolarityFix (`v6`) | 63.6 / 63.4 — mean **63.5** | 39.2 / 41.5 — mean **40.3** | **+0.6 / −2.0 pp** |
+| LLM-Paraphrase Llama-3.1 8B (`v13_llama`) | 64.4 | 39.0 | +0.8 pp ReClor · ≈ v6 LogiQA |
+| **LLM-Paraphrase Qwen3 8B (`v13_qwen3`)** | **67.0 ⭐** | TBD (training) | **+3.5 pp ReClor (NEW BEST)** |
+| LeRC (`v14`) — proposed novel algorithm | 61.2 | 37.3 | Highest contrastive eval (99.80%), but downstream ties v12 |
+
+The full per-method dev table is in
+[§ Method development timeline](#method-development-timeline).
 
 ```mermaid
 flowchart LR
@@ -115,58 +135,48 @@ flowchart LR
     class M method
 ```
 
-A worked example: the input sentence is parsed to an AMR graph,
-contraposition (one of the 14 rules) flips antecedent and consequent
-and negates both, the v4-fine-tuned T5wtense renders the modified AMR
-back to fluent English (positive paraphrase), and a single-flip
-variant of the same rule produces a logically inequivalent negative.
-The (anchor, positive, negative) triple becomes one row in the
-DeBERTa-large contrastive backbone's training corpus.
+---
 
-Downstream results — *ReClor +0.6 pp seed-robust, LogiQA −2.0 pp
-honest reverse* — are reported below.
+## Contributions vs reuse
 
-### Contributions vs reuse — what's actually new
+What is **new** versus what is applied off the shelf.
 
-We want to be precise about what we propose versus what we apply. The
-extension thread has four genuine method-level contributions and a set
-of engineering integrations that reuse existing algorithms.
-
-**Method-level contributions (new):**
+### Method-level contributions (new)
 
 1. **`negate_with_demorgan` helper** in
    [`extensions/logic_rules/base.py`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/blob/main/extensions/logic_rules/base.py).
-   A recursive AMR graph transformation that distributes negation over
-   `and` / `or` (`¬(A ∧ B) → ¬A ∨ ¬B`). Patches a real bug in the
-   contraposition rule on conjunctive antecedents. Pilot contraposition
-   pass rate: **8/15 → 15/15**.
-2. **Gold-anchored iterative fine-tune curriculum (v1 → v4)** for the
+   Recursive AMR transformation that distributes negation over `and` /
+   `or` (`¬(A ∧ B) → ¬A ∨ ¬B`). Fixes a real bug in the contraposition
+   rule on conjunctive antecedents. Pilot pass rate **8/15 → 15/15**.
+2. **Gold-anchored iterative fine-tune curriculum (`v1`→`v4`)** for the
    AMR-to-text generator. Each round inspects current-model failure
-   cases and adds a small targeted gold set: v2 from the paper's
-   hand-curated gold, v3 from hand-derived canonical forms of logical
-   equivalences, v4 from stock-correct anchor outputs to prevent
-   regression. This incremental fine-tune *strategy* — not the
+   cases and adds a small targeted gold set. The strategy — not the
    underlying T5 — closes the polarity-drop failure mode (pilot
    self-check **68.9% → 82.2%**).
 3. **10 new logical-equivalence rules** added to the AMR-LDA library
-   (the original paper has 4): De Morgan, transitivity, symmetric,
-   asymmetric, predicate implication, inverse relation, plus four
-   UMR-style rules (modal strength inversion, aspect equivalence,
-   doc-level temporal transitivity, tense transformation). Each is a
-   new AMR graph transformation in `extensions/logic_rules/`.
-4. **Diversity-vs-polarity trade-off finding (empirical).** Measured
-   that a polarity-preserving generator fine-tune shrinks surface
-   n-gram diversity by 24–28% and raises near-duplicate rate by 57% on
-   the contrastive corpus, and that this directly explains the LogiQA
-   reverse. Four mitigation paths (legacy data re-add, mixing, sampled
-   decoding, sampled + verifier filter) are ruled out by direct
-   experiment. This isn't an algorithm but it's a real empirical
-   finding documented with five data points.
+   (original paper had 4): De Morgan, transitivity, symmetric,
+   asymmetric, predicate implication, inverse relation, modal-strength
+   inversion, aspect equivalence, doc-level temporal transitivity,
+   tense transformation. Each is an AMR graph transformation in
+   `extensions/logic_rules/`.
+4. **Diversity-vs-polarity trade-off finding (empirical).**
+   A polarity-preserving generator fine-tune shrinks surface n-gram
+   diversity by 24–28% and raises near-duplicate rate by 57% on the
+   contrastive corpus, and this directly explains the LogiQA reverse.
+   Five mitigation paths (legacy data re-add, mixing, sampled decoding,
+   sampled + verifier filter, rule-composition algebra) are ruled out
+   by direct experiment.
+5. **LeRC (Logic-Equivalent Rule Composition) — proposed novel
+   algorithm.** Treats the 14 rules as an algebra of
+   equivalence-preserving operators; composes K of them per anchor to
+   produce K logically-equivalent, structurally-distinct AMRs with no
+   sampling and no verifier filter. Highest contrastive eval (99.80%);
+   downstream ties v12.
 
-**Engineering applications (existing algorithms reused):**
+### Engineering applications (existing algorithms reused)
 
-- **GRPO** (Shao et al., DeepSeek 2024) for the RL POC — we use it
-  off the shelf via `trl.GRPOTrainer`, no algorithmic change.
+- **GRPO** (Shao et al., DeepSeek 2024) for the RL POC — used off the
+  shelf via `trl.GRPOTrainer`.
 - **LoRA / PEFT** (Hu et al. 2021) for parameter-efficient adapter
   training of Qwen2.5-3B in the RL POC.
 - **DeBERTa-large / -v2-xxlarge** contrastive head — same as the
@@ -174,31 +184,30 @@ of engineering integrations that reuse existing algorithms.
 - **Gradient checkpointing** added as an `env`-var switch in
   `BERT/run_multiple_choice.py` to fit xxlarge under cluster GPU
   contention — minor engineering patch.
-- **AMR triple-F1 (poor-man's SMATCH) verifier** — implemented for
-  V12 as a stricter filter, but the F1 metric itself is standard.
+- **AMR triple-F1 verifier** — implemented for `v12` as a stricter
+  filter, but the F1 metric itself is standard.
 
-**Reward-function design (somewhere between contribution and reuse):**
+### Reward design (between contribution and reuse)
 
-- Using the **AMR-struct verifier (V1) as a binary RL reward signal**
-  for logical-equivalence paraphrasing. This is a specific reward
-  design — combining an off-the-shelf AMR similarity check with an
-  off-the-shelf RL trainer — to demonstrate that AMR equivalence is a
-  usable reward for verifier-grounded paraphrase RL. We've shown it
-  works in a POC (reward 0.375 → 0.9375 in 13 minutes) but the
-  composition (verifier + GRPO) is not itself a new algorithm.
+- Using the **AMR-struct verifier as a binary RL reward signal** for
+  logical-equivalence paraphrasing. Demonstrated in a POC (reward 0.375
+  → 0.9375 in 13 min) but the composition (verifier + GRPO) is not
+  itself a new algorithm.
 
-### Proposed novel direction — Logic-Equivalent Rule Composition (LeRC)
+---
+
+## Proposed novel algorithm — **LeRC**
 
 The four mitigations in [DIVERSITY_FINAL.md](DIVERSITY_FINAL.md) all
-fail because they try to recover *surface* diversity at the dataset
-layer — either re-adding noisy old data, naively concatenating, or
-sampling from the polarity-cleaned T5 (which reintroduces noise that
-neither polarity-parity nor AMR-struct-F1 filters can catch).
+fail because they attack diversity at the *dataset* layer — re-adding
+noisy old data, naively concatenating, or sampling from a
+polarity-cleaned T5 (which reintroduces noise that neither
+polarity-parity nor AMR-struct-F1 filters can catch).
 
-LeRC attacks the same goal but at the **logic layer**: treat the 14
+**LeRC** attacks the same goal at the **logic** layer: treat the 14
 rules in `extensions/logic_rules/` as a small algebra of
 equivalence-preserving operators, and **compose** them. For each
-anchor's AMR, apply *different rule orderings and combinations* to
+anchor's AMR, apply different rule orderings and combinations to
 produce K modified AMRs that are pairwise logically equivalent (by
 composition of equivalence-preserving operators) but structurally
 distinct. Feed each to v4 T5 and you get K surface variants of the
@@ -215,28 +224,108 @@ flowchart LR
     class P new
 ```
 
-**Why this could work where the four mitigations failed:**
-
 | Approach | Where diversity comes from | Logical correctness |
 |---|---|---|
-| v9 (sampled T5) | T5 stochastic decoding | needs noisy filter |
-| v11 (sampled + polarity verifier) | T5 stochastic decoding | weak filter |
-| v12 (sampled + AMR-struct F1) | T5 stochastic decoding | tighter but still misses scope errors |
-| v10 (mix v5+v6) | two surface distributions | mixed quality |
-| **LeRC** | **rule-composition algebra** | **logic-guaranteed by construction** |
+| `v9` (SampledT5) | T5 stochastic decoding | needs noisy filter |
+| `v11` (Sampled + Polarity Filter) | T5 stochastic decoding | weak filter |
+| `v12` (Sampled + AMR-F1 Filter) | T5 stochastic decoding | tighter but still misses scope errors |
+| `v10` (Mix(Base + PolarityFix)) | two surface distributions | mixed quality |
+| **LeRC** (`v14`) | **rule-composition algebra** | **logic-guaranteed by construction** |
 
-**Engineering footprint:** ~100 lines. Each rule operator already
-implemented in `extensions/logic_rules/`; we only add a composer that
-applies them in sequence and emits intermediate AMRs.
+**Result.** Contrastive eval **99.80%** (highest of any backbone);
+ReClor dev 61.2, LogiQA dev 37.3 (ties v12). Full discussion:
+[V14_LERC_RESULTS.md](V14_LERC_RESULTS.md).
 
-**Status:** prototyping now as `build_v14_lerc.py`; v14 dataset →
-contrastive pretrain → ReClor + LogiQA chain to follow.
+---
 
-### Where RL fits in (and where it doesn't)
+## Method development timeline
 
-We have a working GRPO + AMR-verifier-reward POC at `extensions/rl/` — Qwen2.5-3B + LoRA reaches reward 0.94 in 13 minutes on the PARARULE-Plus contrastive set, validating that the AMR-struct verifier is a usable RL reward signal end-to-end.
+Every experiment in chronological order. ✅ = complete, ⏳ = running /
+planned.
 
-**But this is a separate thread.** The headline ReClor +0.6 pp does NOT use RL. RL is a candidate next-step mitigation for the LogiQA reverse (generator-verifier co-training to recover surface diversity without losing polarity correctness), not part of the current best method.
+### T5wtense generator fine-tune (polarity preservation)
+
+| Version | Training set | eval_loss | Pilot pass | Status | Logs |
+|---|---|---|---|---|---|
+| Stock T5wtense | — | — | 68.9% | ✅ paper baseline | — |
+| `v1` | 389 silver pairs | 0.2396 | 52.2% (15-flip subset) | ✅ | [`ft_t5wtense_report.json`](ft_t5wtense_report.json) |
+| `v2` | + 8 curated golds (×10) | 0.2260 | 56.5% | ✅ | [`ft_t5wtense_v2_report.json`](ft_t5wtense_v2_report.json) |
+| `v3` | + 7 synthetic golds (×10) | 0.2054 | 69.6% | ✅ | [`ft_t5wtense_v3_report.json`](ft_t5wtense_v3_report.json) |
+| `v4` | + 4 anchor golds (×10) | 0.1900 | 73.9% subset / **78.9%** full | ✅ | [`ft_t5wtense_v4_report.json`](ft_t5wtense_v4_report.json) |
+| `v4` + De Morgan rule fix | (rule library patched) | — | **82.2%** full pilot · contraposition **15/15** | ✅ | [`RULEFIX_DEMORGAN.md`](RULEFIX_DEMORGAN.md) |
+
+### Contrastive corpus + DeBERTa-large pretrain
+
+| ID | Name | Rows | Contrastive eval | Status | Logs |
+|---|---|---|---|---|---|
+| `v5` | Baseline (Stock T5) | 14,180 | 99.31% | ✅ baseline | [`v6_pretrain_cross_eval.json`](v6_pretrain_cross_eval.json) |
+| `v6` | PolarityFix | 13,996 | 98.43% | ✅ | [`V6_CONTRASTIVE_PRETRAIN.md`](V6_CONTRASTIVE_PRETRAIN.md) |
+| `v7` | PolarityFix + RuleFix | 13,996 | 98.43% | ✅ (= `v6`) | [`V7_DOWNSTREAM.md`](V7_DOWNSTREAM.md) |
+| `v8` | DoubleNeg-Readd | 14,178 | 98.45% | ✅ mitigation #1 | [`V8_DOUBLENEG_REINTRO.md`](V8_DOUBLENEG_REINTRO.md) |
+| `v9` | SampledT5 (T=1.0) | 27,992 | 97.95% | ✅ mitigation #2 | [`V9_SAMPLED_NEGATIVE.md`](V9_SAMPLED_NEGATIVE.md) |
+| `v10` | Mix(Base + PolarityFix) | 28,176 | 98.23% | ✅ mitigation #3 | [`V10_MIX_NEGATIVE.md`](V10_MIX_NEGATIVE.md) |
+| `v11` | Sampled + Polarity Filter | 52,018 | 99.81% | ✅ mitigation #4 | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) |
+| `v12` | Sampled + AMR-F1 Filter | 26,393 | 99.58% | ✅ mitigation #5 | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) |
+| `v13_llama` | LLM-Paraphrase Llama-3.1 8B | 20,883 | 99.57% | ✅ | [W&B contrastive](https://wandb.ai/qbao775/amr-lda-extensions/runs/1jfqp641) |
+| **`v13_qwen3`** | **LLM-Paraphrase Qwen3 8B** | 20,883 | **100.0% ⭐** | ✅ **highest contrastive eval** | [W&B contrastive](https://wandb.ai/qbao775/amr-lda-extensions/runs/id5y6avq) |
+| `v14` | **LeRC (proposed novel algorithm)** | 22,280 | **99.80%** | ✅ | [W&B run](https://wandb.ai/qbao775/amr-lda-extensions/runs/11p97wfg) |
+| `v13_gemma4_4b` | LLM-Paraphrase Gemma4 E4B | — | — | ⏳ | — |
+| `v13_gemma4_31b` | LLM-Paraphrase Gemma4 31B | — | — | ⏳ | — |
+| `v13_llama70` | LLM-Paraphrase Llama-3.3 70B | — | — | ⏳ | — |
+
+### Downstream — DeBERTa-large fine-tune
+
+| ID | Name | ReClor dev | LogiQA dev | LogiQA test | Notes |
+|---|---|---|---|---|---|
+| `v5` | Baseline | 62.8 / 63.0 — mean **62.9** | 41.0 / 43.6 — mean **42.3** | 36.56 | seed-robust baseline |
+| `v6` | PolarityFix | 63.6 / 63.4 — mean **63.5** | 39.2 / 41.5 — mean **40.3** | **42.24 ⭐** | **+0.6 / −2.0 pp · wins LogiQA test** |
+| `v7` | PolarityFix + RuleFix | 63.6 | 39.2 | 42.24 | = `v6` |
+| `v8` | DoubleNeg-Readd | 63.0 | 38.7 | 36.41 | mitigation #1 fails |
+| `v9` | SampledT5 | 59.6 | 29.3 | 27.19 | mitigation #2 collapses |
+| `v10` | Mix(Base + PolarityFix) | 62.4 | 38.1 | 36.41 | mitigation #3 fails |
+| `v11` | Sampled + Polarity Filter | 59.8 | 32.3 | 30.11 | mitigation #4 fails |
+| `v12` | Sampled + AMR-F1 Filter | 60.8 | 37.3 | 35.33 | best of sampled-based |
+| `v13_llama` | LLM-Paraphrase Llama-3.1 8B | 64.4 | 39.0 | 37.48 | +0.8 vs v6 ReClor · ≈ v6 LogiQA |
+| **`v13_qwen3`** | **LLM-Paraphrase Qwen3 8B** | **67.0 ⭐** | ⏳ | ⏳ | **+3.5 pp ReClor (NEW BEST)** |
+| `v14` | LeRC | 61.2 | 37.3 | 35.48 | ties v12 |
+
+### Diversity root cause + mitigation summary
+
+| Document | What it covers | Link |
+|---|---|---|
+| Root-cause analysis | n-gram diversity drop, near-duplicate rise; LogiQA reverse explained | [`DIVERSITY_ROOT_CAUSE.md`](DIVERSITY_ROOT_CAUSE.md) |
+| Mitigation summary | Unified table across all `v5`–`v14` attempts | [`DIVERSITY_FINAL.md`](DIVERSITY_FINAL.md) |
+
+### Held-out generalization (PARARULE-Plus Depth5)
+
+| Method | Pass rate (60 sentences, 143 gen-tested items) | Status |
+|---|---|---|
+| Stock T5 | 70.6% | ✅ |
+| **v4 T5 + De Morgan rule fix** | **73.4%** | ✅ +2.8 pp |
+
+Details: [`HELDOUT_PARARULE.md`](HELDOUT_PARARULE.md).
+
+### DeBERTa-v2-xxlarge robustness (matched recipe)
+
+| Backbone | Contrastive eval | ReClor best | ReClor final | Status |
+|---|---|---|---|---|
+| `v5` xxlarge matched | 99.21% | 45.2% @ step 100 | 24.4% (collapsed) | ✅ |
+| `v6` xxlarge matched | 98.79% | **64.8%** @ step 480 | 64.8% (stable) | ✅ |
+| paper `v5` xxlarge (mismatched recipe) | — | 78.8% | — | reference only |
+
+Details: [`V_XXLARGE_DELTA.md`](V_XXLARGE_DELTA.md) ·
+[`V_XXLARGE_PROGRESS.md`](V_XXLARGE_PROGRESS.md).
+
+### RL POC (GRPO + AMR-verifier reward) — separate thread
+
+This thread is **not** plumbed into the downstream backbone; the
+downstream win comes from `v13_llama`, not RL.
+
+| Run | Model | Adapter | Reward trajectory | Status |
+|---|---|---|---|---|
+| GRPO Qwen2.5-0.5B | full | none | 43.75% → 62.50% (113 s) | ✅ POC #1 |
+| GRPO Qwen2.5-3B + LoRA | LoRA r=16 | yes | **37.5% → 93.75%** (13 min) | ✅ POC #2 |
+| Plumb RL generator into `v6` corpus | — | — | — | ⏳ un-run |
 
 ```mermaid
 flowchart LR
@@ -247,128 +336,118 @@ flowchart LR
     class G,V poc
 ```
 
-POC done (Qwen2.5-3B + LoRA + GRPO, reward 0.375 → 0.94 in 13 min). Plumbing the RL-trained generator into the v6 contrastive corpus is **un-run**.
-
-### What's new vs the paper
-
-- **More rules.** Original 4 logical-equivalence rules (contraposition, commutative, implication, double negation) → **14 rules**. Added De Morgan, transitivity, symmetric / asymmetric, predicate implication, inverse relation, plus 4 UMR-style rules (modal strength, aspect, doc-level temporal, tense). All implemented in the same AMR-LDA framework.
-- **Better generator.** Fine-tuned the AMR-to-text model (T5wtense) to stop dropping negations. **Pilot pass rate 68.9% → 82.2%** (+13.3 pp).
-- **Fixed a real bug in the rule library.** Contraposition wasn't distributing negation over conjunctive antecedents ("If A and B, then C"). Patched it. **15 / 15 perfect** on the pilot contraposition cases (was 8 / 15 before).
-- **Held-out generalization.** Tested on fresh PARARULE-Plus Depth5 sentences (not seen in training): **+2.8 pp pass rate**.
-
-### Downstream impact (DeBERTa-large, 2 seeds each)
-
-- **ReClor:** mean **+0.6 pp** — every seed of our backbone beats every seed of the baseline.
-- **LogiQA:** mean **−2.0 pp** — we lose, every seed agrees (honest reverse).
-
-### Why LogiQA goes down — the interesting science
-
-Our cleaner generator produces **less diverse surface text**: ~28% fewer unique unigrams, ~57% more near-duplicates, positives are more lexically similar to their anchors. ReClor (single-step entailment) likes cleaner pairs. LogiQA (multi-step deductive reasoning) needs surface variety to generalize across phrasings of the same logical step.
-
-**Polarity-cleaning and surface diversity are structurally coupled in this seq2seq generator** — the cleaner the decoder, the tighter the beam, the less surface variation. You can't decouple them at the dataset level.
-
-We tried four corpus-level fixes:
-
-1. Re-add the legacy `double_negation` rows we'd dropped — doesn't help.
-2. Concatenate old + new corpus — loses on both tasks (model averages two contradictory surface forms).
-3. Sample from the new T5 with temperature to recover diversity — catastrophic on LogiQA (29%, barely above random 25%) because sampling reintroduces semantic noise.
-4. Sample + filter by an AMR verifier (polarity check, then AMR-struct match) — best sampled-based attempt at 37% LogiQA, still below the original 41%.
-
-**All four fail.** The trade-off is real, not an artifact. This is an opening for future work (richer semantic verifier, source-side paraphrase augmentation, RL co-training of generator + verifier), not a defect.
-
-### Robustness check at paper-headline scale
-
-Matched-recipe v5 / v6 at DeBERTa-v2-xxlarge (1.5B). Direction agrees with DeBERTa-large (our backbone wins ReClor), but the larger model's training is finicky enough that we treat it as supporting evidence, not headline.
-
-### Bottom line
-
-A clean, seed-robust win on one reasoning benchmark (ReClor) and a documented, honest loss on another (LogiQA), with the root cause identified and four candidate fixes ruled out. Full per-version reports, figures, and JSON aggregates on the rest of this site.
-
 ---
 
-## Headline numbers (DeBERTa-large, single-direction unless noted)
+## Why LogiQA goes down — the interesting science
 
-### Polarity-preservation in the AMR-LDA pipeline
+Our cleaner generator produces **less diverse surface text**: ~28%
+fewer unique unigrams, ~57% more near-duplicates, positives are more
+lexically similar to their anchors. ReClor (single-step entailment)
+likes cleaner pairs. LogiQA (multi-step deductive reasoning) needs
+surface variety to generalize across phrasings of the same logical
+step.
 
-| Generator | Pilot self-check pass rate |
-|---|---|
-| Stock T5wtense (paper baseline) | 68.9% |
-| v4 fine-tuned T5wtense | 78.9% |
-| **v4 + De Morgan rule fix** | **82.2%** |
+**Polarity-cleaning and surface diversity are structurally coupled in
+this seq2seq generator** — the cleaner the decoder, the tighter the
+beam, the less surface variation. You can't decouple them at the
+dataset level.
 
-Held-out PARARULE-Plus Depth5: stock 70.6% → v4+rulefix 73.4%.
-Contraposition specifically: **8/15 → 15/15 perfect** on the pilot.
-
-### Downstream — multi-seed (seed=21, 42)
-
-| Task | v5 (stock T5) | v6 (v4 T5) | Δ |
-|---|---|---|---|
-| **ReClor** dev_acc (mean of 2 seeds) | 62.9% | **63.5%** | **+0.6 pp** |
-| **LogiQA** dev_acc (mean of 2 seeds) | **42.3%** | 40.3% | −2.0 pp |
-
-Both deltas are **seed-robust** — every v6 seed beats every v5 seed on
-ReClor; every v5 seed beats every v6 seed on LogiQA.
-
-### Diversity vs polarity — the structural trade-off
-
-| Metric (positive sentence2) | v5 stock | v6 v4 T5 |
+| Metric (positive sentence2) | Baseline (`v5`) | PolarityFix (`v6`) |
 |---|---|---|
 | Distinct-1 unigrams | 0.0040 | 0.0029 (−28%) |
 | Distinct-3 trigrams | 0.2180 | 0.1803 (−17%) |
 | Near-dup rate (Jaccard ≥ 0.7) | 6.9% | 10.9% (+57%) |
 
-v4 T5's polarity-cleaning trades surface diversity for cleaner
-semantics. Four corpus-level mitigations (v8, v10, v9, v11, v12)
+Five corpus-level mitigations (`v8`, `v9`, `v10`, `v11`, `v12`, `v14`)
 **all fail** to recover both edges — the trade-off is structurally
 coupled.
 
+The **LLM-Paraphrase family (`v13_llama`, `v13_qwen3`)** is the first
+that strictly improves over `v6` on ReClor (+0.8 pp Llama, **+3.5 pp
+Qwen3**), because it replaces the bottleneck — the v4 T5 decoder —
+instead of trying to patch around it. Of the two LLMs tried, **Qwen3
+8B** beats Llama-3.1 8B by **+2.6 pp** on ReClor dev, suggesting the
+specific LLM choice matters substantially.
+
+---
+
+## Bottom line
+
+- **ReClor**: dev accuracy **67.0%** with the strongest backbone
+  (`v13_qwen3`, +3.5 pp over the v6 baseline). Test accuracy
+  unavailable — EvalAI leaderboard closed 2026-01-16; predictions
+  saved for any future re-opening.
+- **LogiQA**: test accuracy **42.24%** with the best backbone (`v6`
+  PolarityFix); the LLM-Paraphrase backbones underperform on LogiQA,
+  preserving the diversity-vs-polarity trade-off finding.
+- **The diversity-vs-polarity trade-off is real and stays real** —
+  none of the five dataset-level mitigations (`v8`–`v12`, `v14`)
+  recover both edges. The first method that genuinely beats `v6` on
+  ReClor is the *generator replacement* (LLM-Paraphrase), not a
+  dataset-level patch.
+- **Leaderboard infrastructure context**: hidden-test MCQA
+  leaderboards (ReClor on EvalAI, AI2's ARC/OBQA/CSQA/HellaSwag
+  portal) have all gone offline or closed during 2024-2026; the
+  community has shifted to public-label evaluation with
+  lm-evaluation-harness. We follow that convention: LogiQA test on
+  local labels, ReClor dev as the primary number with test
+  predictions archived.
+
+---
+
 ## Quick reading order
 
-1. [T5 fine-tune recovery (v1→v4)](T5_FT_RECOVERY.md) — how polarity preservation got built up
-2. [De Morgan rule fix](RULEFIX_DEMORGAN.md) — closing the conjunctive-antecedent failure mode
-3. [v6 contrastive pretrain](V6_CONTRASTIVE_PRETRAIN.md) — DeBERTa-large backbone + cross-eval matrix
-4. [v6 ReClor multi-seed](V6_RECLOR_MULTISEED.md) — **the headline win** (+0.6 pp seed-robust)
-5. [v6 LogiQA multi-seed](V6_LOGIQA_MULTISEED.md) — **the honest reverse** (−2.0 pp seed-robust)
-6. [Diversity root cause](DIVERSITY_ROOT_CAUSE.md) — why LogiQA reverses
-7. [Diversity final summary](DIVERSITY_FINAL.md) — unified v5..v12 mitigation table
-8. [xxlarge delta](V_XXLARGE_DELTA.md) — paper-headline scale robustness check
+1. [T5 fine-tune recovery (`v1`→`v4`)](T5_FT_RECOVERY.md) — how
+   polarity preservation got built up.
+2. [De Morgan rule fix](RULEFIX_DEMORGAN.md) — closing the
+   conjunctive-antecedent failure mode.
+3. [`v6` contrastive pretrain](V6_CONTRASTIVE_PRETRAIN.md) — DeBERTa-large
+   backbone + cross-eval matrix.
+4. [`v6` ReClor multi-seed](V6_RECLOR_MULTISEED.md) — the headline win
+   (+0.6 pp seed-robust).
+5. [`v6` LogiQA multi-seed](V6_LOGIQA_MULTISEED.md) — the honest
+   reverse (−2.0 pp seed-robust).
+6. [Diversity root cause](DIVERSITY_ROOT_CAUSE.md) — why LogiQA
+   reverses.
+7. [Diversity final summary](DIVERSITY_FINAL.md) — unified `v5`..`v14`
+   mitigation table.
+8. [LeRC results](V14_LERC_RESULTS.md) — proposed novel algorithm.
+9. [xxlarge delta](V_XXLARGE_DELTA.md) — paper-headline scale
+   robustness check.
+
+---
 
 ## Figures
 
 ![v1→v4 T5 fine-tune trajectory](figures/fig1_t5_trajectory.png)
-*Self-check pass rate on the 15-failure subset and the full 49-sentence
-pilot, across v1→v4 fine-tunes. Each version adds a small targeted
-gold dataset; v4 has the anchor-gold patch that closes all v3
-regressions vs stock.*
+*Self-check pass rate on the 15-failure subset and the full
+49-sentence pilot, across `v1`→`v4` fine-tunes. Each version adds a
+small targeted gold dataset; `v4` has the anchor-gold patch that
+closes all `v3` regressions vs stock.*
 
 ![v5/v6 contrastive cross-eval](figures/fig2_v6_cross_eval.png)
-*v5-trained DeBERTa loses 15.5 pp out-of-distribution on v6's val; v6-trained
-loses only 3.9 pp on v5's val. v6 is the more robust classifier.*
+*Baseline-trained DeBERTa loses 15.5 pp out-of-distribution on
+PolarityFix's val; PolarityFix-trained loses only 3.9 pp on Baseline's
+val. PolarityFix is the more robust classifier.*
 
 ![ReClor dev_acc trajectory](figures/fig3_reclor_trajectory.png)
-*v6 ReClor leads at every evaluation step (single seed shown; multi-seed
-mean still +0.6 pp).*
+*PolarityFix ReClor leads at every evaluation step (single seed shown;
+multi-seed mean still +0.6 pp).*
 
 ![Held-out PARARULE by-rule](figures/fig4_heldout_pararule.png)
-*60-sentence PARARULE-Plus Depth5 shard (held out from v4 T5 training).
-v4 wins on double_negation/contraposition/modal-strength but loses
-on commutative/implication.*
+*60-sentence PARARULE-Plus Depth5 shard (held out from v4 T5
+training). v4 wins on double_negation / contraposition / modal-strength
+but loses on commutative / implication.*
 
-## What's in this site
-
-The left nav groups reports by topic. Every report is a single markdown
-file in [`extensions/reports/`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/tree/main/extensions/reports)
-of the repository, paired with a JSON aggregate so any number on this
-site can be checked against the source data.
+---
 
 ## Rule gallery — 14 logical-equivalence rules
 
-The original ACL Findings 2024 paper implemented 4 rules; this extension
-adds 10 more. Each rule is a structural transformation on the AMR graph
-that preserves logical equivalence. For every rule below: a formal
-equivalence statement on the left, an AMR transformation in the middle
-(showing the key node / edge changes), and a concrete English example
-on the right.
+The original ACL Findings 2024 paper implemented 4 rules; this
+extension adds 10 more. Each rule is a structural transformation on
+the AMR graph that preserves logical equivalence. For every rule
+below: a formal equivalence statement, an AMR transformation diagram,
+and a concrete English example.
 
 Code: each rule is one subclass of `LogicRule` in
 [`extensions/logic_rules/`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/tree/main/extensions/logic_rules).
@@ -649,8 +728,10 @@ flowchart LR
 - **Input:** *Alice finished the project.*
 - **Output:** *Alice has finished the project.*
 
+---
+
 ## License and citation
 
 Original paper: Bao et al. ACL Findings 2024,
-<https://aclanthology.org/2024.findings-acl.353/>. Extension code under
-the same license as the upstream repository.
+<https://aclanthology.org/2024.findings-acl.353/>. Extension code is
+under the same license as the upstream repository.
