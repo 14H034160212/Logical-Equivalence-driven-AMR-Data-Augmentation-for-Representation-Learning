@@ -40,6 +40,11 @@ benchmarks.
 | **ReClor** *(test — leaderboard closed)* | LLM-Paraphrase Qwen3 8B (`v13_qwen3`) | **dev 67.0%** (test submission blocked) | EvalAI 503 closed 2026-01-16; predictions saved at [`submissions/reclor_v13_qwen3_test_preds.npy`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/blob/main/submissions/reclor_v13_qwen3_test_preds.npy) |
 | **PARARULE-Plus Depth5 (held-out)** | v4-T5 + De Morgan rule fix | **73.4%** generator pass | local Depth5 shard ([report](HELDOUT_PARARULE.md)) |
 
+**Important caveat**: the ReClor-best method (`v13_qwen3`) is *not*
+the LogiQA-best method (`v6`). Different generators win different
+reasoning benchmarks — see [§ task-asymmetry note](#full-logiqa-test-set-results)
+below.
+
 ### Why ReClor reports dev_acc only
 
 The official ReClor test leaderboard ([EvalAI challenge 503](https://eval.ai/web/challenges/challenge-page/503))
@@ -74,9 +79,20 @@ DeBERTa-large, seed=21 checkpoint.
 | `v10` Mix(Base+PolarityFix) | 36.41% | 38.1 |
 | `v14` LeRC | 35.48% | 37.3 |
 | `v12` Sampled + AMR-F1 Filter | 35.33% | 37.3 |
+| `v13_qwen3` LLM-Paraphrase Qwen3 8B | 32.72% | 33.79% |
 | `v11` Sampled + Polarity Filter | 30.11% | 32.3 |
 | `v9` SampledT5 | 27.19% | 29.3 |
-| `v13_qwen3` LLM-Paraphrase Qwen3 8B | TBD (training) | TBD |
+
+**Sharp task asymmetry for `v13_qwen3`**: same backbone that
+sets the new ReClor dev best (**67.0%**) lands near the bottom on
+LogiQA (32.72% test). Qwen3 8B paraphrase appears to be the strongest
+optimizer of ReClor-style single-step entailment we've seen, but it
+*actively harms* LogiQA's multi-step deductive reasoning — worse than
+the baseline and worse than every other generator except the raw
+sampled T5 variants. This is the **diversity-vs-polarity trade-off in
+its strongest form**: Qwen3's paraphrase is more semantically clean
+than Llama-3.1's, which helps ReClor but collapses the surface
+variety LogiQA needs.
 
 **Key finding**: `v6` PolarityFix wins LogiQA *test*, flipping the
 dev-set ranking (where `v5` baseline mean was 42.3). The dev vs test
@@ -117,7 +133,7 @@ Multi-seed (seed = 21, 42) on DeBERTa-large.
 | Baseline (`v5`) | 62.8 / 63.0 — mean **62.9** | 41.0 / 43.6 — mean **42.3** | Paper recipe |
 | PolarityFix (`v6`) | 63.6 / 63.4 — mean **63.5** | 39.2 / 41.5 — mean **40.3** | **+0.6 / −2.0 pp** |
 | LLM-Paraphrase Llama-3.1 8B (`v13_llama`) | 64.4 | 39.0 | +0.8 pp ReClor · ≈ v6 LogiQA |
-| **LLM-Paraphrase Qwen3 8B (`v13_qwen3`)** | **67.0 ⭐** | TBD (training) | **+3.5 pp ReClor (NEW BEST)** |
+| **LLM-Paraphrase Qwen3 8B (`v13_qwen3`)** | **67.0 ⭐** | 33.8 | **+3.5 pp ReClor (NEW BEST)** · **−6.5 pp LogiQA** (sharp task asymmetry) |
 | LeRC (`v14`) — proposed novel algorithm | 61.2 | 37.3 | Highest contrastive eval (99.80%), but downstream ties v12 |
 
 The full per-method dev table is in
@@ -286,7 +302,7 @@ planned.
 | `v11` | Sampled + Polarity Filter | 59.8 | 32.3 | 30.11 | mitigation #4 fails |
 | `v12` | Sampled + AMR-F1 Filter | 60.8 | 37.3 | 35.33 | best of sampled-based |
 | `v13_llama` | LLM-Paraphrase Llama-3.1 8B | 64.4 | 39.0 | 37.48 | +0.8 vs v6 ReClor · ≈ v6 LogiQA |
-| **`v13_qwen3`** | **LLM-Paraphrase Qwen3 8B** | **67.0 ⭐** | ⏳ | ⏳ | **+3.5 pp ReClor (NEW BEST)** |
+| **`v13_qwen3`** | **LLM-Paraphrase Qwen3 8B** | **67.0 ⭐** | 33.79 | 32.72 | **+3.5 pp ReClor (NEW BEST) · −7.5 pp LogiQA (sharp task asymmetry)** |
 | `v14` | LeRC | 61.2 | 37.3 | 35.48 | ties v12 |
 
 ### Diversity root cause + mitigation summary
@@ -362,12 +378,23 @@ Five corpus-level mitigations (`v8`, `v9`, `v10`, `v11`, `v12`, `v14`)
 **all fail** to recover both edges — the trade-off is structurally
 coupled.
 
-The **LLM-Paraphrase family (`v13_llama`, `v13_qwen3`)** is the first
-that strictly improves over `v6` on ReClor (+0.8 pp Llama, **+3.5 pp
-Qwen3**), because it replaces the bottleneck — the v4 T5 decoder —
-instead of trying to patch around it. Of the two LLMs tried, **Qwen3
-8B** beats Llama-3.1 8B by **+2.6 pp** on ReClor dev, suggesting the
-specific LLM choice matters substantially.
+The **LLM-Paraphrase family (`v13_llama`, `v13_qwen3`)** improves over
+`v6` on ReClor (+0.8 pp Llama, **+3.5 pp Qwen3**), because it replaces
+the bottleneck — the v4 T5 decoder — instead of trying to patch around
+it. But the two LLMs diverge on LogiQA:
+
+- **Llama-3.1 8B** keeps LogiQA roughly at the v6 level (≈ no harm)
+- **Qwen3 8B** collapses LogiQA to 32.7% test (−6.5 pp vs v6, −9.5 pp
+  vs the v5 baseline) while peaking on ReClor
+
+This is the **diversity-vs-polarity trade-off in its strongest form**:
+cleaner paraphrase = better ReClor entailment + worse LogiQA
+multi-step reasoning. Qwen3's paraphrase appears more semantically
+uniform than Llama-3.1's; that uniformity helps single-step entailment
+but starves multi-step deductive reasoning of the surface diversity it
+needs. **Headline takeaway**: the specific LLM choice matters
+substantially, and the best LLM by ReClor metric is *not* the best LLM
+overall.
 
 ---
 
