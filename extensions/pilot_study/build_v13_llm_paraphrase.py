@@ -71,6 +71,8 @@ def main():
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--label-filter", type=int, default=None,
                     help="if set (e.g. 1), only paraphrase rows with that label")
+    ap.add_argument("--load-4bit", action="store_true",
+                    help="load model with bitsandbytes 4-bit NF4 quantization (for >40B models on a single A100)")
     args = ap.parse_args()
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -81,11 +83,20 @@ def main():
         df = df.head(args.limit)
     log.info("Rows: %d", len(df))
 
-    log.info("Loading model %s", args.model)
+    log.info("Loading model %s (4bit=%s)", args.model, args.load_4bit)
     tok = AutoTokenizer.from_pretrained(args.model, padding_side="left")
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model, torch_dtype=torch.bfloat16, device_map="auto",
-    )
+    model_kwargs = dict(device_map="auto")
+    if args.load_4bit:
+        from transformers import BitsAndBytesConfig
+        model_kwargs["quantization_config"] = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True,
+        )
+    else:
+        model_kwargs["torch_dtype"] = torch.bfloat16
+    model = AutoModelForCausalLM.from_pretrained(args.model, **model_kwargs)
     model.eval()
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token

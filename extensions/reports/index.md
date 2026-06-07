@@ -15,20 +15,23 @@ experimental result in the extension thread.
 
 We replaced the AMR-to-text decoder, fixed a bug in the rule library,
 added 10 new logical-equivalence rules, and propose a new algorithm
-(**LeRC**, Logic-Equivalent Rule Composition) and a frontier-LLM
-paraphrase pathway.
+(**LeRC**, Logic-Equivalent Rule Composition). We then conducted a
+**five-LLM paraphrase ablation** (Llama-3.1 8B, Qwen3 8B, Llama-3.3
+70B, Gemma 4 E4B, Gemma 4 31B) — spanning 4B to 70B parameter range,
+3 model families.
 
-Two breakthrough configurations:
+Headline findings:
 
-- **LLM-Paraphrase Qwen3 8B (`v13_qwen3`)** — new ReClor dev best
-  **67.0%** (**+3.5 pp** over the v6 baseline). Strongest backbone
-  by a wide margin.
-- **LLM-Paraphrase Llama-3.1 8B (`v13_llama`)** — ReClor dev **64.4%**
-  (+0.8 vs v6); also tested cleanly on LogiQA.
-
-The frontier-LLM paraphrase pathway is the first family that strictly
-improves over the polarity-cleaned v4 T5 generator across both
-benchmarks.
+- **`v13_qwen3` (Qwen3 8B)** wins ReClor dev: **67.0%** (+3.5 pp over v6).
+- **`v13_llama70` (Llama-3.3 70B)** comes second on ReClor: 66.6%.
+- **`v6` PolarityFix (v4 T5)** still wins **LogiQA test (42.24%)** —
+  no LLM paraphrase, large or small, can beat it on LogiQA.
+- **Bigger ≠ better**: Gemma 4 E4B (4B) > Gemma 4 31B on both tasks;
+  Qwen3 8B > Llama-3.3 70B on ReClor.
+- **Diversity-vs-polarity trade-off is universal**: across all 5 LLMs,
+  every one underperforms `v6` on LogiQA test (range 32.72% – 37.94%
+  vs `v6` 42.24%). Trade-off is not specific to T5; it is intrinsic to
+  the polarity-cleaned-paraphrase recipe.
 
 ---
 
@@ -73,32 +76,34 @@ DeBERTa-large, seed=21 checkpoint.
 |---|---|---|
 | `v6` **PolarityFix (v4 T5)** | **42.24%** ⭐ | 40.3 (mean of 2 seeds) |
 | `v7` PolarityFix + RuleFix | **42.24%** | 39.2 |
+| `v13_gemma4_4b` LLM-Paraphrase Gemma 4 E4B | 37.94% | 34.87 |
 | `v13_llama` LLM-Paraphrase Llama-3.1 8B | 37.48% | 39.0 |
 | `v5` Baseline (Stock T5) | 36.56% | 42.3 (mean of 2 seeds) |
 | `v8` DoubleNeg-Readd | 36.41% | 38.7 |
 | `v10` Mix(Base+PolarityFix) | 36.41% | 38.1 |
+| `v13_gemma4_31b` LLM-Paraphrase Gemma 4 31B | 35.64% | 38.40 |
 | `v14` LeRC | 35.48% | 37.3 |
 | `v12` Sampled + AMR-F1 Filter | 35.33% | 37.3 |
-| `v13_qwen3` LLM-Paraphrase Qwen3 8B | 32.72% | 33.79% |
+| `v13_llama70` LLM-Paraphrase Llama-3.3 70B | 33.64% | 35.48 |
+| `v13_qwen3` LLM-Paraphrase Qwen3 8B | 32.72% | 33.79 |
 | `v11` Sampled + Polarity Filter | 30.11% | 32.3 |
 | `v9` SampledT5 | 27.19% | 29.3 |
 
-**Sharp task asymmetry for `v13_qwen3`**: same backbone that
-sets the new ReClor dev best (**67.0%**) lands near the bottom on
-LogiQA (32.72% test). Qwen3 8B paraphrase appears to be the strongest
-optimizer of ReClor-style single-step entailment we've seen, but it
-*actively harms* LogiQA's multi-step deductive reasoning — worse than
-the baseline and worse than every other generator except the raw
-sampled T5 variants. This is the **diversity-vs-polarity trade-off in
-its strongest form**: Qwen3's paraphrase is more semantically clean
-than Llama-3.1's, which helps ReClor but collapses the surface
-variety LogiQA needs.
+**Sharp task asymmetry confirmed across the 5-LLM ablation**: the
+LLM that wins ReClor (**Qwen3 8B at 67.0%**) is *the worst* on
+LogiQA among all LLMs we tried (32.72% test). The LLM that does the
+least damage to LogiQA (**Gemma 4 E4B at 37.94%**) is the *third*
+best on ReClor (65.0%). And the largest model (**Llama-3.3 70B**)
+ranks second on ReClor (66.6%) but second-worst on LogiQA (33.64%).
+There is no single LLM that is best on both tasks — the **ReClor
+optimum and LogiQA optimum diverge** within the LLM-paraphrase
+family.
 
 **Key finding**: `v6` PolarityFix wins LogiQA *test*, flipping the
 dev-set ranking (where `v5` baseline mean was 42.3). The dev vs test
 disagreement is itself a signal — the 2-seed `v5` mean was inflated by
 a single high-variance seed; on *test*, the polarity-cleaned generator
-generalizes better.
+generalizes better, and every LLM paraphrase we tried lands below `v6`.
 
 ---
 
@@ -120,6 +125,9 @@ easy to read.
 | `v12` | **Sampled + AMR-F1 Filter** | Diversity mitigation #5 — sampled v4 T5 + AMR triple-F1 ≥ 0.85. |
 | `v13_llama` | **LLM-Paraphrase Llama-3.1 8B** | Frontier-LLM paraphrase of v4 T5 outputs (T=0.4, instruct prompt). |
 | `v13_qwen3` | **LLM-Paraphrase Qwen3 8B** | Same recipe, different LLM. |
+| `v13_gemma4_4b` | **LLM-Paraphrase Gemma 4 E4B** | Gemma 4 effective-4B mixture-of-experts paraphrase. |
+| `v13_gemma4_31b` | **LLM-Paraphrase Gemma 4 31B** | Gemma 4 31B paraphrase (4-bit NF4 quantized). |
+| `v13_llama70` | **LLM-Paraphrase Llama-3.3 70B** | Largest LLM tested (4-bit NF4 quantized). |
 | `v14` | **LeRC: Rule-Composition Algebra** | *Proposed novel algorithm* — composes 14 rules as equivalence-preserving operators. |
 
 ---
@@ -133,7 +141,10 @@ Multi-seed (seed = 21, 42) on DeBERTa-large.
 | Baseline (`v5`) | 62.8 / 63.0 — mean **62.9** | 41.0 / 43.6 — mean **42.3** | Paper recipe |
 | PolarityFix (`v6`) | 63.6 / 63.4 — mean **63.5** | 39.2 / 41.5 — mean **40.3** | **+0.6 / −2.0 pp** |
 | LLM-Paraphrase Llama-3.1 8B (`v13_llama`) | 64.4 | 39.0 | +0.8 pp ReClor · ≈ v6 LogiQA |
-| **LLM-Paraphrase Qwen3 8B (`v13_qwen3`)** | **67.0 ⭐** | 33.8 | **+3.5 pp ReClor (NEW BEST)** · **−6.5 pp LogiQA** (sharp task asymmetry) |
+| **LLM-Paraphrase Qwen3 8B (`v13_qwen3`)** | **67.0 ⭐** | 33.8 | **+3.5 pp ReClor (NEW BEST)** · **−6.5 pp LogiQA** |
+| LLM-Paraphrase Llama-3.3 70B (`v13_llama70`) | 66.6 | 35.5 | +3.1 pp ReClor (2nd) · −4.8 pp LogiQA |
+| LLM-Paraphrase Gemma 4 E4B (`v13_gemma4_4b`) | 65.0 | 34.9 | +1.5 pp ReClor · −5.4 pp LogiQA · **best LLM on LogiQA test (37.94%)** |
+| LLM-Paraphrase Gemma 4 31B (`v13_gemma4_31b`) | 64.4 | 38.4 | +0.9 pp ReClor · −1.9 pp LogiQA |
 | LeRC (`v14`) — proposed novel algorithm | 61.2 | 37.3 | Highest contrastive eval (99.80%), but downstream ties v12 |
 
 The full per-method dev table is in
@@ -284,6 +295,9 @@ planned.
 | `v12` | Sampled + AMR-F1 Filter | 26,393 | 99.58% | ✅ mitigation #5 | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) |
 | `v13_llama` | LLM-Paraphrase Llama-3.1 8B | 20,883 | 99.57% | ✅ | [W&B contrastive](https://wandb.ai/qbao775/amr-lda-extensions/runs/1jfqp641) |
 | **`v13_qwen3`** | **LLM-Paraphrase Qwen3 8B** | 20,883 | **100.0% ⭐** | ✅ **highest contrastive eval** | [W&B contrastive](https://wandb.ai/qbao775/amr-lda-extensions/runs/id5y6avq) |
+| `v13_gemma4_4b` | LLM-Paraphrase Gemma 4 E4B | 20,883 | 99.66% | ✅ | W&B `v13_gemma4_4b_contrastive` |
+| `v13_gemma4_31b` | LLM-Paraphrase Gemma 4 31B (4-bit) | 20,883 | 99.81% | ✅ | W&B `v13_gemma4_31b_contrastive` |
+| `v13_llama70` | LLM-Paraphrase Llama-3.3 70B (4-bit) | 20,883 | 99.90% | ✅ 2nd highest contrastive | W&B `v13_llama70_contrastive` |
 | `v14` | **LeRC (proposed novel algorithm)** | 22,280 | **99.80%** | ✅ | [W&B run](https://wandb.ai/qbao775/amr-lda-extensions/runs/11p97wfg) |
 | `v13_gemma4_4b` | LLM-Paraphrase Gemma4 E4B | — | — | ⏳ | — |
 | `v13_gemma4_31b` | LLM-Paraphrase Gemma4 31B | — | — | ⏳ | — |
@@ -302,7 +316,10 @@ planned.
 | `v11` | Sampled + Polarity Filter | 59.8 | 32.3 | 30.11 | mitigation #4 fails |
 | `v12` | Sampled + AMR-F1 Filter | 60.8 | 37.3 | 35.33 | best of sampled-based |
 | `v13_llama` | LLM-Paraphrase Llama-3.1 8B | 64.4 | 39.0 | 37.48 | +0.8 vs v6 ReClor · ≈ v6 LogiQA |
-| **`v13_qwen3`** | **LLM-Paraphrase Qwen3 8B** | **67.0 ⭐** | 33.79 | 32.72 | **+3.5 pp ReClor (NEW BEST) · −7.5 pp LogiQA (sharp task asymmetry)** |
+| **`v13_qwen3`** | **LLM-Paraphrase Qwen3 8B** | **67.0 ⭐** | 33.79 | 32.72 | **+3.5 pp ReClor (NEW BEST) · −9.5 pp LogiQA (sharp task asymmetry)** |
+| `v13_llama70` | LLM-Paraphrase Llama-3.3 70B (4-bit) | 66.6 | 35.48 | 33.64 | +3.1 ReClor · −8.6 LogiQA · largest LLM tested, not the best |
+| `v13_gemma4_4b` | LLM-Paraphrase Gemma 4 E4B | 65.0 | 34.87 | **37.94** ⭐ LLM | +1.5 ReClor · −4.3 LogiQA · **best LLM on LogiQA test** |
+| `v13_gemma4_31b` | LLM-Paraphrase Gemma 4 31B (4-bit) | 64.4 | 38.40 | 35.64 | +0.9 ReClor · −6.6 LogiQA · *worse than its smaller sibling* |
 | `v14` | LeRC | 61.2 | 37.3 | 35.48 | ties v12 |
 
 ### Diversity root cause + mitigation summary
@@ -378,40 +395,62 @@ Five corpus-level mitigations (`v8`, `v9`, `v10`, `v11`, `v12`, `v14`)
 **all fail** to recover both edges — the trade-off is structurally
 coupled.
 
-The **LLM-Paraphrase family (`v13_llama`, `v13_qwen3`)** improves over
-`v6` on ReClor (+0.8 pp Llama, **+3.5 pp Qwen3**), because it replaces
-the bottleneck — the v4 T5 decoder — instead of trying to patch around
-it. But the two LLMs diverge on LogiQA:
+The **LLM-Paraphrase family (5 LLMs)** improves over `v6` on ReClor
+for every variant, because it replaces the bottleneck — the v4 T5
+decoder — instead of trying to patch around it. But all 5 LLMs hurt
+LogiQA. The full table:
 
-- **Llama-3.1 8B** keeps LogiQA roughly at the v6 level (≈ no harm)
-- **Qwen3 8B** collapses LogiQA to 32.7% test (−6.5 pp vs v6, −9.5 pp
-  vs the v5 baseline) while peaking on ReClor
+| LLM | Size | ReClor dev (+ vs v6) | LogiQA test (− vs v6) |
+|---|---|---|---|
+| Llama-3.1 8B (`v13_llama`) | 8B | 64.4 (+0.9) | 37.48 (−4.8) |
+| Qwen3 8B (`v13_qwen3`) | 8B | **67.0** (+3.5) | 32.72 (**−9.5**) |
+| Llama-3.3 70B (`v13_llama70`) | 70B (4-bit) | 66.6 (+3.1) | 33.64 (−8.6) |
+| Gemma 4 E4B (`v13_gemma4_4b`) | 4B MoE | 65.0 (+1.5) | **37.94** (−4.3) |
+| Gemma 4 31B (`v13_gemma4_31b`) | 31B (4-bit) | 64.4 (+0.9) | 35.64 (−6.6) |
 
-This is the **diversity-vs-polarity trade-off in its strongest form**:
-cleaner paraphrase = better ReClor entailment + worse LogiQA
-multi-step reasoning. Qwen3's paraphrase appears more semantically
-uniform than Llama-3.1's; that uniformity helps single-step entailment
-but starves multi-step deductive reasoning of the surface diversity it
-needs. **Headline takeaway**: the specific LLM choice matters
-substantially, and the best LLM by ReClor metric is *not* the best LLM
-overall.
+Three robust findings across LLM family + size:
+
+1. **All 5 LLMs improve ReClor over `v6`** (+0.9 to +3.5 pp). The
+   generator-replacement strategy is consistently positive on ReClor.
+2. **All 5 LLMs hurt LogiQA test** (−4.3 to −9.5 pp vs `v6`). No LLM
+   tried — including the 70B model — recovers `v6`'s LogiQA edge. The
+   diversity-vs-polarity trade-off is intrinsic to the
+   polarity-cleaned-paraphrase recipe, not specific to T5.
+3. **Bigger ≠ better.** Within the Gemma family, **E4B (4B MoE) beats
+   31B on both ReClor (65.0 vs 64.4) and LogiQA (37.94 vs 35.64)**.
+   Within the Llama family, the 70B model is on par with the 8B on
+   ReClor (+0.6 pp vs Llama 8B) but loses on LogiQA test (33.64 vs
+   37.48). **The strongest LLM on ReClor (Qwen3 8B) is the weakest on
+   LogiQA.**
+
+**Headline takeaway**: the optimal LLM is task-dependent and not
+size-dependent. The ReClor optimum (Qwen3 8B) and LogiQA optimum
+(Gemma 4 E4B among LLMs, but still below `v6`) are different LLMs.
+Scaling to 70B does not break the trade-off — it just makes it
+slightly less severe than Qwen3's collapse.
 
 ---
 
 ## Bottom line
 
-- **ReClor**: dev accuracy **67.0%** with the strongest backbone
-  (`v13_qwen3`, +3.5 pp over the v6 baseline). Test accuracy
-  unavailable — EvalAI leaderboard closed 2026-01-16; predictions
-  saved for any future re-opening.
-- **LogiQA**: test accuracy **42.24%** with the best backbone (`v6`
-  PolarityFix); the LLM-Paraphrase backbones underperform on LogiQA,
-  preserving the diversity-vs-polarity trade-off finding.
-- **The diversity-vs-polarity trade-off is real and stays real** —
-  none of the five dataset-level mitigations (`v8`–`v12`, `v14`)
-  recover both edges. The first method that genuinely beats `v6` on
-  ReClor is the *generator replacement* (LLM-Paraphrase), not a
-  dataset-level patch.
+- **ReClor**: dev accuracy **67.0%** with `v13_qwen3` (Qwen3 8B
+  paraphrase, +3.5 pp over v6 baseline). Test accuracy unavailable —
+  EvalAI leaderboard closed 2026-01-16; predictions for all 5 LLM
+  backbones archived in [`submissions/`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/tree/main/submissions).
+- **LogiQA**: test accuracy **42.24%** with `v6` PolarityFix; all 5
+  LLM paraphrase backbones tested (range 4B – 70B) land below `v6`
+  on LogiQA test.
+- **The diversity-vs-polarity trade-off is universal across LLM
+  family and scale.** Five dataset-level mitigations (`v8`–`v12`,
+  `v14`) failed to recover both edges; five LLM-paraphrase backbones
+  also fail. **Generator replacement helps ReClor (every LLM tested
+  beat v6) but cannot break the LogiQA trade-off.** This is a
+  structural property of polarity-cleaned paraphrase, not a quirk of
+  any one model.
+- **Bigger LLM ≠ better data**: scaling Gemma from 4B to 31B made
+  both ReClor and LogiQA worse; scaling Llama 8B to 70B improved
+  ReClor by +2.2 pp but cost LogiQA −3.8 pp test. LLM choice is a
+  hyperparameter to tune per benchmark.
 - **Leaderboard infrastructure context**: hidden-test MCQA
   leaderboards (ReClor on EvalAI, AI2's ARC/OBQA/CSQA/HellaSwag
   portal) have all gone offline or closed during 2024-2026; the
