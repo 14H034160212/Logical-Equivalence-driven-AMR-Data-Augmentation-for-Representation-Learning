@@ -18,20 +18,42 @@ added 10 new logical-equivalence rules, and propose a new algorithm
 (**LeRC**, Logic-Equivalent Rule Composition). We then conducted a
 **five-LLM paraphrase ablation** (Llama-3.1 8B, Qwen3 8B, Llama-3.3
 70B, Gemma 4 E4B, Gemma 4 31B) — spanning 4B to 70B parameter range,
-3 model families.
+3 model families. Multi-seed (seed=21, 42) results below are the
+**honest paper headline numbers**.
 
 Headline findings:
 
-- **`v13_qwen3` (Qwen3 8B)** wins ReClor dev: **67.0%** (+3.5 pp over v6).
-- **`v13_llama70` (Llama-3.3 70B)** comes second on ReClor: 66.6%.
+- **Best LLM paraphrase backbone**: `v13_qwen3_clean` (Qwen3 8B with
+  `enable_thinking=False`) — ReClor dev mean of 2 seeds: **65.1%**
+  (+1.6 pp over `v6`). Llama-3.3 70B is statistically tied at 64.7%.
 - **`v6` PolarityFix (v4 T5)** still wins **LogiQA test (42.24%)** —
   no LLM paraphrase, large or small, can beat it on LogiQA.
 - **Bigger ≠ better**: Gemma 4 E4B (4B) > Gemma 4 31B on both tasks;
-  Qwen3 8B > Llama-3.3 70B on ReClor.
-- **Diversity-vs-polarity trade-off is universal**: across all 5 LLMs,
-  every one underperforms `v6` on LogiQA test (range 32.72% – 37.94%
-  vs `v6` 42.24%). Trade-off is not specific to T5; it is intrinsic to
-  the polarity-cleaned-paraphrase recipe.
+  Qwen3 8B ≈ Llama-3.3 70B on ReClor multi-seed mean.
+- **Diversity-vs-polarity trade-off is universal**: across all 5 LLMs
+  + 5 dataset-level mitigations, none beats `v6` on LogiQA. The
+  trade-off is structural to the polarity-cleaned-paraphrase recipe,
+  not specific to T5.
+
+### ⚠️ Reasoning-model contamination caught & fixed
+
+An earlier headline of "ReClor 67.0%" for `v13_qwen3` was an artifact:
+Qwen3 8B's default `enable_thinking=True` chat template emits a
+`<think>...</think>` reasoning trace before the actual paraphrase.
+With `max_new_tokens=80`, we captured **only the thinking trace**
+(avg 34 words, vs ~9 for other LLMs), which *quoted the v6 reference
+paraphrase verbatim* inside the trace. Training on this caused
+ReClor to inflate by ~2 pp from leakage. Patching the builder to
+detect reasoning models and pass `enable_thinking=False`
+(`extensions/pilot_study/build_v13_llm_paraphrase.py`) plus strip
+any residual `</think>` blocks brought the corpus back to canonical
+~10-word paraphrases; the corrected `v13_qwen3_clean` ReClor result
+is **65.1% (mean of 2 seeds)**, not 67.0%.
+
+We preserve the contaminated result for the record, both as a
+diagnostic for reviewers and as evidence that **reasoning-model
+paraphrase corpora need active sanitization** — a pitfall future
+work using Qwen3 / DeepSeek-R1 / o1-style models will face.
 
 ---
 
@@ -40,7 +62,7 @@ Headline findings:
 | Benchmark | Best method | Test acc | How verified |
 |---|---|---|---|
 | **LogiQA** *(test, local labels)* | PolarityFix (`v6`, v4 T5 beam) | **42.24%** | local `BERT/logiqa_data/Test.json` (651 examples) |
-| **ReClor** *(test — leaderboard closed)* | LLM-Paraphrase Qwen3 8B (`v13_qwen3`) | **dev 67.0%** (test submission blocked) | EvalAI 503 closed 2026-01-16; predictions saved at [`submissions/reclor_v13_qwen3_test_preds.npy`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/blob/main/submissions/reclor_v13_qwen3_test_preds.npy) |
+| **ReClor** *(test — leaderboard closed)* | LLM-Paraphrase Qwen3 8B clean (`v13_qwen3_clean`) | **dev 65.1% (mean of 2 seeds)** | EvalAI 503 closed 2026-01-16; predictions saved at [`submissions/`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/tree/main/submissions) |
 | **PARARULE-Plus Depth5 (held-out)** | v4-T5 + De Morgan rule fix | **73.4%** generator pass | local Depth5 shard ([report](HELDOUT_PARARULE.md)) |
 
 **Important caveat**: the ReClor-best method (`v13_qwen3`) is *not*
@@ -140,11 +162,11 @@ Multi-seed (seed = 21, 42) on DeBERTa-large.
 |---|---|---|---|
 | Baseline (`v5`) | 62.8 / 63.0 — mean **62.9** | 41.0 / 43.6 — mean **42.3** | Paper recipe |
 | PolarityFix (`v6`) | 63.6 / 63.4 — mean **63.5** | 39.2 / 41.5 — mean **40.3** | **+0.6 / −2.0 pp** |
-| LLM-Paraphrase Llama-3.1 8B (`v13_llama`) | 64.4 | 39.0 | +0.8 pp ReClor · ≈ v6 LogiQA |
-| **LLM-Paraphrase Qwen3 8B (`v13_qwen3`)** | **67.0 ⭐** | 33.8 | **+3.5 pp ReClor (NEW BEST)** · **−6.5 pp LogiQA** |
-| LLM-Paraphrase Llama-3.3 70B (`v13_llama70`) | 66.6 | 35.5 | +3.1 pp ReClor (2nd) · −4.8 pp LogiQA |
-| LLM-Paraphrase Gemma 4 E4B (`v13_gemma4_4b`) | 65.0 | 34.9 | +1.5 pp ReClor · −5.4 pp LogiQA · **best LLM on LogiQA test (37.94%)** |
-| LLM-Paraphrase Gemma 4 31B (`v13_gemma4_31b`) | 64.4 | 38.4 | +0.9 pp ReClor · −1.9 pp LogiQA |
+| LLM-Paraphrase Llama-3.1 8B (`v13_llama`) | 64.4 (1 seed) | 39.0 | +0.8 pp ReClor · ≈ v6 LogiQA |
+| **LLM-Paraphrase Qwen3 8B clean (`v13_qwen3_clean`)** | **65.1 mean** ⭐ | 36.5 mean | **+1.6 pp ReClor (BEST LLM, multi-seed)** |
+| LLM-Paraphrase Llama-3.3 70B (`v13_llama70`) | 64.7 mean | 34.9 mean | +1.2 pp ReClor · −5.4 pp LogiQA |
+| LLM-Paraphrase Gemma 4 E4B (`v13_gemma4_4b`) | 65.0 (1 seed) | 34.9 | +1.5 pp ReClor · best LLM on LogiQA test (37.94%) |
+| LLM-Paraphrase Gemma 4 31B (`v13_gemma4_31b`) | 64.4 (1 seed) | 38.4 | +0.9 pp ReClor · *smaller sibling wins* |
 | LeRC (`v14`) — proposed novel algorithm | 61.2 | 37.3 | Highest contrastive eval (99.80%), but downstream ties v12 |
 
 The full per-method dev table is in
@@ -294,7 +316,8 @@ planned.
 | `v11` | Sampled + Polarity Filter | 52,018 | 99.81% | ✅ mitigation #4 | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) |
 | `v12` | Sampled + AMR-F1 Filter | 26,393 | 99.58% | ✅ mitigation #5 | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) |
 | `v13_llama` | LLM-Paraphrase Llama-3.1 8B | 20,883 | 99.57% | ✅ | [W&B contrastive](https://wandb.ai/qbao775/amr-lda-extensions/runs/1jfqp641) |
-| **`v13_qwen3`** | **LLM-Paraphrase Qwen3 8B** | 20,883 | **100.0% ⭐** | ✅ **highest contrastive eval** | [W&B contrastive](https://wandb.ai/qbao775/amr-lda-extensions/runs/id5y6avq) |
+| `v13_qwen3` (CONTAMINATED) | Qwen3 8B (thinking-trace leak) | 20,883 | 100.0% (artifact) | ⚠️ contaminated | [W&B contrastive](https://wandb.ai/qbao775/amr-lda-extensions/runs/id5y6avq) |
+| **`v13_qwen3_clean`** | **Qwen3 8B (enable_thinking=False)** | 20,883 | **99.31%** | ✅ honest replacement | W&B `v13_qwen3_clean_contrastive` |
 | `v13_gemma4_4b` | LLM-Paraphrase Gemma 4 E4B | 20,883 | 99.66% | ✅ | W&B `v13_gemma4_4b_contrastive` |
 | `v13_gemma4_31b` | LLM-Paraphrase Gemma 4 31B (4-bit) | 20,883 | 99.81% | ✅ | W&B `v13_gemma4_31b_contrastive` |
 | `v13_llama70` | LLM-Paraphrase Llama-3.3 70B (4-bit) | 20,883 | 99.90% | ✅ 2nd highest contrastive | W&B `v13_llama70_contrastive` |
@@ -315,12 +338,45 @@ planned.
 | `v10` | Mix(Base + PolarityFix) | 62.4 | 38.1 | 36.41 | mitigation #3 fails |
 | `v11` | Sampled + Polarity Filter | 59.8 | 32.3 | 30.11 | mitigation #4 fails |
 | `v12` | Sampled + AMR-F1 Filter | 60.8 | 37.3 | 35.33 | best of sampled-based |
-| `v13_llama` | LLM-Paraphrase Llama-3.1 8B | 64.4 | 39.0 | 37.48 | +0.8 vs v6 ReClor · ≈ v6 LogiQA |
-| **`v13_qwen3`** | **LLM-Paraphrase Qwen3 8B** | **67.0 ⭐** | 33.79 | 32.72 | **+3.5 pp ReClor (NEW BEST) · −9.5 pp LogiQA (sharp task asymmetry)** |
-| `v13_llama70` | LLM-Paraphrase Llama-3.3 70B (4-bit) | 66.6 | 35.48 | 33.64 | +3.1 ReClor · −8.6 LogiQA · largest LLM tested, not the best |
-| `v13_gemma4_4b` | LLM-Paraphrase Gemma 4 E4B | 65.0 | 34.87 | **37.94** ⭐ LLM | +1.5 ReClor · −4.3 LogiQA · **best LLM on LogiQA test** |
-| `v13_gemma4_31b` | LLM-Paraphrase Gemma 4 31B (4-bit) | 64.4 | 38.40 | 35.64 | +0.9 ReClor · −6.6 LogiQA · *worse than its smaller sibling* |
+| `v13_llama` | LLM-Paraphrase Llama-3.1 8B | 64.4 (1 seed) | 39.0 | 37.48 | +0.8 vs v6 ReClor · ≈ v6 LogiQA |
+| `v13_qwen3` (CONTAMINATED) | Qwen3 8B thinking-trace leak | 67.0 (1 seed) | 33.79 | 32.72 | **DO NOT CITE** — Qwen3 `<think>` leak inflated ReClor by ~2 pp |
+| **`v13_qwen3_clean`** | **Qwen3 8B (enable_thinking=False)** | 66.2 / 64.0 — mean **65.1** | 38.86 / 34.10 | 35.02 / 31.80 — mean **33.4** | **+1.6 pp ReClor mean (BEST LLM, honest)** · −8.8 pp LogiQA |
+| `v13_llama70` | Llama-3.3 70B (4-bit) | 66.6 / 62.8 — mean **64.7** | 35.48 / 34.41 | 33.64 / 32.57 — mean **33.1** | +1.2 pp ReClor mean · −9.1 pp LogiQA |
+| `v13_gemma4_4b` | Gemma 4 E4B | 65.0 (1 seed) | 34.87 | **37.94** ⭐ LLM | +1.5 ReClor · −4.3 LogiQA · best LLM on LogiQA test |
+| `v13_gemma4_31b` | Gemma 4 31B (4-bit) | 64.4 (1 seed) | 38.40 | 35.64 | +0.9 ReClor · −6.6 LogiQA · *worse than 4B sibling* |
 | `v14` | LeRC | 61.2 | 37.3 | 35.48 | ties v12 |
+
+### Diversity quantification across the 5-LLM ablation
+
+n-gram diversity and near-duplicate rate, measured on the positive
+sentence2 column of each corpus (5 LLM paraphrase variants + Stock
+T5 baseline + PolarityFix). Higher distinct-N = more surface
+variety; lower near-dup-rate = less redundancy.
+
+| Corpus | distinct-1 | distinct-3 | near-dup ≥0.7 | avg len (words) |
+|---|---|---|---|---|
+| `v5` Stock T5 | 0.0086 | 0.3653 | 0.20% | 8.21 |
+| `v6` PolarityFix | 0.0064 | 0.3274 | 0.60% | 8.43 |
+| `v13_llama` Llama-3.1 8B | 0.0122 | 0.2939 | 0.40% | 9.23 |
+| `v13_qwen3` (CONTAMINATED) | 0.0042 | 0.0708 | 58.20% | **34.11 ⚠️** |
+| `v13_gemma4_4b` Gemma 4 E4B | 0.0069 | 0.1874 | 1.80% | 9.43 |
+| `v13_gemma4_31b` Gemma 4 31B | 0.0063 | 0.1701 | 2.20% | 9.35 |
+| `v13_llama70` Llama-3.3 70B | 0.0075 | 0.1838 | 1.40% | 9.86 |
+
+JSON: [`diversity_5llm.json`](diversity_5llm.json).
+
+**Diagnostic value.** The contaminated `v13_qwen3` row is a clear
+outlier: 34-word sentences (4× others) and 58.2% near-dup rate (40×
+others). The diversity metric *flagged the contamination before*
+downstream evaluation — useful future-work hint: include this check
+as a corpus sanity gate.
+
+For the cleaner LLMs, distinct-3 ranges 0.17–0.29, all *below* the
+v5/v6 baselines (0.33–0.37). The LLM paraphrases, even uncorrupted,
+are still less surface-diverse than the AMR-rule + T5 outputs.
+This is consistent with the diversity-vs-polarity finding: cleaner
+paraphrase = less surface variation = better ReClor entailment +
+worse LogiQA multi-step reasoning.
 
 ### Diversity root cause + mitigation summary
 

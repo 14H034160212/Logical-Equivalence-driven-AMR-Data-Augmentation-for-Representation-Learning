@@ -113,6 +113,20 @@ def main():
     targets = df[to_paraphrase_mask]
     prompts = []
     indices = []  # (df_idx, k)
+    # Detect reasoning models that emit <think>...</think> traces by default.
+    # Qwen3 chat template supports enable_thinking=False; other models ignore it.
+    chat_template_kwargs = {"tokenize": False, "add_generation_prompt": True}
+    try:
+        # probe by attempting apply_chat_template with enable_thinking=False
+        _ = tok.apply_chat_template(
+            [{"role": "user", "content": "hi"}],
+            enable_thinking=False, **chat_template_kwargs,
+        )
+        chat_template_kwargs["enable_thinking"] = False
+        log.info("Reasoning model detected: enable_thinking=False")
+    except Exception:
+        log.info("Chat template does not support enable_thinking flag (non-reasoning model)")
+
     for idx, row in targets.iterrows():
         text = str(row["Generated_Sentence"]).strip()
         if not text:
@@ -120,9 +134,7 @@ def main():
         for k in range(args.num_paraphrases):
             messages = [{"role": "user",
                          "content": PARAPHRASE_PROMPT.format(sentence=text)}]
-            prompt_str = tok.apply_chat_template(
-                messages, tokenize=False, add_generation_prompt=True,
-            )
+            prompt_str = tok.apply_chat_template(messages, **chat_template_kwargs)
             prompts.append(prompt_str)
             indices.append((idx, k))
 
@@ -151,6 +163,13 @@ def main():
         decoded = tok.batch_decode(new_tokens, skip_special_tokens=True)
         for (idx, k), text in zip(chunk_indices, decoded):
             t = (text or "").strip()
+            # Strip <think>...</think> blocks from reasoning models (Qwen3, DeepSeek-R1, etc.)
+            # If </think> is present, take only what comes after it.
+            if "</think>" in t:
+                t = t.split("</think>", 1)[1].strip()
+            elif t.lstrip().startswith("<think>"):
+                # No </think> in the captured window — output is pure thinking trace, discard.
+                t = ""
             # Strip leading role markers from chat templates
             for prefix in ("assistant\n\n", "assistant\n", "assistant:",
                            "model\n\n", "model\n",
