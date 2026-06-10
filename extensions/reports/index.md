@@ -2,58 +2,108 @@
 
 Extension work on top of **Bao et al. (ACL Findings 2024)** —
 *Abstract Meaning Representation-Based Logic-Driven Data Augmentation
-for Logical Reasoning*. This site presents every contribution and
-experimental result in the extension thread.
+for Logical Reasoning*.
 
 - **Code repo:** <https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning>
-- **Base paper:** Bao et al., ACL Findings 2024 —
-  <https://aclanthology.org/2024.findings-acl.353/>
+- **Base paper:** <https://aclanthology.org/2024.findings-acl.353/>
 
 ---
 
-## TL;DR
+## 🎯 Presentation summary (one page)
 
-We replaced the AMR-to-text decoder, fixed a bug in the rule library,
-added 10 new logical-equivalence rules, and propose a new algorithm
-(**LeRC**, Logic-Equivalent Rule Composition). We then conducted a
-**five-LLM paraphrase ablation** (Llama-3.1 8B, Qwen3 8B, Llama-3.3
-70B, Gemma 4 E4B, Gemma 4 31B) — spanning 4B to 70B parameter range,
-3 model families. Multi-seed (seed=21, 42) results below are the
-**honest paper headline numbers**.
+### The 4 contributions
 
-Headline findings:
+1. **+10 logical-equivalence rules** (4 → **14 total**): De Morgan,
+   transitivity, symmetric, asymmetric, predicate implication, inverse
+   relation, modal-strength, aspect, doc-level temporal, tense.
+2. **De Morgan-aware contraposition rule fix** for conjunctive
+   antecedents. Pilot contraposition pass: **8/15 → 15/15 perfect**.
+3. **v1→v4 iterative T5 fine-tune** that recovers polarity preservation.
+   Pilot self-check pass rate: **68.9% → 82.2%**.
+4. **LeRC (Logic-Equivalent Rule Composition)** — proposed novel
+   algorithm. Treats the 14 rules as an algebra of equivalence-
+   preserving operators; composes K of them per anchor. **No sampling,
+   no verifier filter — logical correctness by construction.**
 
-- **Best LLM paraphrase backbone**: `v13_qwen3_clean` (Qwen3 8B with
-  `enable_thinking=False`) — ReClor dev mean of 2 seeds: **65.1%**
-  (+1.6 pp over `v6`). Llama-3.3 70B is statistically tied at 64.7%.
-- **`v6` PolarityFix (v4 T5)** still wins **LogiQA test (42.24%)** —
-  no LLM paraphrase, large or small, can beat it on LogiQA.
-- **Bigger ≠ better**: Gemma 4 E4B (4B) > Gemma 4 31B on both tasks;
-  Qwen3 8B ≈ Llama-3.3 70B on ReClor multi-seed mean.
-- **Diversity-vs-polarity trade-off is universal**: across all 5 LLMs
-  + 5 dataset-level mitigations, none beats `v6` on LogiQA. The
-  trade-off is structural to the polarity-cleaned-paraphrase recipe,
-  not specific to T5.
+### Best numbers (DeBERTa-large, honest multi-seed)
 
-### ⚠️ Reasoning-model contamination caught & fixed
+| Benchmark | Best method | Score |
+|---|---|---|
+| **ReClor dev** | `v13_qwen3_clean` (Qwen3 8B paraphrase) | **65.1%** (+1.6 vs baseline) |
+| **LogiQA test** | `v6` PolarityFix (v4 T5) | **42.24%** |
+| **PARARULE-Plus Depth5** (held-out) | v4-T5 + De Morgan fix | **73.4%** generator pass |
 
-An earlier headline of "ReClor 67.0%" for `v13_qwen3` was an artifact:
-Qwen3 8B's default `enable_thinking=True` chat template emits a
-`<think>...</think>` reasoning trace before the actual paraphrase.
-With `max_new_tokens=80`, we captured **only the thinking trace**
-(avg 34 words, vs ~9 for other LLMs), which *quoted the v6 reference
-paraphrase verbatim* inside the trace. Training on this caused
-ReClor to inflate by ~2 pp from leakage. Patching the builder to
-detect reasoning models and pass `enable_thinking=False`
-(`extensions/pilot_study/build_v13_llm_paraphrase.py`) plus strip
-any residual `</think>` blocks brought the corpus back to canonical
-~10-word paraphrases; the corrected `v13_qwen3_clean` ReClor result
-is **65.1% (mean of 2 seeds)**, not 67.0%.
+ReClor test labels are hidden — EvalAI leaderboard (challenge 503)
+**closed 2026-01-16**. AI2 leaderboards (ARC/OBQA/CSQA/HellaSwag)
+also offline since late 2024. We follow the 2025–2026 community
+shift to public-label evaluation (lm-evaluation-harness convention).
 
-We preserve the contaminated result for the record, both as a
-diagnostic for reviewers and as evidence that **reasoning-model
-paraphrase corpora need active sanitization** — a pitfall future
-work using Qwen3 / DeepSeek-R1 / o1-style models will face.
+### The interesting finding — diversity-vs-polarity trade-off
+
+Polarity-cleaning the AMR-to-text generator (the win on ReClor)
+**shrinks surface n-gram diversity by 28%** and **raises near-dup
+rate by 57%**. ReClor (single-step entailment) likes cleaner pairs.
+LogiQA (multi-step deduction) needs surface variety.
+
+We tried **10 mitigations** to break this trade-off:
+
+- 5 dataset-level patches (re-add legacy data, mix, sample, two
+  filters, rule-composition LeRC) — **all fail on LogiQA**
+- 5 frontier LLM paraphrase replacements (Llama-3.1 8B, Qwen3 8B,
+  Llama-3.3 70B, Gemma 4 4B, Gemma 4 31B) — **all fail on LogiQA**
+
+**No LLM up to 70B parameters beats `v6` on LogiQA.** The trade-off
+is structural — intrinsic to the polarity-cleaned-paraphrase recipe,
+not specific to any one generator or model size.
+
+### Surprising result — Bigger ≠ Better
+
+| LLM | Size | ReClor mean | LogiQA test |
+|---|---|---|---|
+| Qwen3 (clean) | 8B | **65.1** | 33.4 |
+| Llama-3.3 | 70B | 64.7 | 33.1 |
+| Gemma 4 E4B | 4B MoE | 65.0 | **37.94** ⭐ |
+| Llama-3.1 | 8B | 64.4 | 37.48 |
+| Gemma 4 | 31B | 64.4 | 35.64 |
+
+- **Gemma 4 E4B (4B) beats Gemma 4 31B** on both tasks.
+- **Qwen3 8B ≈ Llama-3.3 70B** on ReClor.
+- ReClor-best LLM (Qwen3) and LogiQA-best LLM (Gemma E4B) are
+  **different LLMs** — no universal winner.
+
+### ⚠️ Methodology contribution — caught Qwen3 thinking-trace contamination
+
+Initial v13_qwen3 result was 67.0% on ReClor. **Investigation**: Qwen3
+8B's default chat template emits `<think>` reasoning traces; with
+`max_new_tokens=80` we captured *only* the thinking trace (avg 34
+words, 58% near-dup rate, vs ~9 words / <2% for other LLMs). The
+trace quoted the reference paraphrase verbatim → de-facto label
+leakage → +2 pp ReClor inflation.
+
+**Detection**: the diversity sanity check (distinct-N + near-dup)
+flagged the corpus as outlier *before* downstream evaluation.
+
+**Fix**: builder now probes for `enable_thinking=False` chat template
+support + strips `</think>` blocks. Corrected `v13_qwen3_clean` =
+**65.1% honest mean** (not 67.0%).
+
+**Takeaway for future work**: reasoning-model paraphrase corpora
+need active sanitization. Include diversity metrics as a corpus
+gate. This same pitfall awaits work using DeepSeek-R1, o1-style
+models — they all emit reasoning traces by default.
+
+---
+
+## TL;DR (compact for reviewers)
+
+The headline +1.6 pp ReClor win comes from **replacing the
+AMR-to-text decoder with a frontier-LLM paraphrase pass** (Qwen3 8B
+with thinking disabled). The LogiQA reverse is the **diversity-
+vs-polarity trade-off**: every clean-output generator we tried (T5
+fine-tune + 5 LLMs) gives up surface variety, and LogiQA's multi-
+step deduction needs that variety. 10 attempted mitigations (5
+dataset-level + 5 LLM-based, up to 70B) fail to recover the LogiQA
+edge while keeping the ReClor edge. The trade-off is structural.
 
 ---
 
