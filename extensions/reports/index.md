@@ -9,6 +9,60 @@ for Logical Reasoning*.
 
 ---
 
+## 📖 Background — what is AMR-LDA?
+
+**Problem.** Encoder models like DeBERTa-large are stronger at logical
+reasoning benchmarks (ReClor, LogiQA) when fine-tuned on contrastive
+pairs of *logically equivalent* sentences. But hand-writing such pairs
+doesn't scale.
+
+**The base paper's idea** (Bao et al., ACL Findings 2024).
+Auto-generate logically equivalent paraphrases via **structural rules
+on Abstract Meaning Representation (AMR) graphs**, then turn the
+modified AMR back into text. This gives free, large-scale contrastive
+training data.
+
+```mermaid
+flowchart LR
+    S["<b>1. Input sentence</b><br/><i>If the eagle is kind,<br/>then the mouse is not clever.</i>"]
+    S --> A["<b>2. Parse to AMR</b><br/>(BART-large parser)"]
+    A --> R["<b>3. Apply logic rule</b><br/>e.g. <i>contraposition</i><br/>swap antecedent / consequent<br/>+ negate both"]
+    R --> T["<b>4. Render back to text</b><br/>(T5wtense generator)"]
+    T --> O["<b>5. Contrastive pair</b><br/><b>positive</b>: <i>If the mouse is clever,<br/>the eagle is not kind.</i><br/><b>negative</b>: <i>If the mouse is clever,<br/>the eagle is kind.</i>"]
+    O --> D["<b>6. Fine-tune</b><br/>DeBERTa-large<br/>on ReClor / LogiQA"]
+
+    classDef io fill:#f5f5f5,stroke:#616161,stroke-width:2px,font-size:14px
+    classDef method fill:#fff3e0,stroke:#e65100,stroke-width:2.5px,font-size:14px
+    class S,O,D io
+    class A,R,T method
+```
+
+**Base paper's reach.** 4 logical-equivalence rules (contraposition,
+commutative, implication, double-negation). DeBERTa-v2-xxlarge backbone
+reaches ~79% on ReClor — competitive at the time of publication.
+
+---
+
+## ❓ Research questions for this extension
+
+This extension thread investigates **five questions** about whether and
+how to push the AMR-LDA recipe further:
+
+| # | Question | What we tried | Verdict |
+|---|---|---|---|
+| **RQ1** | Are there more logical-equivalence rules we can encode in AMR? | Added 10 new rules: De Morgan, transitivity, symmetric, asymmetric, predicate implication, inverse relation, modal-strength, aspect, doc-level temporal, tense → **14 rules total** | ✅ Yes — pilot held-out generalization on PARARULE-Plus +2.8 pp |
+| **RQ2** | Does the AMR-to-text generator faithfully preserve negations? | Inspected v0 generator outputs → found polarity-drop failures. Built **v1→v4 iterative fine-tune curriculum** + **De Morgan rule fix** | ✅ Pilot self-check pass rate **68.9% → 82.2%**; contraposition 8/15 → 15/15 |
+| **RQ3** | If the v4 generator helps the polarity layer, why does LogiQA accuracy go *down* (−2 pp)? | Quantified surface diversity: −28% distinct-1, +57% near-dup rate. Tested 5 corpus-level mitigations | 🟡 Confirmed **diversity-vs-polarity trade-off** is real. 5 mitigations (legacy re-add, mix, sampling, polarity-filter, AMR-F1 filter) all fail |
+| **RQ4** | Can we attack the trade-off at the **logic layer** instead of the dataset layer? | Designed **LeRC (Logic-Equivalent Rule Composition)** — treat the 14 rules as an algebra of equivalence-preserving operators; compose K of them per anchor for diversity *with* logical correctness | 🟡 Highest contrastive eval (99.80%) but downstream ties existing mitigations — LeRC reaches the limit of dataset-layer fixes |
+| **RQ5** | Does replacing the AMR-to-text generator with a **frontier LLM paraphrase** break the trade-off? | 5-LLM ablation: Llama-3.1 8B, Qwen3 8B, Llama-3.3 70B, Gemma 4 E4B (4B MoE), Gemma 4 31B. Multi-seed where applicable | ✅ Best LLM beats v6 on **ReClor (+1.6 pp)**. ❌ **No LLM** (even 70B) beats v6 on **LogiQA** — trade-off is intrinsic to polarity-clean paraphrase recipe |
+
+A methodology by-finding: **Qwen3-style reasoning models** silently
+emit `<think>` traces that contaminate paraphrase corpora. We
+caught this from a diversity outlier (avg 34 words vs ~9) and
+fixed the builder accordingly. See the *contamination story* below.
+
+---
+
 ## 🎯 Presentation summary (one page)
 
 ### The 4 contributions
