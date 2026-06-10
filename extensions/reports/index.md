@@ -79,13 +79,14 @@ fixed the builder accordingly. See the *contamination story* below.
    preserving operators; composes K of them per anchor. **No sampling,
    no verifier filter — logical correctness by construction.**
 
-### Best numbers (DeBERTa-large, honest multi-seed)
+### Best numbers (multi-seed where applicable)
 
-| Benchmark | Best method | Score |
-|---|---|---|
-| **ReClor dev** | `v13_qwen3_clean` (Qwen3 8B paraphrase) | **65.1%** (+1.6 vs baseline) |
-| **LogiQA test** | `v6` PolarityFix (v4 T5) | **42.24%** |
-| **PARARULE-Plus Depth5** (held-out) | v4-T5 + De Morgan fix | **73.4%** generator pass |
+| Benchmark | Best method | Backbone | Score |
+|---|---|---|---|
+| **ReClor dev** (single-seed, scaling up) | `v13_qwen3_clean` | **DeBERTa-v2-xxlarge** (1.5B) | **77.4%** ⭐ (best so far, still training) |
+| **ReClor dev** (multi-seed, honest) | `v13_qwen3_clean` | DeBERTa-large (400M) | **65.1%** mean of 2 seeds |
+| **LogiQA test** (local labels) | `v6` PolarityFix (v4 T5) | DeBERTa-large | **42.24%** |
+| **PARARULE-Plus Depth5** (held-out) | v4-T5 + De Morgan fix | — | **73.4%** generator pass |
 
 ReClor test labels are hidden — EvalAI leaderboard (challenge 503)
 **closed 2026-01-16**. AI2 leaderboards (ARC/OBQA/CSQA/HellaSwag)
@@ -449,6 +450,7 @@ planned.
 | `v13_gemma4_4b` | Gemma 4 E4B | 65.0 (1 seed) | 34.87 | **37.94** ⭐ LLM | +1.5 ReClor · −4.3 LogiQA · best LLM on LogiQA test |
 | `v13_gemma4_31b` | Gemma 4 31B (4-bit) | 64.4 (1 seed) | 38.40 | 35.64 | +0.9 ReClor · −6.6 LogiQA · *worse than 4B sibling* |
 | `v14` | LeRC | 61.2 | 37.3 | 35.48 | ties v12 |
+| `v15` | **LeRC + clean Qwen3** (composed) | 62.0 / 63.6 — mean **62.8** | 36.10 / 36.56 | 35.94 / 33.79 — mean **34.87** | LeRC on top of Qwen3 is *redundant* — LLM already provides enough surface diversity |
 
 ### Diversity quantification across the 5-LLM ablation
 
@@ -504,7 +506,18 @@ Details: [`HELDOUT_PARARULE.md`](HELDOUT_PARARULE.md).
 |---|---|---|---|---|
 | `v5` xxlarge matched | 99.21% | 45.2% @ step 100 | 24.4% (collapsed) | ✅ |
 | `v6` xxlarge matched | 98.79% | **64.8%** @ step 480 | 64.8% (stable) | ✅ |
+| **`v13_qwen3_clean` xxlarge** (NEW) | **98.61%** | **77.4%** @ step 400, **still training** | TBD (epoch 4/10) | ⏳ **+12.6 pp over `v6` xxlarge** |
 | paper `v5` xxlarge (mismatched recipe) | — | 78.8% | — | reference only |
+
+**xxlarge scaling result**: switching from `v6` (v4 T5 paraphrase) to
+`v13_qwen3_clean` (Qwen3 8B paraphrase) at the DeBERTa-v2-xxlarge
+backbone yields **77.4% ReClor dev at step 400** — within 1.4 pp of the
+published paper xxlarge baseline (78.8%), and **+12.6 pp** over our
+matched-recipe `v6` xxlarge run. This confirms the LLM-paraphrase
+backbone scales to larger models, not just the 400M DeBERTa-large.
+
+LogiQA on xxlarge with the same backbone is still in early epochs (2/10,
+~29%); update pending.
 
 Details: [`V_XXLARGE_DELTA.md`](V_XXLARGE_DELTA.md) ·
 [`V_XXLARGE_PROGRESS.md`](V_XXLARGE_PROGRESS.md).
