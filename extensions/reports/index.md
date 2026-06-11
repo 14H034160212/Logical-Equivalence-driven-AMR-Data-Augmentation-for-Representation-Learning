@@ -453,6 +453,42 @@ planned.
 | `v14` | LeRC | 61.2 | 37.3 | 35.48 | ties v12 |
 | `v15` | **LeRC + clean Qwen3** (composed) | 62.0 / 63.6 — mean **62.8** | 36.10 / 36.56 | 35.94 / 33.79 — mean **34.87** | LeRC on top of Qwen3 is *redundant* — LLM already provides enough surface diversity |
 
+### External transfer — AGIEval LSAT (zero-shot)
+
+ReClor-fine-tuned checkpoints evaluated **zero-shot** on the AGIEval
+v1.1 LSAT subsets (5-option MCQA, no LSAT-specific training).
+Following the 2025–2026 public-label evaluation convention; eval
+script: [`extensions/pilot_study/eval_agieval_lsat.py`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/blob/main/extensions/pilot_study/eval_agieval_lsat.py).
+
+| Checkpoint | LSAT-AR (230) | LSAT-LR (510) | LSAT-RC (269) | Macro |
+|---|---|---|---|---|
+| `v6` DeBERTa-large | 20.43 | 70.78 | **40.15** | 43.79 |
+| `v13_qwen3_clean` DeBERTa-large | 20.87 | 78.04 | 32.71 | 43.87 |
+| **`v13_qwen3_clean` DeBERTa-v2-xxlarge** | **25.65** | **90.78** ⭐ | **48.33** | **54.92** |
+
+JSON aggregates: [`agieval_lsat_large_v6.json`](agieval_lsat_large_v6.json) ·
+[`agieval_lsat_large_v13_qwen3_clean.json`](agieval_lsat_large_v13_qwen3_clean.json) ·
+[`agieval_lsat_xxlarge_v13_qwen3_clean.json`](agieval_lsat_xxlarge_v13_qwen3_clean.json)
+
+Three observations:
+
+1. **The trade-off signature transfers.** At DeBERTa-large scale, the
+   Qwen3 backbone beats `v6` on LSAT-LR (+7.3 pp — logical reasoning,
+   closest in style to ReClor) but loses on LSAT-RC (−7.4 pp —
+   long-passage reading comprehension that benefits from surface
+   variety). Same asymmetry as ReClor-vs-LogiQA.
+2. **Scale lifts everything.** The xxlarge checkpoint improves all
+   three subsets, reaching **90.78% on LSAT-LR zero-shot** — without
+   ever seeing an AGIEval example.
+3. **LSAT-AR stays near chance (20–26%)** for all checkpoints,
+   consistent with the AR-LSAT literature — analytical-reasoning
+   "logic games" require constraint solving that contrastive
+   fine-tuning does not teach.
+
+*Caveat:* ReClor itself is built from LSAT/GMAT questions, so some
+overlap between ReClor train and AGIEval LSAT-LR items is possible;
+treat LSAT-LR transfer as an upper bound.
+
 ### Diversity quantification across the 5-LLM ablation
 
 n-gram diversity and near-duplicate rate, measured on the positive
