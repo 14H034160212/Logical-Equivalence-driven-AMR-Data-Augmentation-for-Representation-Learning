@@ -83,9 +83,10 @@ fixed the builder accordingly. See the *contamination story* below.
 
 | Benchmark | Best method | Backbone | Score |
 |---|---|---|---|
-| **ReClor dev** (single-seed, scaling up) | `v13_qwen3_clean` | **DeBERTa-v2-xxlarge** (1.5B) | **77.4%** ⭐ (best so far, still training) |
+| **ReClor dev** | `v13_qwen3_clean` | **DeBERTa-v2-xxlarge** (1.5B) | **79.8%** ⭐ — beats the published paper xxlarge (78.8%) |
 | **ReClor dev** (multi-seed, honest) | `v13_qwen3_clean` | DeBERTa-large (400M) | **65.1%** mean of 2 seeds |
 | **LogiQA test** (local labels) | `v6` PolarityFix (v4 T5) | DeBERTa-large | **42.24%** |
+| **LogiQA test** (xxlarge scale) | `v13_qwen3_clean` | DeBERTa-v2-xxlarge | **41.01%** — trade-off nearly closes at 1.5B |
 | **PARARULE-Plus Depth5** (held-out) | v4-T5 + De Morgan fix | — | **73.4%** generator pass |
 
 ReClor test labels are hidden — EvalAI leaderboard (challenge 503)
@@ -506,18 +507,25 @@ Details: [`HELDOUT_PARARULE.md`](HELDOUT_PARARULE.md).
 |---|---|---|---|---|
 | `v5` xxlarge matched | 99.21% | 45.2% @ step 100 | 24.4% (collapsed) | ✅ |
 | `v6` xxlarge matched | 98.79% | **64.8%** @ step 480 | 64.8% (stable) | ✅ |
-| **`v13_qwen3_clean` xxlarge** (NEW) | **98.61%** | **77.4%** @ step 400, **still training** | TBD (epoch 4/10) | ⏳ **+12.6 pp over `v6` xxlarge** |
+| **`v13_qwen3_clean` xxlarge** (NEW) | **98.61%** | **79.8%** @ step 1400 | 79.8% (stable through end of training) | ✅ **+15.0 pp over `v6` xxlarge · beats paper's 78.8%** |
 | paper `v5` xxlarge (mismatched recipe) | — | 78.8% | — | reference only |
 
-**xxlarge scaling result**: switching from `v6` (v4 T5 paraphrase) to
-`v13_qwen3_clean` (Qwen3 8B paraphrase) at the DeBERTa-v2-xxlarge
-backbone yields **77.4% ReClor dev at step 400** — within 1.4 pp of the
-published paper xxlarge baseline (78.8%), and **+12.6 pp** over our
-matched-recipe `v6` xxlarge run. This confirms the LLM-paraphrase
-backbone scales to larger models, not just the 400M DeBERTa-large.
+**xxlarge scaling result (final).** Switching from `v6` (v4 T5
+paraphrase) to `v13_qwen3_clean` (Qwen3 8B paraphrase) at the
+DeBERTa-v2-xxlarge backbone yields **79.8% ReClor dev** — **+15.0 pp**
+over our matched-recipe `v6` xxlarge run and **+1.0 pp above the
+published paper xxlarge number (78.8%)**. Training was stable through
+all 10 epochs (no collapse), unlike the `v5` xxlarge run.
 
-LogiQA on xxlarge with the same backbone is still in early epochs (2/10,
-~29%); update pending.
+**LogiQA at xxlarge: the trade-off nearly closes.** The same backbone
+reaches **41.2% dev / 41.01% test** on LogiQA — within 1.2 pp of the
+overall LogiQA test best (`v6` at DeBERTa-large, 42.24%), while the
+same data at DeBERTa-large scale managed only 33.4% test. **Scaling
+the downstream model from 400M to 1.5B recovers most of the surface
+diversity loss** — the larger model appears less dependent on surface
+variety in the contrastive corpus. This reframes the
+diversity-vs-polarity trade-off as primarily a *small-model*
+phenomenon, which is itself a new data point for the paper.
 
 Details: [`V_XXLARGE_DELTA.md`](V_XXLARGE_DELTA.md) ·
 [`V_XXLARGE_PROGRESS.md`](V_XXLARGE_PROGRESS.md).
