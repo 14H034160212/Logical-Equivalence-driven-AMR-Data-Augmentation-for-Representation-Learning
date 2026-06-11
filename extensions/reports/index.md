@@ -43,23 +43,97 @@ reaches ~79% on ReClor — competitive at the time of publication.
 
 ---
 
-## ❓ Research questions for this extension
+## ❓ Research questions
 
-This extension thread investigates **five questions** about whether and
-how to push the AMR-LDA recipe further:
+The broader context: **synthetic data augmentation is now the dominant
+way to teach reasoning to language models**, whether the generator is
+a rule system, a fine-tuned seq2seq model, or a frontier LLM. The open
+scientific question this thread attacks is what makes synthetic
+reasoning data *good* — and we find the answer is a measurable,
+structural tension between two properties of the generated text:
 
-| # | Question | What we tried | Verdict |
-|---|---|---|---|
-| **RQ1** | Are there more logical-equivalence rules we can encode in AMR? | Added 10 new rules: De Morgan, transitivity, symmetric, asymmetric, predicate implication, inverse relation, modal-strength, aspect, doc-level temporal, tense → **14 rules total** | ✅ Yes — pilot held-out generalization on PARARULE-Plus +2.8 pp |
-| **RQ2** | Does the AMR-to-text generator faithfully preserve negations? | Inspected v0 generator outputs → found polarity-drop failures. Built **v1→v4 iterative fine-tune curriculum** + **De Morgan rule fix** | ✅ Pilot self-check pass rate **68.9% → 82.2%**; contraposition 8/15 → 15/15 |
-| **RQ3** | If the v4 generator helps the polarity layer, why does LogiQA accuracy go *down* (−2 pp)? | Quantified surface diversity: −28% distinct-1, +57% near-dup rate. Tested 5 corpus-level mitigations | 🟡 Confirmed **diversity-vs-polarity trade-off** is real. 5 mitigations (legacy re-add, mix, sampling, polarity-filter, AMR-F1 filter) all fail |
-| **RQ4** | Can we attack the trade-off at the **logic layer** instead of the dataset layer? | Designed **LeRC (Logic-Equivalent Rule Composition)** — treat the 14 rules as an algebra of equivalence-preserving operators; compose K of them per anchor for diversity *with* logical correctness | 🟡 Highest contrastive eval (99.80%) but downstream ties existing mitigations — LeRC reaches the limit of dataset-layer fixes |
-| **RQ5** | Does replacing the AMR-to-text generator with a **frontier LLM paraphrase** break the trade-off? | 5-LLM ablation: Llama-3.1 8B, Qwen3 8B, Llama-3.3 70B, Gemma 4 E4B (4B MoE), Gemma 4 31B. Multi-seed where applicable | ✅ Best LLM beats v6 on **ReClor (+1.6 pp)**. ❌ **No LLM** (even 70B) beats v6 on **LogiQA** — trade-off is intrinsic to polarity-clean paraphrase recipe |
+- **Logical fidelity** — does the generated sentence preserve the
+  intended logic (negations, quantifiers, connective structure)?
+- **Surface diversity** — does the corpus cover enough lexical and
+  syntactic variety to support generalization?
 
-A methodology by-finding: **Qwen3-style reasoning models** silently
-emit `<think>` traces that contaminate paraphrase corpora. We
-caught this from a diversity outlier (avg 34 words vs ~9) and
-fixed the builder accordingly. See the *contamination story* below.
+Around this tension we pose four general research questions, each
+instantiated concretely in the AMR-LDA framework:
+
+### RQ1 — Coverage: does broader symbolic knowledge improve synthetic reasoning data?
+
+*General form:* When augmentation is driven by formal rules, does
+expanding the rule inventory (and fixing its faithfulness bugs)
+translate into measurably better downstream reasoning?
+
+*Instantiation:* We grow the logical-equivalence rule library from 4
+to **14 rules** (De Morgan, transitivity, modal duality, …) and fix a
+soundness bug in contraposition over conjunctions.
+
+*Answer:* ✅ Yes — generator pass rate 68.9% → 82.2%, held-out
+generalization +2.8 pp, contraposition 8/15 → 15/15.
+
+### RQ2 — The fidelity–diversity trade-off: are these two properties separable?
+
+*General form:* In synthetic data generation, improving the
+generator's semantic fidelity typically narrows its output
+distribution. **Is the resulting diversity loss a removable artifact,
+or a structural cost?** And which kinds of reasoning tasks pay that
+cost?
+
+*Instantiation:* Our fidelity-improved generator gains on ReClor
+(single-step entailment) but *loses* on LogiQA (multi-step deduction).
+We quantify the mechanism (−28% distinct-1, +57% near-duplicates) and
+test **10 mitigations** spanning three families — dataset-level
+recombination (re-adding, mixing, sampling + 2 verifier filters),
+symbolic composition (LeRC, our proposed rule-composition algebra),
+and generator replacement (5 frontier LLMs, 4B–70B, 3 model
+families).
+
+*Answer:* 🔴 **Structural, at fixed model scale.** All 10 mitigations
+fail to recover both task families at the 400M-parameter scale. No
+generator we tested — including a 70B LLM — escapes the trade-off.
+
+### RQ3 — Scale interaction: who pays the diversity tax?
+
+*General form:* Is sensitivity to synthetic-data surface diversity a
+property of the *data* or of the *consumer model*? I.e., does a larger
+downstream model tolerate a narrower synthetic distribution?
+
+*Instantiation:* Same corpora, downstream encoder scaled 400M → 1.5B
+(DeBERTa-large → DeBERTa-v2-xxlarge).
+
+*Answer:* ✅ **The trade-off is primarily a small-model phenomenon.**
+At 1.5B, the high-fidelity/low-diversity corpus wins ReClor by +15 pp
+*and* nearly closes the LogiQA gap (41.0% vs 42.2% best). The larger
+consumer model no longer needs the surface variety the small model
+depended on.
+
+### RQ4 — Generator trust: can LLM-generated training data be taken at face value?
+
+*General form:* As reasoning-style LLMs (Qwen3, DeepSeek-R1,
+o1-family) become default paraphrasers, **what silent failure modes do
+they introduce into synthetic corpora, and what cheap invariants catch
+them?**
+
+*Instantiation:* Qwen3's default chat template emits `<think>` traces;
+our pipeline silently captured traces instead of paraphrases — and the
+traces quoted reference answers verbatim (label leakage, +2 pp
+inflated). A corpus-level **diversity audit** (sentence length,
+distinct-n, near-dup rate) flagged the outlier *before* downstream
+training did.
+
+*Answer:* ⚠️ No — and we propose diversity audits as a standard
+sanity gate for LLM-generated corpora.
+
+---
+
+These four questions are deliberately **not specific to AMR-LDA**: the
+fidelity–diversity tension (RQ2), its scale-dependence (RQ3), and
+generator trust (RQ4) apply to any synthetic-data pipeline — chain-of-
+thought distillation, instruction-data generation, rule-based
+augmentation alike. AMR-LDA is the controlled testbed in which we can
+*measure* them, because logical fidelity is checkable symbolically.
 
 ---
 
