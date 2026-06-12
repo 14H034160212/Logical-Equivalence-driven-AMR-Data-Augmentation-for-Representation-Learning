@@ -50,14 +50,36 @@ way to teach reasoning to language models**, whether the generator is
 a rule system, a fine-tuned seq2seq model, or a frontier LLM. The open
 scientific question this thread attacks is what makes synthetic
 reasoning data *good* — and we find the answer is a measurable,
-structural tension between two properties of the generated text:
+structural tension between two properties of the generated text.
 
-- **Logical fidelity** — does the generated sentence preserve the
-  intended logic (negations, quantifiers, connective structure)?
-- **Surface diversity** — does the corpus cover enough lexical and
-  syntactic variety to support generalization?
+**Two key terms, defined** (used throughout this site):
 
-Around this tension we pose four general research questions, each
+- **Logical fidelity** (逻辑保真度) — does each generated sentence
+  preserve the intended logical meaning of its source? Concretely: no
+  dropped negations, no flipped quantifiers, no broken `if-then`
+  structure.
+  *Failure example:* source *"If A, then **not** B"* → generated
+  *"If A, then B"* — the negation was silently dropped, so the
+  "logically equivalent paraphrase" is actually a contradiction.
+  In earlier sections of this site this is also called **polarity
+  preservation** — polarity (whether a predicate is negated) is the
+  most common fidelity failure in practice, so the two terms are
+  often interchangeable here.
+- **Surface diversity** (表面多样性) — across the *whole corpus*, how
+  varied are the words and sentence patterns? Measured by distinct-n
+  (fraction of unique n-grams) and near-duplicate rate.
+  *Failure example:* 10,000 training pairs that all follow the
+  template *"If the ⟨animal⟩ is ⟨adj⟩, then …"* with near-identical
+  wording — high fidelity, but the model overfits the template and
+  fails to generalize to differently-phrased reasoning problems.
+
+**The trade-off**: pushing a generator toward higher fidelity (e.g.,
+fine-tuning it to never drop negations) systematically makes its
+output more templated — fidelity up, diversity down. We call this the
+**fidelity–diversity trade-off** (earlier sections use the equivalent
+name *diversity-vs-polarity trade-off*). Whether this trade-off is
+removable, who pays for it, and how to audit it are the research
+questions below — each stated in general form first, then
 instantiated concretely in the AMR-LDA framework:
 
 ### RQ1 — Coverage: does broader symbolic knowledge improve synthetic reasoning data?
@@ -169,6 +191,10 @@ also offline since late 2024. We follow the 2025–2026 community
 shift to public-label evaluation (lm-evaluation-harness convention).
 
 ### The interesting finding — diversity-vs-polarity trade-off
+
+(*Same concept as the fidelity–diversity trade-off defined in the
+[Research questions](#research-questions) section — "polarity" is the
+negation-preservation aspect of fidelity.*)
 
 Polarity-cleaning the AMR-to-text generator (the win on ReClor)
 **shrinks surface n-gram diversity by 28%** and **raises near-dup
