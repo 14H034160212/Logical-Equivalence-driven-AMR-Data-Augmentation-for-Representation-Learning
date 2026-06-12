@@ -7,11 +7,19 @@ for Logical Reasoning*.
 - **Code repo:** <https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning>
 - **Base paper:** <https://aclanthology.org/2024.findings-acl.353/>
 
+**How this page is organized.** §1 Background explains the base
+method. §2 states the research questions and defines the two key
+terms. §3 presents the four findings, one per research question —
+this is the core of the page. §4 collects the headline numbers in one
+table. §5 describes LeRC, the algorithm we propose. The appendices
+hold the full version-by-version experiment log and the illustrated
+gallery of all 14 logic rules.
+
 ---
 
-## 📖 Background — what is AMR-LDA?
+## 1 · Background — what is AMR-LDA?
 
-**Problem.** Encoder models like DeBERTa-large are stronger at logical
+**Problem.** Encoder models like DeBERTa are stronger at logical
 reasoning benchmarks (ReClor, LogiQA) when fine-tuned on contrastive
 pairs of *logically equivalent* sentences. But hand-writing such pairs
 doesn't scale.
@@ -27,9 +35,9 @@ flowchart LR
     S["<b>1. Input sentence</b><br/><i>If the eagle is kind,<br/>then the mouse is not clever.</i>"]
     S --> A["<b>2. Parse to AMR</b><br/>(BART-large parser)"]
     A --> R["<b>3. Apply logic rule</b><br/>e.g. <i>contraposition</i><br/>swap antecedent / consequent<br/>+ negate both"]
-    R --> T["<b>4. Render back to text</b><br/>(T5wtense generator)"]
+    R --> T["<b>4. Render back to text</b><br/>(T5 generator)"]
     T --> O["<b>5. Contrastive pair</b><br/><b>positive</b>: <i>If the mouse is clever,<br/>the eagle is not kind.</i><br/><b>negative</b>: <i>If the mouse is clever,<br/>the eagle is kind.</i>"]
-    O --> D["<b>6. Fine-tune</b><br/>DeBERTa-large<br/>on ReClor / LogiQA"]
+    O --> D["<b>6. Fine-tune</b><br/>DeBERTa<br/>on ReClor / LogiQA"]
 
     classDef io fill:#f5f5f5,stroke:#616161,stroke-width:2px,font-size:14px
     classDef method fill:#fff3e0,stroke:#e65100,stroke-width:2.5px,font-size:14px
@@ -38,21 +46,21 @@ flowchart LR
 ```
 
 **Base paper's reach.** 4 logical-equivalence rules (contraposition,
-commutative, implication, double-negation). DeBERTa-v2-xxlarge backbone
-reaches ~79% on ReClor — competitive at the time of publication.
+commutative, implication, double-negation); DeBERTa-v2-xxlarge reaches
+~79% on ReClor.
 
 ---
 
-## ❓ Research questions
+## 2 · Research questions
 
-The broader context: **synthetic data augmentation is now the dominant
-way to teach reasoning to language models**, whether the generator is
-a rule system, a fine-tuned seq2seq model, or a frontier LLM. The open
-scientific question this thread attacks is what makes synthetic
-reasoning data *good* — and we find the answer is a measurable,
+**The broader context.** Synthetic data augmentation is now the
+dominant way to teach reasoning to language models — whether the
+generator is a rule system, a fine-tuned seq2seq model, or a frontier
+LLM. The open scientific question this work attacks: **what makes
+synthetic reasoning data good?** We find the answer is a measurable,
 structural tension between two properties of the generated text.
 
-**Two key terms, defined** (used throughout this site):
+### Two key terms
 
 - **Logical fidelity** (逻辑保真度) — does each generated sentence
   preserve the intended logical meaning of its source? Concretely: no
@@ -61,770 +69,279 @@ structural tension between two properties of the generated text.
   *Failure example:* source *"If A, then **not** B"* → generated
   *"If A, then B"* — the negation was silently dropped, so the
   "logically equivalent paraphrase" is actually a contradiction.
-  In earlier sections of this site this is also called **polarity
-  preservation** — polarity (whether a predicate is negated) is the
-  most common fidelity failure in practice, so the two terms are
-  often interchangeable here.
+  (Earlier reports call this **polarity preservation**; negation loss
+  is the most common fidelity failure in practice.)
 - **Surface diversity** (表面多样性) — across the *whole corpus*, how
   varied are the words and sentence patterns? Measured by distinct-n
   (fraction of unique n-grams) and near-duplicate rate.
   *Failure example:* 10,000 training pairs that all follow the
-  template *"If the ⟨animal⟩ is ⟨adj⟩, then …"* with near-identical
-  wording — high fidelity, but the model overfits the template and
-  fails to generalize to differently-phrased reasoning problems.
+  template *"If the ⟨animal⟩ is ⟨adj⟩, then …"* — perfect fidelity,
+  but the model overfits the template and fails on differently-phrased
+  reasoning problems.
 
-**The trade-off**: pushing a generator toward higher fidelity (e.g.,
-fine-tuning it to never drop negations) systematically makes its
-output more templated — fidelity up, diversity down. We call this the
-**fidelity–diversity trade-off** (earlier sections use the equivalent
-name *diversity-vs-polarity trade-off*). Whether this trade-off is
-removable, who pays for it, and how to audit it are the research
-questions below — each stated in general form first, then
-instantiated concretely in the AMR-LDA framework:
+**The trade-off.** Pushing a generator toward higher fidelity
+systematically makes its output more templated — fidelity up,
+diversity down. We call this the **fidelity–diversity trade-off**.
 
-### RQ1 — Coverage: does broader symbolic knowledge improve synthetic reasoning data?
+### The four questions
 
-*General form:* When augmentation is driven by formal rules, does
-expanding the rule inventory (and fixing its faithfulness bugs)
-translate into measurably better downstream reasoning?
-
-*Instantiation:* We grow the logical-equivalence rule library from 4
-to **14 rules** (De Morgan, transitivity, modal duality, …) and fix a
-soundness bug in contraposition over conjunctions.
-
-*Answer:* ✅ Yes — generator pass rate 68.9% → 82.2%, held-out
-generalization +2.8 pp, contraposition 8/15 → 15/15.
-
-### RQ2 — The fidelity–diversity trade-off: are these two properties separable?
-
-*General form:* In synthetic data generation, improving the
-generator's semantic fidelity typically narrows its output
-distribution. **Is the resulting diversity loss a removable artifact,
-or a structural cost?** And which kinds of reasoning tasks pay that
-cost?
-
-*Instantiation:* Our fidelity-improved generator gains on ReClor
-(single-step entailment) but *loses* on LogiQA (multi-step deduction).
-We quantify the mechanism (−28% distinct-1, +57% near-duplicates) and
-test **10 mitigations** spanning three families — dataset-level
-recombination (re-adding, mixing, sampling + 2 verifier filters),
-symbolic composition (LeRC, our proposed rule-composition algebra),
-and generator replacement (5 frontier LLMs, 4B–70B, 3 model
-families).
-
-*Answer:* 🔴 **Structural, at fixed model scale.** All 10 mitigations
-fail to recover both task families at the 400M-parameter scale. No
-generator we tested — including a 70B LLM — escapes the trade-off.
-
-### RQ3 — Scale interaction: who pays the diversity tax?
-
-*General form:* Is sensitivity to synthetic-data surface diversity a
-property of the *data* or of the *consumer model*? I.e., does a larger
-downstream model tolerate a narrower synthetic distribution?
-
-*Instantiation:* Same corpora, downstream encoder scaled 400M → 1.5B
-(DeBERTa-large → DeBERTa-v2-xxlarge).
-
-*Answer:* ✅ **The trade-off is primarily a small-model phenomenon.**
-At 1.5B, the high-fidelity/low-diversity corpus wins ReClor by +15 pp
-*and* nearly closes the LogiQA gap (41.0% vs 42.2% best). The larger
-consumer model no longer needs the surface variety the small model
-depended on.
-
-### RQ4 — Generator trust: can LLM-generated training data be taken at face value?
-
-*General form:* As reasoning-style LLMs (Qwen3, DeepSeek-R1,
-o1-family) become default paraphrasers, **what silent failure modes do
-they introduce into synthetic corpora, and what cheap invariants catch
-them?**
-
-*Instantiation:* Qwen3's default chat template emits `<think>` traces;
-our pipeline silently captured traces instead of paraphrases — and the
-traces quoted reference answers verbatim (label leakage, +2 pp
-inflated). A corpus-level **diversity audit** (sentence length,
-distinct-n, near-dup rate) flagged the outlier *before* downstream
-training did.
-
-*Answer:* ⚠️ No — and we propose diversity audits as a standard
-sanity gate for LLM-generated corpora.
-
----
-
-These four questions are deliberately **not specific to AMR-LDA**: the
-fidelity–diversity tension (RQ2), its scale-dependence (RQ3), and
-generator trust (RQ4) apply to any synthetic-data pipeline — chain-of-
-thought distillation, instruction-data generation, rule-based
-augmentation alike. AMR-LDA is the controlled testbed in which we can
-*measure* them, because logical fidelity is checkable symbolically.
-
----
-
-## 🎯 Presentation summary (one page)
-
-### The 4 contributions
-
-1. **+10 logical-equivalence rules** (4 → **14 total**): De Morgan,
-   transitivity, symmetric, asymmetric, predicate implication, inverse
-   relation, modal-strength, aspect, doc-level temporal, tense.
-2. **De Morgan-aware contraposition rule fix** for conjunctive
-   antecedents. Pilot contraposition pass: **8/15 → 15/15 perfect**.
-3. **v1→v4 iterative T5 fine-tune** that recovers polarity preservation.
-   Pilot self-check pass rate: **68.9% → 82.2%**.
-4. **LeRC (Logic-Equivalent Rule Composition)** — proposed novel
-   algorithm. Treats the 14 rules as an algebra of equivalence-
-   preserving operators; composes K of them per anchor. **No sampling,
-   no verifier filter — logical correctness by construction.**
-
-### Best numbers (multi-seed where applicable)
-
-| Benchmark | Best method | Backbone | Score |
-|---|---|---|---|
-| **ReClor dev** | `v13_qwen3_clean` | **DeBERTa-v2-xxlarge** (1.5B) | **79.8%** ⭐ — beats the published paper xxlarge (78.8%) |
-| **ReClor dev** (multi-seed, honest) | `v13_qwen3_clean` | DeBERTa-large (400M) | **65.1%** mean of 2 seeds |
-| **LogiQA test** (local labels) | `v6` PolarityFix (v4 T5) | DeBERTa-large | **42.24%** |
-| **LogiQA test** (xxlarge scale) | `v13_qwen3_clean` | DeBERTa-v2-xxlarge | **41.01%** — trade-off nearly closes at 1.5B |
-| **PARARULE-Plus Depth5** (held-out) | v4-T5 + De Morgan fix | — | **73.4%** generator pass |
-
-ReClor test labels are hidden — EvalAI leaderboard (challenge 503)
-**closed 2026-01-16**. AI2 leaderboards (ARC/OBQA/CSQA/HellaSwag)
-also offline since late 2024. We follow the 2025–2026 community
-shift to public-label evaluation (lm-evaluation-harness convention).
-
-### The interesting finding — diversity-vs-polarity trade-off
-
-(*Same concept as the fidelity–diversity trade-off defined in the
-[Research questions](#research-questions) section — "polarity" is the
-negation-preservation aspect of fidelity.*)
-
-Polarity-cleaning the AMR-to-text generator (the win on ReClor)
-**shrinks surface n-gram diversity by 28%** and **raises near-dup
-rate by 57%**. ReClor (single-step entailment) likes cleaner pairs.
-LogiQA (multi-step deduction) needs surface variety.
-
-We tried **10 mitigations** to break this trade-off:
-
-- 5 dataset-level patches (re-add legacy data, mix, sample, two
-  filters, rule-composition LeRC) — **all fail on LogiQA**
-- 5 frontier LLM paraphrase replacements (Llama-3.1 8B, Qwen3 8B,
-  Llama-3.3 70B, Gemma 4 4B, Gemma 4 31B) — **all fail on LogiQA**
-
-**No LLM up to 70B parameters beats `v6` on LogiQA.** The trade-off
-is structural — intrinsic to the polarity-cleaned-paraphrase recipe,
-not specific to any one generator or model size.
-
-### Surprising result — Bigger ≠ Better
-
-| LLM | Size | ReClor mean | LogiQA test |
-|---|---|---|---|
-| Qwen3 (clean) | 8B | **65.1** | 33.4 |
-| Llama-3.3 | 70B | 64.7 | 33.1 |
-| Gemma 4 E4B | 4B MoE | 65.0 | **37.94** ⭐ |
-| Llama-3.1 | 8B | 64.4 | 37.48 |
-| Gemma 4 | 31B | 64.4 | 35.64 |
-
-- **Gemma 4 E4B (4B) beats Gemma 4 31B** on both tasks.
-- **Qwen3 8B ≈ Llama-3.3 70B** on ReClor.
-- ReClor-best LLM (Qwen3) and LogiQA-best LLM (Gemma E4B) are
-  **different LLMs** — no universal winner.
-
-### ⚠️ Methodology contribution — caught Qwen3 thinking-trace contamination
-
-Initial v13_qwen3 result was 67.0% on ReClor. **Investigation**: Qwen3
-8B's default chat template emits `<think>` reasoning traces; with
-`max_new_tokens=80` we captured *only* the thinking trace (avg 34
-words, 58% near-dup rate, vs ~9 words / <2% for other LLMs). The
-trace quoted the reference paraphrase verbatim → de-facto label
-leakage → +2 pp ReClor inflation.
-
-**Detection**: the diversity sanity check (distinct-N + near-dup)
-flagged the corpus as outlier *before* downstream evaluation.
-
-**Fix**: builder now probes for `enable_thinking=False` chat template
-support + strips `</think>` blocks. Corrected `v13_qwen3_clean` =
-**65.1% honest mean** (not 67.0%).
-
-**Takeaway for future work**: reasoning-model paraphrase corpora
-need active sanitization. Include diversity metrics as a corpus
-gate. This same pitfall awaits work using DeepSeek-R1, o1-style
-models — they all emit reasoning traces by default.
-
----
-
-## TL;DR (compact for reviewers)
-
-The headline +1.6 pp ReClor win comes from **replacing the
-AMR-to-text decoder with a frontier-LLM paraphrase pass** (Qwen3 8B
-with thinking disabled). The LogiQA reverse is the **diversity-
-vs-polarity trade-off**: every clean-output generator we tried (T5
-fine-tune + 5 LLMs) gives up surface variety, and LogiQA's multi-
-step deduction needs that variety. 10 attempted mitigations (5
-dataset-level + 5 LLM-based, up to 70B) fail to recover the LogiQA
-edge while keeping the ReClor edge. The trade-off is structural.
-
----
-
-## Best model per benchmark (test set)
-
-| Benchmark | Best method | Test acc | How verified |
-|---|---|---|---|
-| **LogiQA** *(test, local labels)* | PolarityFix (`v6`, v4 T5 beam) | **42.24%** | local `BERT/logiqa_data/Test.json` (651 examples) |
-| **ReClor** *(test — leaderboard closed)* | LLM-Paraphrase Qwen3 8B clean (`v13_qwen3_clean`) | **dev 65.1% (mean of 2 seeds)** | EvalAI 503 closed 2026-01-16; predictions saved at [`submissions/`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/tree/main/submissions) |
-| **PARARULE-Plus Depth5 (held-out)** | v4-T5 + De Morgan rule fix | **73.4%** generator pass | local Depth5 shard ([report](HELDOUT_PARARULE.md)) |
-
-**Important caveat**: the ReClor-best method (`v13_qwen3`) is *not*
-the LogiQA-best method (`v6`). Different generators win different
-reasoning benchmarks — see [§ task-asymmetry note](#full-logiqa-test-set-results)
-below.
-
-### Why ReClor reports dev_acc only
-
-The official ReClor test leaderboard ([EvalAI challenge 503](https://eval.ai/web/challenges/challenge-page/503))
-**closed for submissions on 2026-01-16** and is no longer accepting new
-entries (EvalAI API returns `is_active: false`). This is not an
-oversight — AI2's parallel leaderboard infrastructure for
-**ARC / OpenBookQA / CommonsenseQA / HellaSwag** has also been
-deprecated (server unreachable since late 2024). In the 2025–2026
-community shift, hidden-test MCQA leaderboards are being replaced by
-public-label evaluation with [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness)
-and similar tooling.
-
-We therefore report:
-
-- **LogiQA test_acc** — labels are local, exact accuracy reported
-- **ReClor dev_acc** — test labels remain hidden; predictions on disk
-  in case the leaderboard is ever re-opened or a successor task launches
-
-Dev-set numbers (multi-seed) are in [§ Dev-set headline](#dev-set-headline).
-
-### Full LogiQA test-set results
-
-DeBERTa-large, seed=21 checkpoint.
-
-| Method (`v#` → name) | LogiQA test_acc | LogiQA dev_acc |
+| # | General question | Instantiation here |
 |---|---|---|
-| `v6` **PolarityFix (v4 T5)** | **42.24%** ⭐ | 40.3 (mean of 2 seeds) |
-| `v7` PolarityFix + RuleFix | **42.24%** | 39.2 |
-| `v13_gemma4_4b` LLM-Paraphrase Gemma 4 E4B | 37.94% | 34.87 |
-| `v13_llama` LLM-Paraphrase Llama-3.1 8B | 37.48% | 39.0 |
-| `v5` Baseline (Stock T5) | 36.56% | 42.3 (mean of 2 seeds) |
-| `v8` DoubleNeg-Readd | 36.41% | 38.7 |
-| `v10` Mix(Base+PolarityFix) | 36.41% | 38.1 |
-| `v13_gemma4_31b` LLM-Paraphrase Gemma 4 31B | 35.64% | 38.40 |
-| `v14` LeRC | 35.48% | 37.3 |
-| `v12` Sampled + AMR-F1 Filter | 35.33% | 37.3 |
-| `v13_llama70` LLM-Paraphrase Llama-3.3 70B | 33.64% | 35.48 |
-| `v13_qwen3` LLM-Paraphrase Qwen3 8B | 32.72% | 33.79 |
-| `v11` Sampled + Polarity Filter | 30.11% | 32.3 |
-| `v9` SampledT5 | 27.19% | 29.3 |
+| **RQ1 Coverage** | Does broader symbolic knowledge improve synthetic reasoning data? | Grow the rule library 4 → 14; fix a soundness bug; fine-tune the generator for fidelity |
+| **RQ2 Trade-off** | Is the fidelity–diversity trade-off removable, and which tasks pay for it? | 12 mitigation attempts across three families (dataset recombination, symbolic composition, generator replacement up to 70B) |
+| **RQ3 Scale** | Is diversity-sensitivity a property of the data or of the consumer model? | Same corpora, downstream encoder 400M → 1.5B |
+| **RQ4 Trust** | What silent failure modes do reasoning-LLM generators introduce, and what catches them? | Qwen3 thinking-trace contamination, caught by a corpus diversity audit |
 
-**Sharp task asymmetry confirmed across the 5-LLM ablation**: the
-LLM that wins ReClor (**Qwen3 8B at 67.0%**) is *the worst* on
-LogiQA among all LLMs we tried (32.72% test). The LLM that does the
-least damage to LogiQA (**Gemma 4 E4B at 37.94%**) is the *third*
-best on ReClor (65.0%). And the largest model (**Llama-3.3 70B**)
-ranks second on ReClor (66.6%) but second-worst on LogiQA (33.64%).
-There is no single LLM that is best on both tasks — the **ReClor
-optimum and LogiQA optimum diverge** within the LLM-paraphrase
-family.
-
-**Key finding**: `v6` PolarityFix wins LogiQA *test*, flipping the
-dev-set ranking (where `v5` baseline mean was 42.3). The dev vs test
-disagreement is itself a signal — the 2-seed `v5` mean was inflated by
-a single high-variance seed; on *test*, the polarity-cleaned generator
-generalizes better, and every LLM paraphrase we tried lands below `v6`.
+These questions are deliberately **not specific to AMR-LDA**: they
+apply to any synthetic-data pipeline (chain-of-thought distillation,
+instruction generation, rule-based augmentation). AMR-LDA is the
+controlled testbed because logical fidelity is symbolically checkable.
 
 ---
 
-## Method dictionary
+## 3 · Findings
 
-The work uses short version IDs (`v5`, `v6`, …). The dictionary
-below maps each ID to a descriptive name so the rest of the page is
-easy to read.
+### Finding 1 — Richer rules + a faithful generator work (RQ1 ✅)
 
-| ID | Name | One-line description |
+We extended the rule library from 4 to **14 logical-equivalence
+rules** (De Morgan, transitivity, symmetric/asymmetric, predicate
+implication, inverse relation, modal duality, aspect, doc-level
+temporal, tense — illustrated in [Appendix B](#appendix-b--rule-gallery-14-logical-equivalence-rules)),
+fixed a soundness bug in contraposition over conjunctive antecedents
+(`¬(A ∧ B) → ¬A ∨ ¬B` was not being distributed), and iteratively
+fine-tuned the AMR-to-text generator on its own failure cases.
+
+| Fidelity metric | Before | After |
 |---|---|---|
-| `v5` | **Baseline (Stock T5)** | Paper recipe with the stock T5wtense generator. |
-| `v6` | **PolarityFix (v4 T5)** | Same recipe, but generator fine-tuned to preserve polarity. |
-| `v7` | **PolarityFix + RuleFix** | `v6` plus the De Morgan-aware contraposition rule fix. |
-| `v8` | **DoubleNeg-Readd** | Diversity mitigation #1 — re-introduces legacy `double_negation` rows. |
-| `v9` | **SampledT5** | Diversity mitigation #2 — temperature-sampled v4 T5 (no filter). |
-| `v10` | **Mix(Base + PolarityFix)** | Diversity mitigation #3 — concatenates `v5` and `v6`. |
-| `v11` | **Sampled + Polarity Filter** | Diversity mitigation #4 — sampled v4 T5 + polarity-parity filter. |
-| `v12` | **Sampled + AMR-F1 Filter** | Diversity mitigation #5 — sampled v4 T5 + AMR triple-F1 ≥ 0.85. |
-| `v13_llama` | **LLM-Paraphrase Llama-3.1 8B** | Frontier-LLM paraphrase of v4 T5 outputs (T=0.4, instruct prompt). |
-| `v13_qwen3` | **LLM-Paraphrase Qwen3 8B** | Same recipe, different LLM. |
-| `v13_gemma4_4b` | **LLM-Paraphrase Gemma 4 E4B** | Gemma 4 effective-4B mixture-of-experts paraphrase. |
-| `v13_gemma4_31b` | **LLM-Paraphrase Gemma 4 31B** | Gemma 4 31B paraphrase (4-bit NF4 quantized). |
-| `v13_llama70` | **LLM-Paraphrase Llama-3.3 70B** | Largest LLM tested (4-bit NF4 quantized). |
-| `v14` | **LeRC: Rule-Composition Algebra** | *Proposed novel algorithm* — composes 14 rules as equivalence-preserving operators. |
+| Pilot self-check pass rate | 68.9% | **82.2%** |
+| Contraposition pilot | 8/15 | **15/15** |
+| Held-out PARARULE-Plus Depth5 | 70.6% | **73.4%** |
 
----
+The fidelity-improved generator also beats the stock one downstream on
+ReClor: **63.5% vs 62.9%** (mean of 2 seeds, DeBERTa-large), and wins
+LogiQA *test* 42.24% vs 36.56%.
 
-## Dev-set headline
+### Finding 2 — The fidelity–diversity trade-off is structural at small scale (RQ2 🔴)
 
-Multi-seed (seed = 21, 42) on DeBERTa-large.
+The fidelity win comes at a measured diversity cost: the cleaned
+generator's corpus has **26% fewer distinct unigrams** and a higher
+near-duplicate rate than the stock corpus. The cost lands asymmetrically:
+**ReClor (single-step entailment) improves, LogiQA (multi-step
+deduction) at first regresses** — multi-step reasoning needs surface
+variety to generalize across phrasings.
 
-| Method | ReClor dev | LogiQA dev | Notes |
+We then tried to break the trade-off **12 ways across three
+families**. Scores are ReClor dev / LogiQA test on DeBERTa-large
+(multi-seed means where available; baseline = fidelity-cleaned
+generator at 63.5 / 42.24):
+
+| Family | Mitigation | ReClor dev | LogiQA test | Verdict |
+|---|---|---|---|---|
+| *Dataset recombination* | Re-add legacy double-negation rows | 63.0 | 36.41 | ❌ |
+| | Mix stock + cleaned corpora | 62.4 | 36.41 | ❌ |
+| | Temperature sampling (no filter) | 59.6 | 27.19 | ❌ collapses |
+| | Sampling + polarity-parity filter | 59.8 | 30.11 | ❌ |
+| | Sampling + AMR-structure-F1 filter | 60.8 | 35.33 | ❌ |
+| *Symbolic composition* | **LeRC** rule-composition algebra (ours, [§5](#5--proposed-algorithm--lerc)) | 61.2 | 35.48 | ❌ at dataset layer |
+| | LeRC + LLM paraphrase combined | 62.8 | 34.87 | ❌ redundant |
+| *Generator replacement (LLM paraphrase)* | Llama-3.1 8B | 64.4 | 37.48 | 🟡 ReClor +0.9 |
+| | **Qwen3 8B** (thinking disabled) | **65.1** | 33.4 | 🟡 best ReClor, worst LogiQA |
+| | Llama-3.3 70B (4-bit) | 64.7 | 33.1 | 🟡 |
+| | Gemma 4 E4B (4B MoE) | 65.0 | **37.94** | 🟡 best LLM on LogiQA |
+| | Gemma 4 31B (4-bit) | 64.4 | 35.64 | 🟡 worse than its 4B sibling |
+
+Three robust observations:
+
+1. **Every LLM paraphrase improves ReClor** (+0.9 to +1.6 pp) — the
+   generator, not the rules, was the ReClor bottleneck.
+2. **Nothing recovers LogiQA at 400M.** All 12 attempts stay below the
+   fidelity-cleaned baseline's 42.24% test accuracy.
+3. **Bigger LLM ≠ better data.** Gemma 4B beats Gemma 31B on both
+   tasks; Qwen3 8B matches Llama 70B on ReClor. The ReClor-best LLM
+   (Qwen3) is the LogiQA-worst — no universal winner.
+
+### Finding 3 — Scale dissolves the trade-off (RQ3 ✅)
+
+Same corpora, downstream encoder scaled from DeBERTa-large (400M) to
+DeBERTa-v2-xxlarge (1.5B):
+
+| Corpus → backbone | ReClor dev | LogiQA test |
+|---|---|---|
+| Best LLM corpus → 400M | 65.1 | 33.4 |
+| Best LLM corpus → **1.5B** | **79.8** ⭐ | **41.01** |
+| (fidelity-cleaned corpus → 1.5B, matched recipe) | 64.8 | — |
+| (published paper xxlarge, reference) | 78.8 | — |
+
+At 1.5B the LLM-paraphrase corpus delivers **+15.0 pp on ReClor over
+the matched-recipe baseline, beats the published paper number**
+(79.8 vs 78.8), *and* nearly closes the LogiQA gap (41.01 vs 42.24
+best). **The diversity tax is paid by small consumer models; a larger
+encoder no longer needs the surface variety.** This reframes the
+trade-off as a small-model phenomenon.
+
+Zero-shot external transfer confirms the pattern (AGIEval LSAT,
+5-option, no LSAT training):
+
+| Checkpoint | LSAT-AR | LSAT-LR | LSAT-RC | Macro |
+|---|---|---|---|---|
+| Fidelity-cleaned corpus, 400M | 20.43 | 70.78 | 40.15 | 43.79 |
+| Best LLM corpus, 400M | 20.87 | 78.04 | 32.71 | 43.87 |
+| Best LLM corpus, **1.5B** | 25.65 | **90.78** ⭐ | 48.33 | **54.92** |
+
+The same asymmetry signature transfers (at 400M: LLM corpus wins
+LSAT-LR, loses LSAT-RC), and scale again lifts everything — **90.78%
+on LSAT-LR zero-shot**. LSAT-AR (constraint-solving "logic games")
+stays near the 20% chance level for all checkpoints, consistent with
+the literature. *Caveat: ReClor is LSAT/GMAT-sourced, so treat LSAT-LR
+transfer as an upper bound.*
+
+### Finding 4 — Reasoning-LLM corpora need auditing (RQ4 ⚠️)
+
+Our first Qwen3 corpus produced a suspicious ReClor jump (67.0%).
+Investigation: Qwen3's default chat template emits `<think>` reasoning
+traces; with an 80-token generation cap our pipeline captured **only
+the trace** — which *quoted the reference paraphrase verbatim* (label
+leakage worth ~2 pp).
+
+**What caught it:** a corpus-level diversity audit. The contaminated
+corpus was a flagrant outlier *before* any training:
+
+| Corpus | distinct-3 | near-dup rate | avg words/sentence |
 |---|---|---|---|
-| Baseline (`v5`) | 62.8 / 63.0 — mean **62.9** | 41.0 / 43.6 — mean **42.3** | Paper recipe |
-| PolarityFix (`v6`) | 63.6 / 63.4 — mean **63.5** | 39.2 / 41.5 — mean **40.3** | **+0.6 / −2.0 pp** |
-| LLM-Paraphrase Llama-3.1 8B (`v13_llama`) | 64.4 (1 seed) | 39.0 | +0.8 pp ReClor · ≈ v6 LogiQA |
-| **LLM-Paraphrase Qwen3 8B clean (`v13_qwen3_clean`)** | **65.1 mean** ⭐ | 36.5 mean | **+1.6 pp ReClor (BEST LLM, multi-seed)** |
-| LLM-Paraphrase Llama-3.3 70B (`v13_llama70`) | 64.7 mean | 34.9 mean | +1.2 pp ReClor · −5.4 pp LogiQA |
-| LLM-Paraphrase Gemma 4 E4B (`v13_gemma4_4b`) | 65.0 (1 seed) | 34.9 | +1.5 pp ReClor · best LLM on LogiQA test (37.94%) |
-| LLM-Paraphrase Gemma 4 31B (`v13_gemma4_31b`) | 64.4 (1 seed) | 38.4 | +0.9 pp ReClor · *smaller sibling wins* |
-| LeRC (`v14`) — proposed novel algorithm | 61.2 | 37.3 | Highest contrastive eval (99.80%), but downstream ties v12 |
+| Normal LLM paraphrase corpora | 0.17 – 0.29 | 0.4 – 2.2% | 9 – 10 |
+| **Contaminated Qwen3 corpus** | **0.07** | **58.2%** | **34.1** |
 
-The full per-method dev table is in
-[§ Method development timeline](#method-development-timeline).
+Fix: probe the chat template for `enable_thinking=False` support and
+strip residual `</think>` blocks
+([`build_v13_llm_paraphrase.py`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/blob/main/extensions/pilot_study/build_v13_llm_paraphrase.py)).
+Corrected result: 65.1%, not 67.0. Full diversity numbers:
+[`diversity_5llm.json`](diversity_5llm.json).
 
-```mermaid
-flowchart LR
-    I["<b>Input</b><br/><i>If the bald eagle is kind,<br/>then the mouse is not clever.</i>"]
-    I --> M["<b>Method</b><br/>14 logic rules + v4 T5 generator<br/>→ DeBERTa-large contrastive backbone"]
-    M --> O["<b>Output</b><br/>contrastive pair, e.g.<br/>positive: <i>If the mouse is clever,<br/>the eagle is not kind.</i><br/>negative: <i>The mouse is not clever<br/>unless the eagle is kind.</i>"]
-
-    classDef io fill:#f5f5f5,stroke:#616161,stroke-width:2px,font-size:16px
-    classDef method fill:#fff3e0,stroke:#e65100,stroke-width:2.5px,font-size:16px
-    class I,O io
-    class M method
-```
+**Recommendation:** treat a cheap diversity audit (sentence length,
+distinct-n, near-dup rate) as a standard sanity gate for any
+LLM-generated corpus. The same pitfall awaits DeepSeek-R1 / o1-style
+generators.
 
 ---
 
-## Contributions vs reuse
+## 4 · Headline numbers
 
-What is **new** versus what is applied off the shelf.
+| Benchmark | Best configuration | Score | Notes |
+|---|---|---|---|
+| **ReClor dev** | Qwen3-paraphrase corpus → DeBERTa-v2-xxlarge | **79.8%** ⭐ | beats the published xxlarge number (78.8) |
+| ReClor dev (400M, multi-seed) | Qwen3-paraphrase corpus → DeBERTa-large | 65.1% | mean of seeds 21/42 |
+| **LogiQA test** | Fidelity-cleaned T5 corpus → DeBERTa-large | **42.24%** | local labels (651 examples) |
+| LogiQA test (1.5B) | Qwen3-paraphrase corpus → DeBERTa-v2-xxlarge | 41.01% | trade-off nearly closed at scale |
+| **AGIEval LSAT-LR** (zero-shot) | Qwen3-paraphrase corpus → DeBERTa-v2-xxlarge | **90.78%** | no LSAT training |
+| PARARULE-Plus Depth5 (held-out) | Fidelity-cleaned generator + rule fix | 73.4% | generator pass rate |
 
-### Method-level contributions (new)
-
-1. **`negate_with_demorgan` helper** in
-   [`extensions/logic_rules/base.py`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/blob/main/extensions/logic_rules/base.py).
-   Recursive AMR transformation that distributes negation over `and` /
-   `or` (`¬(A ∧ B) → ¬A ∨ ¬B`). Fixes a real bug in the contraposition
-   rule on conjunctive antecedents. Pilot pass rate **8/15 → 15/15**.
-2. **Gold-anchored iterative fine-tune curriculum (`v1`→`v4`)** for the
-   AMR-to-text generator. Each round inspects current-model failure
-   cases and adds a small targeted gold set. The strategy — not the
-   underlying T5 — closes the polarity-drop failure mode (pilot
-   self-check **68.9% → 82.2%**).
-3. **10 new logical-equivalence rules** added to the AMR-LDA library
-   (original paper had 4): De Morgan, transitivity, symmetric,
-   asymmetric, predicate implication, inverse relation, modal-strength
-   inversion, aspect equivalence, doc-level temporal transitivity,
-   tense transformation. Each is an AMR graph transformation in
-   `extensions/logic_rules/`.
-4. **Diversity-vs-polarity trade-off finding (empirical).**
-   A polarity-preserving generator fine-tune shrinks surface n-gram
-   diversity by 24–28% and raises near-duplicate rate by 57% on the
-   contrastive corpus, and this directly explains the LogiQA reverse.
-   Five mitigation paths (legacy data re-add, mixing, sampled decoding,
-   sampled + verifier filter, rule-composition algebra) are ruled out
-   by direct experiment.
-5. **LeRC (Logic-Equivalent Rule Composition) — proposed novel
-   algorithm.** Treats the 14 rules as an algebra of
-   equivalence-preserving operators; composes K of them per anchor to
-   produce K logically-equivalent, structurally-distinct AMRs with no
-   sampling and no verifier filter. Highest contrastive eval (99.80%);
-   downstream ties v12.
-
-### Engineering applications (existing algorithms reused)
-
-- **GRPO** (Shao et al., DeepSeek 2024) for the RL POC — used off the
-  shelf via `trl.GRPOTrainer`.
-- **LoRA / PEFT** (Hu et al. 2021) for parameter-efficient adapter
-  training of Qwen2.5-3B in the RL POC.
-- **DeBERTa-large / -v2-xxlarge** contrastive head — same as the
-  original paper, only the training data changes.
-- **Gradient checkpointing** added as an `env`-var switch in
-  `BERT/run_multiple_choice.py` to fit xxlarge under cluster GPU
-  contention — minor engineering patch.
-- **AMR triple-F1 verifier** — implemented for `v12` as a stricter
-  filter, but the F1 metric itself is standard.
-
-### Reward design (between contribution and reuse)
-
-- Using the **AMR-struct verifier as a binary RL reward signal** for
-  logical-equivalence paraphrasing. Demonstrated in a POC (reward 0.375
-  → 0.9375 in 13 min) but the composition (verifier + GRPO) is not
-  itself a new algorithm.
+**Why ReClor reports dev only.** The official ReClor test leaderboard
+(EvalAI challenge 503) **closed permanently on 2026-01-16**; AI2's
+leaderboard infrastructure (ARC / OpenBookQA / CommonsenseQA /
+HellaSwag) is also offline. The community has shifted to public-label
+evaluation (lm-evaluation-harness convention); we follow it. All test
+predictions are archived under
+[`submissions/`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/tree/main/submissions)
+in case a successor leaderboard opens.
 
 ---
 
-## Proposed novel algorithm — **LeRC**
+## 5 · Proposed algorithm — LeRC
 
-The four mitigations in [DIVERSITY_FINAL.md](DIVERSITY_FINAL.md) all
-fail because they attack diversity at the *dataset* layer — re-adding
-noisy old data, naively concatenating, or sampling from a
-polarity-cleaned T5 (which reintroduces noise that neither
-polarity-parity nor AMR-struct-F1 filters can catch).
-
-**LeRC** attacks the same goal at the **logic** layer: treat the 14
-rules in `extensions/logic_rules/` as a small algebra of
-equivalence-preserving operators, and **compose** them. For each
-anchor's AMR, apply different rule orderings and combinations to
-produce K modified AMRs that are pairwise logically equivalent (by
-composition of equivalence-preserving operators) but structurally
-distinct. Feed each to v4 T5 and you get K surface variants of the
-same logical content — all *provably* polarity-preserving, no
-sampling, no verifier filter needed.
+**Logic-Equivalent Rule Composition.** The dataset-level mitigations
+in Finding 2 all source diversity from *stochastic decoding*, which
+re-introduces fidelity noise that filters can't fully catch. LeRC
+instead sources diversity from the **logic layer**: treat the 14
+rules as an algebra of equivalence-preserving operators and **compose**
+them — for each anchor, apply K different rule compositions to produce
+K structurally distinct but provably equivalent AMRs, then render each.
+No sampling, no filter; correctness holds by construction.
 
 ```mermaid
 flowchart LR
     A["AMR"] --> P["K rule compositions<br/>(contra · impl · commut)"]
-    P --> T["v4 T5"]
+    P --> T["fidelity-tuned T5"]
     T --> K["K surface variants<br/>same logical content"]
 
     classDef new fill:#fff3e0,stroke:#e65100,stroke-width:2.5px,font-size:18px
     class P new
 ```
 
-| Approach | Where diversity comes from | Logical correctness |
-|---|---|---|
-| `v9` (SampledT5) | T5 stochastic decoding | needs noisy filter |
-| `v11` (Sampled + Polarity Filter) | T5 stochastic decoding | weak filter |
-| `v12` (Sampled + AMR-F1 Filter) | T5 stochastic decoding | tighter but still misses scope errors |
-| `v10` (Mix(Base + PolarityFix)) | two surface distributions | mixed quality |
-| **LeRC** (`v14`) | **rule-composition algebra** | **logic-guaranteed by construction** |
-
-**Result.** Contrastive eval **99.80%** (highest of any backbone);
-ReClor dev 61.2, LogiQA dev 37.3 (ties v12). Full discussion:
+**Result.** LeRC's corpus is the most *learnable* (99.80% contrastive
+eval, highest of any backbone) but downstream it ties the
+filter-based mitigations (61.2 / 35.48) — and composing LeRC with LLM
+paraphrase is redundant (62.8 / 34.87). **Diagnosis:** the K
+compositions are few (5 templates) and regular; the downstream model
+learns the template shapes rather than the logical content, and the
+rendering decoder remains the diversity bottleneck. LeRC marks the
+ceiling of dataset-layer fixes — consistent with Finding 3, where the
+real unlock was consumer-model scale. Details:
 [V14_LERC_RESULTS.md](V14_LERC_RESULTS.md).
 
 ---
 
-## Method development timeline
+## Appendix A — full experiment log (version by version)
 
-Every experiment in chronological order. ✅ = complete, ⏳ = running /
-planned.
+The main text uses descriptive names; internal artifacts (checkpoints,
+W&B runs, JSON aggregates) use version IDs. Mapping:
 
-### T5wtense generator fine-tune (polarity preservation)
-
-| Version | Training set | eval_loss | Pilot pass | Status | Logs |
-|---|---|---|---|---|---|
-| Stock T5wtense | — | — | 68.9% | ✅ paper baseline | — |
-| `v1` | 389 silver pairs | 0.2396 | 52.2% (15-flip subset) | ✅ | [`ft_t5wtense_report.json`](ft_t5wtense_report.json) |
-| `v2` | + 8 curated golds (×10) | 0.2260 | 56.5% | ✅ | [`ft_t5wtense_v2_report.json`](ft_t5wtense_v2_report.json) |
-| `v3` | + 7 synthetic golds (×10) | 0.2054 | 69.6% | ✅ | [`ft_t5wtense_v3_report.json`](ft_t5wtense_v3_report.json) |
-| `v4` | + 4 anchor golds (×10) | 0.1900 | 73.9% subset / **78.9%** full | ✅ | [`ft_t5wtense_v4_report.json`](ft_t5wtense_v4_report.json) |
-| `v4` + De Morgan rule fix | (rule library patched) | — | **82.2%** full pilot · contraposition **15/15** | ✅ | [`RULEFIX_DEMORGAN.md`](RULEFIX_DEMORGAN.md) |
-
-### Contrastive corpus + DeBERTa-large pretrain
-
-| ID | Name | Rows | Contrastive eval | Status | Logs |
-|---|---|---|---|---|---|
-| `v5` | Baseline (Stock T5) | 14,180 | 99.31% | ✅ baseline | [`v6_pretrain_cross_eval.json`](v6_pretrain_cross_eval.json) |
-| `v6` | PolarityFix | 13,996 | 98.43% | ✅ | [`V6_CONTRASTIVE_PRETRAIN.md`](V6_CONTRASTIVE_PRETRAIN.md) |
-| `v7` | PolarityFix + RuleFix | 13,996 | 98.43% | ✅ (= `v6`) | [`V7_DOWNSTREAM.md`](V7_DOWNSTREAM.md) |
-| `v8` | DoubleNeg-Readd | 14,178 | 98.45% | ✅ mitigation #1 | [`V8_DOUBLENEG_REINTRO.md`](V8_DOUBLENEG_REINTRO.md) |
-| `v9` | SampledT5 (T=1.0) | 27,992 | 97.95% | ✅ mitigation #2 | [`V9_SAMPLED_NEGATIVE.md`](V9_SAMPLED_NEGATIVE.md) |
-| `v10` | Mix(Base + PolarityFix) | 28,176 | 98.23% | ✅ mitigation #3 | [`V10_MIX_NEGATIVE.md`](V10_MIX_NEGATIVE.md) |
-| `v11` | Sampled + Polarity Filter | 52,018 | 99.81% | ✅ mitigation #4 | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) |
-| `v12` | Sampled + AMR-F1 Filter | 26,393 | 99.58% | ✅ mitigation #5 | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) |
-| `v13_llama` | LLM-Paraphrase Llama-3.1 8B | 20,883 | 99.57% | ✅ | [W&B contrastive](https://wandb.ai/qbao775/amr-lda-extensions/runs/1jfqp641) |
-| `v13_qwen3` (CONTAMINATED) | Qwen3 8B (thinking-trace leak) | 20,883 | 100.0% (artifact) | ⚠️ contaminated | [W&B contrastive](https://wandb.ai/qbao775/amr-lda-extensions/runs/id5y6avq) |
-| **`v13_qwen3_clean`** | **Qwen3 8B (enable_thinking=False)** | 20,883 | **99.31%** | ✅ honest replacement | W&B `v13_qwen3_clean_contrastive` |
-| `v13_gemma4_4b` | LLM-Paraphrase Gemma 4 E4B | 20,883 | 99.66% | ✅ | W&B `v13_gemma4_4b_contrastive` |
-| `v13_gemma4_31b` | LLM-Paraphrase Gemma 4 31B (4-bit) | 20,883 | 99.81% | ✅ | W&B `v13_gemma4_31b_contrastive` |
-| `v13_llama70` | LLM-Paraphrase Llama-3.3 70B (4-bit) | 20,883 | 99.90% | ✅ 2nd highest contrastive | W&B `v13_llama70_contrastive` |
-| `v14` | **LeRC (proposed novel algorithm)** | 22,280 | **99.80%** | ✅ | [W&B run](https://wandb.ai/qbao775/amr-lda-extensions/runs/11p97wfg) |
-| `v13_gemma4_4b` | LLM-Paraphrase Gemma4 E4B | — | — | ⏳ | — |
-| `v13_gemma4_31b` | LLM-Paraphrase Gemma4 31B | — | — | ⏳ | — |
-| `v13_llama70` | LLM-Paraphrase Llama-3.3 70B | — | — | ⏳ | — |
-
-### Downstream — DeBERTa-large fine-tune
-
-| ID | Name | ReClor dev | LogiQA dev | LogiQA test | Notes |
-|---|---|---|---|---|---|
-| `v5` | Baseline | 62.8 / 63.0 — mean **62.9** | 41.0 / 43.6 — mean **42.3** | 36.56 | seed-robust baseline |
-| `v6` | PolarityFix | 63.6 / 63.4 — mean **63.5** | 39.2 / 41.5 — mean **40.3** | **42.24 ⭐** | **+0.6 / −2.0 pp · wins LogiQA test** |
-| `v7` | PolarityFix + RuleFix | 63.6 | 39.2 | 42.24 | = `v6` |
-| `v8` | DoubleNeg-Readd | 63.0 | 38.7 | 36.41 | mitigation #1 fails |
-| `v9` | SampledT5 | 59.6 | 29.3 | 27.19 | mitigation #2 collapses |
-| `v10` | Mix(Base + PolarityFix) | 62.4 | 38.1 | 36.41 | mitigation #3 fails |
-| `v11` | Sampled + Polarity Filter | 59.8 | 32.3 | 30.11 | mitigation #4 fails |
-| `v12` | Sampled + AMR-F1 Filter | 60.8 | 37.3 | 35.33 | best of sampled-based |
-| `v13_llama` | LLM-Paraphrase Llama-3.1 8B | 64.4 (1 seed) | 39.0 | 37.48 | +0.8 vs v6 ReClor · ≈ v6 LogiQA |
-| `v13_qwen3` (CONTAMINATED) | Qwen3 8B thinking-trace leak | 67.0 (1 seed) | 33.79 | 32.72 | **DO NOT CITE** — Qwen3 `<think>` leak inflated ReClor by ~2 pp |
-| **`v13_qwen3_clean`** | **Qwen3 8B (enable_thinking=False)** | 66.2 / 64.0 — mean **65.1** | 38.86 / 34.10 | 35.02 / 31.80 — mean **33.4** | **+1.6 pp ReClor mean (BEST LLM, honest)** · −8.8 pp LogiQA |
-| `v13_llama70` | Llama-3.3 70B (4-bit) | 66.6 / 62.8 — mean **64.7** | 35.48 / 34.41 | 33.64 / 32.57 — mean **33.1** | +1.2 pp ReClor mean · −9.1 pp LogiQA |
-| `v13_gemma4_4b` | Gemma 4 E4B | 65.0 (1 seed) | 34.87 | **37.94** ⭐ LLM | +1.5 ReClor · −4.3 LogiQA · best LLM on LogiQA test |
-| `v13_gemma4_31b` | Gemma 4 31B (4-bit) | 64.4 (1 seed) | 38.40 | 35.64 | +0.9 ReClor · −6.6 LogiQA · *worse than 4B sibling* |
-| `v14` | LeRC | 61.2 | 37.3 | 35.48 | ties v12 |
-| `v15` | **LeRC + clean Qwen3** (composed) | 62.0 / 63.6 — mean **62.8** | 36.10 / 36.56 | 35.94 / 33.79 — mean **34.87** | LeRC on top of Qwen3 is *redundant* — LLM already provides enough surface diversity |
-
-### External transfer — AGIEval LSAT (zero-shot)
-
-ReClor-fine-tuned checkpoints evaluated **zero-shot** on the AGIEval
-v1.1 LSAT subsets (5-option MCQA, no LSAT-specific training).
-Following the 2025–2026 public-label evaluation convention; eval
-script: [`extensions/pilot_study/eval_agieval_lsat.py`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/blob/main/extensions/pilot_study/eval_agieval_lsat.py).
-
-| Checkpoint | LSAT-AR (230) | LSAT-LR (510) | LSAT-RC (269) | Macro |
+| ID | Descriptive name | ReClor dev | LogiQA test | Links |
 |---|---|---|---|---|
-| `v6` DeBERTa-large | 20.43 | 70.78 | **40.15** | 43.79 |
-| `v13_qwen3_clean` DeBERTa-large | 20.87 | 78.04 | 32.71 | 43.87 |
-| **`v13_qwen3_clean` DeBERTa-v2-xxlarge** | **25.65** | **90.78** ⭐ | **48.33** | **54.92** |
+| `v5` | Stock-T5 baseline | 62.8 / 63.0 — mean 62.9 | 36.56 | [`v6_reclor_multiseed.json`](v6_reclor_multiseed.json) |
+| `v6` | Fidelity-cleaned T5 (PolarityFix) | 63.6 / 63.4 — mean 63.5 | **42.24** | [`V6_RECLOR_MULTISEED.md`](V6_RECLOR_MULTISEED.md) · [`V6_LOGIQA_MULTISEED.md`](V6_LOGIQA_MULTISEED.md) |
+| `v7` | v6 + De Morgan rule fix | 63.6 | 42.24 | [`V7_DOWNSTREAM.md`](V7_DOWNSTREAM.md) |
+| `v8` | Re-add legacy double-negation | 63.0 | 36.41 | [`V8_DOUBLENEG_REINTRO.md`](V8_DOUBLENEG_REINTRO.md) |
+| `v9` | Temperature-sampled T5 | 59.6 | 27.19 | [`V9_SAMPLED_NEGATIVE.md`](V9_SAMPLED_NEGATIVE.md) |
+| `v10` | Mix(v5 + v6) | 62.4 | 36.41 | [`V10_MIX_NEGATIVE.md`](V10_MIX_NEGATIVE.md) |
+| `v11` | Sampled + polarity filter | 59.8 | 30.11 | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) |
+| `v12` | Sampled + AMR-F1 filter | 60.8 | 35.33 | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) |
+| `v13_llama` | LLM paraphrase: Llama-3.1 8B | 64.4 | 37.48 | [W&B](https://wandb.ai/qbao775/amr-lda-extensions/runs/1ydkhzku) |
+| `v13_qwen3` | ⚠️ contaminated Qwen3 (do not cite) | (67.0) | (32.72) | see Finding 4 |
+| `v13_qwen3_clean` | LLM paraphrase: Qwen3 8B, thinking off | 66.2 / 64.0 — mean **65.1** | 35.02 / 31.80 — mean 33.4 | W&B `v13_qwen3_clean_*` |
+| `v13_llama70` | LLM paraphrase: Llama-3.3 70B (4-bit) | 66.6 / 62.8 — mean 64.7 | 33.64 / 32.57 — mean 33.1 | W&B `v13_llama70_*` |
+| `v13_gemma4_4b` | LLM paraphrase: Gemma 4 E4B | 65.0 | 37.94 | W&B `v13_gemma4_4b_*` |
+| `v13_gemma4_31b` | LLM paraphrase: Gemma 4 31B (4-bit) | 64.4 | 35.64 | W&B `v13_gemma4_31b_*` |
+| `v14` | LeRC rule composition | 61.2 | 35.48 | [`V14_LERC_RESULTS.md`](V14_LERC_RESULTS.md) |
+| `v15` | LeRC + Qwen3 paraphrase | 62.0 / 63.6 — mean 62.8 | 35.94 / 33.79 — mean 34.87 | W&B `v15_*` |
 
-JSON aggregates: [`agieval_lsat_large_v6.json`](agieval_lsat_large_v6.json) ·
+Generator fine-tune iterations (`v1`–`v4` are *generator* versions,
+distinct from corpus versions above): v1 389 silver pairs → 52.2%
+subset pass; v2 +curated golds → 56.5%; v3 +synthetic golds → 69.6%;
+v4 +anchor golds → 73.9% subset / 78.9% full; +De Morgan rule fix →
+82.2%. Reports: [`T5_FT_RECOVERY.md`](T5_FT_RECOVERY.md) ·
+[`RULEFIX_DEMORGAN.md`](RULEFIX_DEMORGAN.md).
+
+xxlarge runs: `v5` collapsed (24.4 final); `v6` stable 64.8;
+`v13_qwen3_clean` **79.8** / LogiQA test 41.01.
+[`V_XXLARGE_DELTA.md`](V_XXLARGE_DELTA.md).
+
+AGIEval: [`agieval_lsat_large_v6.json`](agieval_lsat_large_v6.json) ·
 [`agieval_lsat_large_v13_qwen3_clean.json`](agieval_lsat_large_v13_qwen3_clean.json) ·
-[`agieval_lsat_xxlarge_v13_qwen3_clean.json`](agieval_lsat_xxlarge_v13_qwen3_clean.json)
+[`agieval_lsat_xxlarge_v13_qwen3_clean.json`](agieval_lsat_xxlarge_v13_qwen3_clean.json) ·
+script [`eval_agieval_lsat.py`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/blob/main/extensions/pilot_study/eval_agieval_lsat.py).
 
-Three observations:
+Diversity: [`DIVERSITY_ROOT_CAUSE.md`](DIVERSITY_ROOT_CAUSE.md) ·
+[`DIVERSITY_FINAL.md`](DIVERSITY_FINAL.md) ·
+[`diversity_5llm.json`](diversity_5llm.json).
 
-1. **The trade-off signature transfers.** At DeBERTa-large scale, the
-   Qwen3 backbone beats `v6` on LSAT-LR (+7.3 pp — logical reasoning,
-   closest in style to ReClor) but loses on LSAT-RC (−7.4 pp —
-   long-passage reading comprehension that benefits from surface
-   variety). Same asymmetry as ReClor-vs-LogiQA.
-2. **Scale lifts everything.** The xxlarge checkpoint improves all
-   three subsets, reaching **90.78% on LSAT-LR zero-shot** — without
-   ever seeing an AGIEval example.
-3. **LSAT-AR stays near chance (20–26%)** for all checkpoints,
-   consistent with the AR-LSAT literature — analytical-reasoning
-   "logic games" require constraint solving that contrastive
-   fine-tuning does not teach.
+Side thread (not in the headline path): a GRPO RL proof-of-concept
+using the AMR verifier as reward signal — Qwen2.5-3B + LoRA reaches
+reward 0.94 in 13 min ([`GRPO_3B_RESULTS.md`](GRPO_3B_RESULTS.md));
+plumbing it into the corpus is future work.
 
-*Caveat:* ReClor itself is built from LSAT/GMAT questions, so some
-overlap between ReClor train and AGIEval LSAT-LR items is possible;
-treat LSAT-LR transfer as an upper bound.
-
-### Diversity quantification across the 5-LLM ablation
-
-n-gram diversity and near-duplicate rate, measured on the positive
-sentence2 column of each corpus (5 LLM paraphrase variants + Stock
-T5 baseline + PolarityFix). Higher distinct-N = more surface
-variety; lower near-dup-rate = less redundancy.
-
-| Corpus | distinct-1 | distinct-3 | near-dup ≥0.7 | avg len (words) |
-|---|---|---|---|---|
-| `v5` Stock T5 | 0.0086 | 0.3653 | 0.20% | 8.21 |
-| `v6` PolarityFix | 0.0064 | 0.3274 | 0.60% | 8.43 |
-| `v13_llama` Llama-3.1 8B | 0.0122 | 0.2939 | 0.40% | 9.23 |
-| `v13_qwen3` (CONTAMINATED) | 0.0042 | 0.0708 | 58.20% | **34.11 ⚠️** |
-| `v13_gemma4_4b` Gemma 4 E4B | 0.0069 | 0.1874 | 1.80% | 9.43 |
-| `v13_gemma4_31b` Gemma 4 31B | 0.0063 | 0.1701 | 2.20% | 9.35 |
-| `v13_llama70` Llama-3.3 70B | 0.0075 | 0.1838 | 1.40% | 9.86 |
-
-JSON: [`diversity_5llm.json`](diversity_5llm.json).
-
-**Diagnostic value.** The contaminated `v13_qwen3` row is a clear
-outlier: 34-word sentences (4× others) and 58.2% near-dup rate (40×
-others). The diversity metric *flagged the contamination before*
-downstream evaluation — useful future-work hint: include this check
-as a corpus sanity gate.
-
-For the cleaner LLMs, distinct-3 ranges 0.17–0.29, all *below* the
-v5/v6 baselines (0.33–0.37). The LLM paraphrases, even uncorrupted,
-are still less surface-diverse than the AMR-rule + T5 outputs.
-This is consistent with the diversity-vs-polarity finding: cleaner
-paraphrase = less surface variation = better ReClor entailment +
-worse LogiQA multi-step reasoning.
-
-### Diversity root cause + mitigation summary
-
-| Document | What it covers | Link |
-|---|---|---|
-| Root-cause analysis | n-gram diversity drop, near-duplicate rise; LogiQA reverse explained | [`DIVERSITY_ROOT_CAUSE.md`](DIVERSITY_ROOT_CAUSE.md) |
-| Mitigation summary | Unified table across all `v5`–`v14` attempts | [`DIVERSITY_FINAL.md`](DIVERSITY_FINAL.md) |
-
-### Held-out generalization (PARARULE-Plus Depth5)
-
-| Method | Pass rate (60 sentences, 143 gen-tested items) | Status |
-|---|---|---|
-| Stock T5 | 70.6% | ✅ |
-| **v4 T5 + De Morgan rule fix** | **73.4%** | ✅ +2.8 pp |
-
-Details: [`HELDOUT_PARARULE.md`](HELDOUT_PARARULE.md).
-
-### DeBERTa-v2-xxlarge robustness (matched recipe)
-
-| Backbone | Contrastive eval | ReClor best | ReClor final | Status |
-|---|---|---|---|---|
-| `v5` xxlarge matched | 99.21% | 45.2% @ step 100 | 24.4% (collapsed) | ✅ |
-| `v6` xxlarge matched | 98.79% | **64.8%** @ step 480 | 64.8% (stable) | ✅ |
-| **`v13_qwen3_clean` xxlarge** (NEW) | **98.61%** | **79.8%** @ step 1400 | 79.8% (stable through end of training) | ✅ **+15.0 pp over `v6` xxlarge · beats paper's 78.8%** |
-| paper `v5` xxlarge (mismatched recipe) | — | 78.8% | — | reference only |
-
-**xxlarge scaling result (final).** Switching from `v6` (v4 T5
-paraphrase) to `v13_qwen3_clean` (Qwen3 8B paraphrase) at the
-DeBERTa-v2-xxlarge backbone yields **79.8% ReClor dev** — **+15.0 pp**
-over our matched-recipe `v6` xxlarge run and **+1.0 pp above the
-published paper xxlarge number (78.8%)**. Training was stable through
-all 10 epochs (no collapse), unlike the `v5` xxlarge run.
-
-**LogiQA at xxlarge: the trade-off nearly closes.** The same backbone
-reaches **41.2% dev / 41.01% test** on LogiQA — within 1.2 pp of the
-overall LogiQA test best (`v6` at DeBERTa-large, 42.24%), while the
-same data at DeBERTa-large scale managed only 33.4% test. **Scaling
-the downstream model from 400M to 1.5B recovers most of the surface
-diversity loss** — the larger model appears less dependent on surface
-variety in the contrastive corpus. This reframes the
-diversity-vs-polarity trade-off as primarily a *small-model*
-phenomenon, which is itself a new data point for the paper.
-
-Details: [`V_XXLARGE_DELTA.md`](V_XXLARGE_DELTA.md) ·
-[`V_XXLARGE_PROGRESS.md`](V_XXLARGE_PROGRESS.md).
-
-### RL POC (GRPO + AMR-verifier reward) — separate thread
-
-This thread is **not** plumbed into the downstream backbone; the
-downstream win comes from `v13_llama`, not RL.
-
-| Run | Model | Adapter | Reward trajectory | Status |
-|---|---|---|---|---|
-| GRPO Qwen2.5-0.5B | full | none | 43.75% → 62.50% (113 s) | ✅ POC #1 |
-| GRPO Qwen2.5-3B + LoRA | LoRA r=16 | yes | **37.5% → 93.75%** (13 min) | ✅ POC #2 |
-| Plumb RL generator into `v6` corpus | — | — | — | ⏳ un-run |
-
-```mermaid
-flowchart LR
-    G["Generator"] -->|sample| V["AMR verifier"]
-    V -->|reward| G
-
-    classDef poc fill:#e8f5e9,stroke:#2e7d32,stroke-width:2.5px,font-size:18px
-    class G,V poc
-```
-
----
-
-## Why LogiQA goes down — the interesting science
-
-Our cleaner generator produces **less diverse surface text**: ~28%
-fewer unique unigrams, ~57% more near-duplicates, positives are more
-lexically similar to their anchors. ReClor (single-step entailment)
-likes cleaner pairs. LogiQA (multi-step deductive reasoning) needs
-surface variety to generalize across phrasings of the same logical
-step.
-
-**Polarity-cleaning and surface diversity are structurally coupled in
-this seq2seq generator** — the cleaner the decoder, the tighter the
-beam, the less surface variation. You can't decouple them at the
-dataset level.
-
-| Metric (positive sentence2) | Baseline (`v5`) | PolarityFix (`v6`) |
-|---|---|---|
-| Distinct-1 unigrams | 0.0040 | 0.0029 (−28%) |
-| Distinct-3 trigrams | 0.2180 | 0.1803 (−17%) |
-| Near-dup rate (Jaccard ≥ 0.7) | 6.9% | 10.9% (+57%) |
-
-Five corpus-level mitigations (`v8`, `v9`, `v10`, `v11`, `v12`, `v14`)
-**all fail** to recover both edges — the trade-off is structurally
-coupled.
-
-The **LLM-Paraphrase family (5 LLMs)** improves over `v6` on ReClor
-for every variant, because it replaces the bottleneck — the v4 T5
-decoder — instead of trying to patch around it. But all 5 LLMs hurt
-LogiQA. The full table:
-
-| LLM | Size | ReClor dev (+ vs v6) | LogiQA test (− vs v6) |
-|---|---|---|---|
-| Llama-3.1 8B (`v13_llama`) | 8B | 64.4 (+0.9) | 37.48 (−4.8) |
-| Qwen3 8B (`v13_qwen3`) | 8B | **67.0** (+3.5) | 32.72 (**−9.5**) |
-| Llama-3.3 70B (`v13_llama70`) | 70B (4-bit) | 66.6 (+3.1) | 33.64 (−8.6) |
-| Gemma 4 E4B (`v13_gemma4_4b`) | 4B MoE | 65.0 (+1.5) | **37.94** (−4.3) |
-| Gemma 4 31B (`v13_gemma4_31b`) | 31B (4-bit) | 64.4 (+0.9) | 35.64 (−6.6) |
-
-Three robust findings across LLM family + size:
-
-1. **All 5 LLMs improve ReClor over `v6`** (+0.9 to +3.5 pp). The
-   generator-replacement strategy is consistently positive on ReClor.
-2. **All 5 LLMs hurt LogiQA test** (−4.3 to −9.5 pp vs `v6`). No LLM
-   tried — including the 70B model — recovers `v6`'s LogiQA edge. The
-   diversity-vs-polarity trade-off is intrinsic to the
-   polarity-cleaned-paraphrase recipe, not specific to T5.
-3. **Bigger ≠ better.** Within the Gemma family, **E4B (4B MoE) beats
-   31B on both ReClor (65.0 vs 64.4) and LogiQA (37.94 vs 35.64)**.
-   Within the Llama family, the 70B model is on par with the 8B on
-   ReClor (+0.6 pp vs Llama 8B) but loses on LogiQA test (33.64 vs
-   37.48). **The strongest LLM on ReClor (Qwen3 8B) is the weakest on
-   LogiQA.**
-
-**Headline takeaway**: the optimal LLM is task-dependent and not
-size-dependent. The ReClor optimum (Qwen3 8B) and LogiQA optimum
-(Gemma 4 E4B among LLMs, but still below `v6`) are different LLMs.
-Scaling to 70B does not break the trade-off — it just makes it
-slightly less severe than Qwen3's collapse.
-
----
-
-## Bottom line
-
-- **ReClor**: dev accuracy **67.0%** with `v13_qwen3` (Qwen3 8B
-  paraphrase, +3.5 pp over v6 baseline). Test accuracy unavailable —
-  EvalAI leaderboard closed 2026-01-16; predictions for all 5 LLM
-  backbones archived in [`submissions/`](https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning/tree/main/submissions).
-- **LogiQA**: test accuracy **42.24%** with `v6` PolarityFix; all 5
-  LLM paraphrase backbones tested (range 4B – 70B) land below `v6`
-  on LogiQA test.
-- **The diversity-vs-polarity trade-off is universal across LLM
-  family and scale.** Five dataset-level mitigations (`v8`–`v12`,
-  `v14`) failed to recover both edges; five LLM-paraphrase backbones
-  also fail. **Generator replacement helps ReClor (every LLM tested
-  beat v6) but cannot break the LogiQA trade-off.** This is a
-  structural property of polarity-cleaned paraphrase, not a quirk of
-  any one model.
-- **Bigger LLM ≠ better data**: scaling Gemma from 4B to 31B made
-  both ReClor and LogiQA worse; scaling Llama 8B to 70B improved
-  ReClor by +2.2 pp but cost LogiQA −3.8 pp test. LLM choice is a
-  hyperparameter to tune per benchmark.
-- **Leaderboard infrastructure context**: hidden-test MCQA
-  leaderboards (ReClor on EvalAI, AI2's ARC/OBQA/CSQA/HellaSwag
-  portal) have all gone offline or closed during 2024-2026; the
-  community has shifted to public-label evaluation with
-  lm-evaluation-harness. We follow that convention: LogiQA test on
-  local labels, ReClor dev as the primary number with test
-  predictions archived.
-
----
-
-## Quick reading order
-
-1. [T5 fine-tune recovery (`v1`→`v4`)](T5_FT_RECOVERY.md) — how
-   polarity preservation got built up.
-2. [De Morgan rule fix](RULEFIX_DEMORGAN.md) — closing the
-   conjunctive-antecedent failure mode.
-3. [`v6` contrastive pretrain](V6_CONTRASTIVE_PRETRAIN.md) — DeBERTa-large
-   backbone + cross-eval matrix.
-4. [`v6` ReClor multi-seed](V6_RECLOR_MULTISEED.md) — the headline win
-   (+0.6 pp seed-robust).
-5. [`v6` LogiQA multi-seed](V6_LOGIQA_MULTISEED.md) — the honest
-   reverse (−2.0 pp seed-robust).
-6. [Diversity root cause](DIVERSITY_ROOT_CAUSE.md) — why LogiQA
-   reverses.
-7. [Diversity final summary](DIVERSITY_FINAL.md) — unified `v5`..`v14`
-   mitigation table.
-8. [LeRC results](V14_LERC_RESULTS.md) — proposed novel algorithm.
-9. [xxlarge delta](V_XXLARGE_DELTA.md) — paper-headline scale
-   robustness check.
-
----
-
-## Figures
+Figures:
 
 ![v1→v4 T5 fine-tune trajectory](figures/fig1_t5_trajectory.png)
-*Self-check pass rate on the 15-failure subset and the full
-49-sentence pilot, across `v1`→`v4` fine-tunes. Each version adds a
-small targeted gold dataset; `v4` has the anchor-gold patch that
-closes all `v3` regressions vs stock.*
 
 ![v5/v6 contrastive cross-eval](figures/fig2_v6_cross_eval.png)
-*Baseline-trained DeBERTa loses 15.5 pp out-of-distribution on
-PolarityFix's val; PolarityFix-trained loses only 3.9 pp on Baseline's
-val. PolarityFix is the more robust classifier.*
 
 ![ReClor dev_acc trajectory](figures/fig3_reclor_trajectory.png)
-*PolarityFix ReClor leads at every evaluation step (single seed shown;
-multi-seed mean still +0.6 pp).*
 
 ![Held-out PARARULE by-rule](figures/fig4_heldout_pararule.png)
-*60-sentence PARARULE-Plus Depth5 shard (held out from v4 T5
-training). v4 wins on double_negation / contraposition / modal-strength
-but loses on commutative / implication.*
 
 ---
 
-## Rule gallery — 14 logical-equivalence rules
+## Appendix B — Rule gallery: 14 logical-equivalence rules
 
 The original ACL Findings 2024 paper implemented 4 rules; this
 extension adds 10 more. Each rule is a structural transformation on
