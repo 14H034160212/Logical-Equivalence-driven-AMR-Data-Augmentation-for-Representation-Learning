@@ -101,6 +101,20 @@ controlled testbed because logical fidelity is symbolically checkable.
 
 ## 3 · Findings
 
+**Corpus naming convention** (used in every table below): each
+training corpus is named after how it was generated —
+
+| Name | Meaning |
+|---|---|
+| `Stock-T5` | base paper's corpus: rules + unmodified T5 renderer |
+| `Fidelity-T5` | same rules, T5 fine-tuned to stop dropping negations |
+| `Sampled-T5 (+filter)` | temperature-sampled T5, optionally with a fidelity filter |
+| `Para-⟨LLM⟩` | `Fidelity-T5` positives re-paraphrased by the named LLM (e.g. `Para-Qwen-8B`) |
+| `LeRC` | our rule-composition algebra ([§5](#5--proposed-algorithm--lerc)) |
+
+(Internal artifact IDs like `v6` map to these names in
+[Appendix A](#appendix-a--full-experiment-log).)
+
 ### Finding 1 — Richer rules + a faithful generator work (RQ1 ✅)
 
 We extended the rule library from 4 to **14 logical-equivalence
@@ -117,7 +131,7 @@ fine-tuned the AMR-to-text generator on its own failure cases.
 | Contraposition pilot | 8/15 | **15/15** |
 | Held-out PARARULE-Plus Depth5 | 70.6% | **73.4%** |
 
-The fidelity-improved generator also beats the stock one downstream on
+The resulting `Fidelity-T5` corpus also beats `Stock-T5` downstream on
 ReClor: **63.5% vs 62.9%** (mean of 2 seeds, DeBERTa-large), and wins
 LogiQA *test* 42.24% vs 36.56%.
 
@@ -132,33 +146,33 @@ variety to generalize across phrasings.
 
 We then tried to break the trade-off **12 ways across three
 families**. Scores are ReClor dev / LogiQA test on DeBERTa-large
-(multi-seed means where available; baseline = fidelity-cleaned
-generator at 63.5 / 42.24):
+(multi-seed means where available; baseline = `Fidelity-T5`
+at 63.5 / 42.24):
 
-| Family | Mitigation | ReClor dev | LogiQA test | Verdict |
+| Family | Corpus | ReClor dev | LogiQA test | Verdict |
 |---|---|---|---|---|
-| *Dataset recombination* | Re-add legacy double-negation rows | 63.0 | 36.41 | ❌ |
-| | Mix stock + cleaned corpora | 62.4 | 36.41 | ❌ |
-| | Temperature sampling (no filter) | 59.6 | 27.19 | ❌ collapses |
-| | Sampling + polarity-parity filter | 59.8 | 30.11 | ❌ |
-| | Sampling + AMR-structure-F1 filter | 60.8 | 35.33 | ❌ |
-| *Symbolic composition* | **LeRC** rule-composition algebra (ours, [§5](#5--proposed-algorithm--lerc)) | 61.2 | 35.48 | ❌ at dataset layer |
-| | LeRC + LLM paraphrase combined | 62.8 | 34.87 | ❌ redundant |
-| *Generator replacement (LLM paraphrase)* | Llama-3.1 8B | 64.4 | 37.48 | 🟡 ReClor +0.9 |
-| | **Qwen3 8B** (thinking disabled) | **65.1** | 33.4 | 🟡 best ReClor, worst LogiQA |
-| | Llama-3.3 70B (4-bit) | 64.7 | 33.1 | 🟡 |
-| | Gemma 4 E4B (4B MoE) | 65.0 | **37.94** | 🟡 best LLM on LogiQA |
-| | Gemma 4 31B (4-bit) | 64.4 | 35.64 | 🟡 worse than its 4B sibling |
+| *Dataset recombination* | `Fidelity-T5 + LegacyDNeg` (re-add old double-negation rows) | 63.0 | 36.41 | ❌ |
+| | `Mix(Stock, Fidelity)` | 62.4 | 36.41 | ❌ |
+| | `Sampled-T5` (no filter) | 59.6 | 27.19 | ❌ collapses |
+| | `Sampled-T5 + PolarityFilter` | 59.8 | 30.11 | ❌ |
+| | `Sampled-T5 + AMRFilter` (struct-F1) | 60.8 | 35.33 | ❌ |
+| *Symbolic composition* | **`LeRC`** (ours, [§5](#5--proposed-algorithm--lerc)) | 61.2 | 35.48 | ❌ at dataset layer |
+| | `LeRC + Para-Qwen` | 62.8 | 34.87 | ❌ redundant |
+| *Generator replacement* | `Para-Llama-8B` | 64.4 | 37.48 | 🟡 ReClor +0.9 |
+| | **`Para-Qwen-8B`** (thinking disabled) | **65.1** | 33.4 | 🟡 best ReClor, worst LogiQA |
+| | `Para-Llama-70B` (4-bit) | 64.7 | 33.1 | 🟡 |
+| | `Para-Gemma-4B` (E4B MoE) | 65.0 | **37.94** | 🟡 best LLM on LogiQA |
+| | `Para-Gemma-31B` (4-bit) | 64.4 | 35.64 | 🟡 worse than its 4B sibling |
 
 Three robust observations:
 
 1. **Every LLM paraphrase improves ReClor** (+0.9 to +1.6 pp) — the
    generator, not the rules, was the ReClor bottleneck.
-2. **Nothing recovers LogiQA at 400M.** All 12 attempts stay below the
-   fidelity-cleaned baseline's 42.24% test accuracy.
-3. **Bigger LLM ≠ better data.** Gemma 4B beats Gemma 31B on both
-   tasks; Qwen3 8B matches Llama 70B on ReClor. The ReClor-best LLM
-   (Qwen3) is the LogiQA-worst — no universal winner.
+2. **Nothing recovers LogiQA at 400M.** All 12 attempts stay below
+   `Fidelity-T5`'s 42.24% test accuracy.
+3. **Bigger LLM ≠ better data.** `Para-Gemma-4B` beats `Para-Gemma-31B`
+   on both tasks; `Para-Qwen-8B` matches `Para-Llama-70B` on ReClor.
+   The ReClor-best LLM (Qwen) is the LogiQA-worst — no universal winner.
 
 ### Finding 3 — Scale dissolves the trade-off (RQ3 ✅)
 
@@ -167,12 +181,12 @@ DeBERTa-v2-xxlarge (1.5B):
 
 | Corpus → backbone | ReClor dev | LogiQA test |
 |---|---|---|
-| Best LLM corpus → 400M | 65.1 | 33.4 |
-| Best LLM corpus → **1.5B** | **79.8** ⭐ | **41.01** |
-| (fidelity-cleaned corpus → 1.5B, matched recipe) | 64.8 | — |
+| `Para-Qwen-8B` → 400M | 65.1 | 33.4 |
+| `Para-Qwen-8B` → **1.5B** | **79.8** ⭐ | **41.01** |
+| (`Fidelity-T5` → 1.5B, matched recipe) | 64.8 | — |
 | (published paper xxlarge, reference) | 78.8 | — |
 
-At 1.5B the LLM-paraphrase corpus delivers **+15.0 pp on ReClor over
+At 1.5B `Para-Qwen-8B` delivers **+15.0 pp on ReClor over
 the matched-recipe baseline, beats the published paper number**
 (79.8 vs 78.8), *and* nearly closes the LogiQA gap (41.01 vs 42.24
 best). **The diversity tax is paid by small consumer models; a larger
@@ -184,9 +198,9 @@ Zero-shot external transfer confirms the pattern (AGIEval LSAT,
 
 | Checkpoint | LSAT-AR | LSAT-LR (all) | LSAT-RC | Macro |
 |---|---|---|---|---|
-| Fidelity-cleaned corpus, 400M | 20.43 | 70.78 | 40.15 | 43.79 |
-| Best LLM corpus, 400M | 20.87 | 78.04 | 32.71 | 43.87 |
-| Best LLM corpus, **1.5B** | 25.65 | 90.78 | 48.33 | **54.92** |
+| `Fidelity-T5`, 400M | 20.43 | 70.78 | 40.15 | 43.79 |
+| `Para-Qwen-8B`, 400M | 20.87 | 78.04 | 32.71 | 43.87 |
+| `Para-Qwen-8B`, **1.5B** | 25.65 | 90.78 | 48.33 | **54.92** |
 
 **Overlap audit (important).** ReClor is built from LSAT/GMAT
 questions, so we quantified the overlap: **73.7% of AGIEval LSAT-LR
@@ -197,9 +211,9 @@ are therefore the **clean-subset** ones (134 truly unseen items):
 
 | Checkpoint | Overlap subset (376) | **Clean subset (134)** |
 |---|---|---|
-| Fidelity-cleaned corpus, 400M | 76.06 | **55.97** |
-| Best LLM corpus, 400M | 88.83 | **47.76** |
-| Best LLM corpus, **1.5B** | 94.95 | **79.10** ⭐ |
+| `Fidelity-T5`, 400M | 76.06 | **55.97** |
+| `Para-Qwen-8B`, 400M | 88.83 | **47.76** |
+| `Para-Qwen-8B`, **1.5B** | 94.95 | **79.10** ⭐ |
 
 Three corrections this audit forces:
 
@@ -207,9 +221,9 @@ Three corrections this audit forces:
    overlap; the genuine zero-shot number is **79.1%** — still strong,
    and consistent with the model's 79.8% ReClor dev.
 2. **At 400M, the apparent LLM-corpus win on LSAT-LR was entirely
-   memorization**: on overlap items the LLM corpus scores 88.8 vs
+   memorization**: on overlap items `Para-Qwen-8B` scores 88.8 vs
    76.1 (better recall of ReClor training questions), but on clean
-   items it *loses* to the fidelity-cleaned corpus 47.8 vs 56.0 —
+   items it *loses* to `Fidelity-T5` 47.8 vs 56.0 —
    the same fidelity–diversity asymmetry as LogiQA, now visible on
    truly unseen data.
 3. The scale effect survives the audit: clean-subset accuracy jumps
@@ -254,12 +268,12 @@ generators.
 
 | Benchmark | Best configuration | Score | Notes |
 |---|---|---|---|
-| **ReClor dev** | Qwen3-paraphrase corpus → DeBERTa-v2-xxlarge | **79.8%** ⭐ | beats the published xxlarge number (78.8) |
-| ReClor dev (400M, multi-seed) | Qwen3-paraphrase corpus → DeBERTa-large | 65.1% | mean of seeds 21/42 |
-| **LogiQA test** | Fidelity-cleaned T5 corpus → DeBERTa-large | **42.24%** | local labels (651 examples) |
-| LogiQA test (1.5B) | Qwen3-paraphrase corpus → DeBERTa-v2-xxlarge | 41.01% | trade-off nearly closed at scale |
-| **AGIEval LSAT-LR** (zero-shot, clean subset) | Qwen3-paraphrase corpus → DeBERTa-v2-xxlarge | **79.10%** | 134 items verified non-overlapping with ReClor; full-set 90.78% is overlap-inflated |
-| PARARULE-Plus Depth5 (held-out) | Fidelity-cleaned generator + rule fix | 73.4% | generator pass rate |
+| **ReClor dev** | `Para-Qwen-8B` → DeBERTa-v2-xxlarge | **79.8%** ⭐ | beats the published xxlarge number (78.8) |
+| ReClor dev (400M, multi-seed) | `Para-Qwen-8B` → DeBERTa-large | 65.1% | mean of seeds 21/42 |
+| **LogiQA test** | `Fidelity-T5` → DeBERTa-large | **42.24%** | local labels (651 examples) |
+| LogiQA test (1.5B) | `Para-Qwen-8B` → DeBERTa-v2-xxlarge | 41.01% | trade-off nearly closed at scale |
+| **AGIEval LSAT-LR** (zero-shot, clean subset) | `Para-Qwen-8B` → DeBERTa-v2-xxlarge | **79.10%** | 134 items verified non-overlapping with ReClor; full-set 90.78% is overlap-inflated |
+| PARARULE-Plus Depth5 (held-out) | Fidelity-tuned generator + rule fix | 73.4% | generator pass rate |
 
 **Why ReClor reports dev only.** The official ReClor test leaderboard
 (EvalAI challenge 503) **closed permanently on 2026-01-16**; AI2's
@@ -306,39 +320,40 @@ real unlock was consumer-model scale. Details:
 
 ---
 
-## Appendix A — full experiment log (version by version)
+## Appendix A — full experiment log
 
-The main text uses descriptive names; internal artifacts (checkpoints,
-W&B runs, JSON aggregates) use version IDs. Mapping:
+The page uses the corpus names below; checkpoints, W&B runs, and JSON
+aggregates on disk use the internal IDs (second column).
 
-| ID | Descriptive name | ReClor dev | LogiQA test | Links |
+| Corpus name | Internal ID | ReClor dev | LogiQA test | Links |
 |---|---|---|---|---|
-| `v5` | Stock-T5 baseline | 62.8 / 63.0 — mean 62.9 | 36.56 | [`v6_reclor_multiseed.json`](v6_reclor_multiseed.json) |
-| `v6` | Fidelity-cleaned T5 (PolarityFix) | 63.6 / 63.4 — mean 63.5 | **42.24** | [`V6_RECLOR_MULTISEED.md`](V6_RECLOR_MULTISEED.md) · [`V6_LOGIQA_MULTISEED.md`](V6_LOGIQA_MULTISEED.md) |
-| `v7` | v6 + De Morgan rule fix | 63.6 | 42.24 | [`V7_DOWNSTREAM.md`](V7_DOWNSTREAM.md) |
-| `v8` | Re-add legacy double-negation | 63.0 | 36.41 | [`V8_DOUBLENEG_REINTRO.md`](V8_DOUBLENEG_REINTRO.md) |
-| `v9` | Temperature-sampled T5 | 59.6 | 27.19 | [`V9_SAMPLED_NEGATIVE.md`](V9_SAMPLED_NEGATIVE.md) |
-| `v10` | Mix(v5 + v6) | 62.4 | 36.41 | [`V10_MIX_NEGATIVE.md`](V10_MIX_NEGATIVE.md) |
-| `v11` | Sampled + polarity filter | 59.8 | 30.11 | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) |
-| `v12` | Sampled + AMR-F1 filter | 60.8 | 35.33 | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) |
-| `v13_llama` | LLM paraphrase: Llama-3.1 8B | 64.4 | 37.48 | [W&B](https://wandb.ai/qbao775/amr-lda-extensions/runs/1ydkhzku) |
-| `v13_qwen3` | ⚠️ contaminated Qwen3 (do not cite) | (67.0) | (32.72) | see Finding 4 |
-| `v13_qwen3_clean` | LLM paraphrase: Qwen3 8B, thinking off | 66.2 / 64.0 — mean **65.1** | 35.02 / 31.80 — mean 33.4 | W&B `v13_qwen3_clean_*` |
-| `v13_llama70` | LLM paraphrase: Llama-3.3 70B (4-bit) | 66.6 / 62.8 — mean 64.7 | 33.64 / 32.57 — mean 33.1 | W&B `v13_llama70_*` |
-| `v13_gemma4_4b` | LLM paraphrase: Gemma 4 E4B | 65.0 | 37.94 | W&B `v13_gemma4_4b_*` |
-| `v13_gemma4_31b` | LLM paraphrase: Gemma 4 31B (4-bit) | 64.4 | 35.64 | W&B `v13_gemma4_31b_*` |
-| `v14` | LeRC rule composition | 61.2 | 35.48 | [`V14_LERC_RESULTS.md`](V14_LERC_RESULTS.md) |
-| `v15` | LeRC + Qwen3 paraphrase | 62.0 / 63.6 — mean 62.8 | 35.94 / 33.79 — mean 34.87 | W&B `v15_*` |
+| `Stock-T5` | `v5` | 62.8 / 63.0 — mean 62.9 | 36.56 | [`v6_reclor_multiseed.json`](v6_reclor_multiseed.json) |
+| `Fidelity-T5` | `v6` | 63.6 / 63.4 — mean 63.5 | **42.24** | [`V6_RECLOR_MULTISEED.md`](V6_RECLOR_MULTISEED.md) · [`V6_LOGIQA_MULTISEED.md`](V6_LOGIQA_MULTISEED.md) |
+| `Fidelity-T5 + RuleFix` | `v7` | 63.6 | 42.24 | [`V7_DOWNSTREAM.md`](V7_DOWNSTREAM.md) |
+| `Fidelity-T5 + LegacyDNeg` | `v8` | 63.0 | 36.41 | [`V8_DOUBLENEG_REINTRO.md`](V8_DOUBLENEG_REINTRO.md) |
+| `Sampled-T5` | `v9` | 59.6 | 27.19 | [`V9_SAMPLED_NEGATIVE.md`](V9_SAMPLED_NEGATIVE.md) |
+| `Mix(Stock, Fidelity)` | `v10` | 62.4 | 36.41 | [`V10_MIX_NEGATIVE.md`](V10_MIX_NEGATIVE.md) |
+| `Sampled-T5 + PolarityFilter` | `v11` | 59.8 | 30.11 | [`V11_VERIFIED_NEGATIVE.md`](V11_VERIFIED_NEGATIVE.md) |
+| `Sampled-T5 + AMRFilter` | `v12` | 60.8 | 35.33 | [`V12_V1VERIFIER.md`](V12_V1VERIFIER.md) |
+| `Para-Llama-8B` | `v13_llama` | 64.4 | 37.48 | [W&B](https://wandb.ai/qbao775/amr-lda-extensions/runs/1ydkhzku) |
+| ⚠️ `Para-Qwen-8B` contaminated — do not cite | `v13_qwen3` | (67.0) | (32.72) | see Finding 4 |
+| `Para-Qwen-8B` | `v13_qwen3_clean` | 66.2 / 64.0 — mean **65.1** | 35.02 / 31.80 — mean 33.4 | W&B `v13_qwen3_clean_*` |
+| `Para-Llama-70B` (4-bit) | `v13_llama70` | 66.6 / 62.8 — mean 64.7 | 33.64 / 32.57 — mean 33.1 | W&B `v13_llama70_*` |
+| `Para-Gemma-4B` (E4B MoE) | `v13_gemma4_4b` | 65.0 | 37.94 | W&B `v13_gemma4_4b_*` |
+| `Para-Gemma-31B` (4-bit) | `v13_gemma4_31b` | 64.4 | 35.64 | W&B `v13_gemma4_31b_*` |
+| `LeRC` | `v14` | 61.2 | 35.48 | [`V14_LERC_RESULTS.md`](V14_LERC_RESULTS.md) |
+| `LeRC + Para-Qwen` | `v15` | 62.0 / 63.6 — mean 62.8 | 35.94 / 33.79 — mean 34.87 | W&B `v15_*` |
 
-Generator fine-tune iterations (`v1`–`v4` are *generator* versions,
-distinct from corpus versions above): v1 389 silver pairs → 52.2%
+Generator fine-tune iterations (internal IDs `v1`–`v4` are *generator*
+versions, distinct from corpus IDs above): v1 389 silver pairs → 52.2%
 subset pass; v2 +curated golds → 56.5%; v3 +synthetic golds → 69.6%;
 v4 +anchor golds → 73.9% subset / 78.9% full; +De Morgan rule fix →
-82.2%. Reports: [`T5_FT_RECOVERY.md`](T5_FT_RECOVERY.md) ·
+82.2%. The `Fidelity-T5` corpus is rendered by the v4 generator.
+Reports: [`T5_FT_RECOVERY.md`](T5_FT_RECOVERY.md) ·
 [`RULEFIX_DEMORGAN.md`](RULEFIX_DEMORGAN.md).
 
-xxlarge runs: `v5` collapsed (24.4 final); `v6` stable 64.8;
-`v13_qwen3_clean` **79.8** / LogiQA test 41.01.
+xxlarge runs: `Stock-T5` collapsed (24.4 final); `Fidelity-T5` stable
+64.8; `Para-Qwen-8B` **79.8** / LogiQA test 41.01.
 [`V_XXLARGE_DELTA.md`](V_XXLARGE_DELTA.md).
 
 AGIEval: [`agieval_lsat_large_v6.json`](agieval_lsat_large_v6.json) ·
