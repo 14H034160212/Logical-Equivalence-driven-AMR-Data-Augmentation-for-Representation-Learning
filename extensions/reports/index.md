@@ -182,18 +182,44 @@ trade-off as a small-model phenomenon.
 Zero-shot external transfer confirms the pattern (AGIEval LSAT,
 5-option, no LSAT training):
 
-| Checkpoint | LSAT-AR | LSAT-LR | LSAT-RC | Macro |
+| Checkpoint | LSAT-AR | LSAT-LR (all) | LSAT-RC | Macro |
 |---|---|---|---|---|
 | Fidelity-cleaned corpus, 400M | 20.43 | 70.78 | 40.15 | 43.79 |
 | Best LLM corpus, 400M | 20.87 | 78.04 | 32.71 | 43.87 |
-| Best LLM corpus, **1.5B** | 25.65 | **90.78** ⭐ | 48.33 | **54.92** |
+| Best LLM corpus, **1.5B** | 25.65 | 90.78 | 48.33 | **54.92** |
 
-The same asymmetry signature transfers (at 400M: LLM corpus wins
-LSAT-LR, loses LSAT-RC), and scale again lifts everything — **90.78%
-on LSAT-LR zero-shot**. LSAT-AR (constraint-solving "logic games")
-stays near the 20% chance level for all checkpoints, consistent with
-the literature. *Caveat: ReClor is LSAT/GMAT-sourced, so treat LSAT-LR
-transfer as an upper bound.*
+**Overlap audit (important).** ReClor is built from LSAT/GMAT
+questions, so we quantified the overlap: **73.7% of AGIEval LSAT-LR
+items appear in ReClor train+val** (189/510 exact duplicates by
+normalized containment + 187/510 near-duplicates at Jaccard ≥ 0.8).
+LSAT-AR and LSAT-RC have **zero** overlap. The honest LSAT-LR numbers
+are therefore the **clean-subset** ones (134 truly unseen items):
+
+| Checkpoint | Overlap subset (376) | **Clean subset (134)** |
+|---|---|---|
+| Fidelity-cleaned corpus, 400M | 76.06 | **55.97** |
+| Best LLM corpus, 400M | 88.83 | **47.76** |
+| Best LLM corpus, **1.5B** | 94.95 | **79.10** ⭐ |
+
+Three corrections this audit forces:
+
+1. The previously-reported 90.78% was inflated by training-question
+   overlap; the genuine zero-shot number is **79.1%** — still strong,
+   and consistent with the model's 79.8% ReClor dev.
+2. **At 400M, the apparent LLM-corpus win on LSAT-LR was entirely
+   memorization**: on overlap items the LLM corpus scores 88.8 vs
+   76.1 (better recall of ReClor training questions), but on clean
+   items it *loses* to the fidelity-cleaned corpus 47.8 vs 56.0 —
+   the same fidelity–diversity asymmetry as LogiQA, now visible on
+   truly unseen data.
+3. The scale effect survives the audit: clean-subset accuracy jumps
+   47.8 → 79.1 from 400M → 1.5B.
+
+LSAT-AR (constraint-solving "logic games") stays near the 20% chance
+level for all checkpoints, consistent with the literature. Partitioned
+JSONs: [`agieval_lsatlr_partitioned_xxlarge.json`](agieval_lsatlr_partitioned_xxlarge.json) ·
+[`agieval_lsatlr_partitioned_large_qwen3.json`](agieval_lsatlr_partitioned_large_qwen3.json) ·
+[`agieval_lsatlr_partitioned_large_v6.json`](agieval_lsatlr_partitioned_large_v6.json).
 
 ### Finding 4 — Reasoning-LLM corpora need auditing (RQ4 ⚠️)
 
@@ -232,7 +258,7 @@ generators.
 | ReClor dev (400M, multi-seed) | Qwen3-paraphrase corpus → DeBERTa-large | 65.1% | mean of seeds 21/42 |
 | **LogiQA test** | Fidelity-cleaned T5 corpus → DeBERTa-large | **42.24%** | local labels (651 examples) |
 | LogiQA test (1.5B) | Qwen3-paraphrase corpus → DeBERTa-v2-xxlarge | 41.01% | trade-off nearly closed at scale |
-| **AGIEval LSAT-LR** (zero-shot) | Qwen3-paraphrase corpus → DeBERTa-v2-xxlarge | **90.78%** | no LSAT training |
+| **AGIEval LSAT-LR** (zero-shot, clean subset) | Qwen3-paraphrase corpus → DeBERTa-v2-xxlarge | **79.10%** | 134 items verified non-overlapping with ReClor; full-set 90.78% is overlap-inflated |
 | PARARULE-Plus Depth5 (held-out) | Fidelity-cleaned generator + rule fix | 73.4% | generator pass rate |
 
 **Why ReClor reports dev only.** The official ReClor test leaderboard
