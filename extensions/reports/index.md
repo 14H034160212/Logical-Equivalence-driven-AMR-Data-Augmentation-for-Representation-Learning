@@ -7,13 +7,43 @@ for Logical Reasoning*.
 - **Code repo:** <https://github.com/14H034160212/Logical-Equivalence-driven-AMR-Data-Augmentation-for-Representation-Learning>
 - **Base paper:** <https://aclanthology.org/2024.findings-acl.353/>
 
+---
+
+## Key takeaways (jump to evidence)
+
+1. **A faithful AMR-to-text generator + richer rule set improves
+   logical-reasoning data.** Generator fidelity 68.9% → 82.2%; ReClor
+   63.5% vs 62.9% baseline. → [Finding 1](#finding-1)
+2. **There is a structural fidelity–diversity trade-off that no
+   data-side fix removes at small model scale.** 12 mitigations
+   (dataset recombination, symbolic composition, 5 LLM paraphrasers up
+   to 70B) all improve ReClor but none recovers LogiQA. → [Finding 2](#finding-2)
+3. **Scaling the consumer model dissolves the trade-off.** At 1.5B the
+   best corpus reaches **ReClor 79.8%** (beats the published number)
+   *and* nearly closes LogiQA — the diversity tax is paid by small
+   models, not large ones. → [Finding 3](#finding-3)
+4. **Reasoning-LLM paraphrasers silently contaminate corpora; a cheap
+   diversity audit catches it.** Qwen3's `<think>` traces leaked
+   reference answers (+2 pp inflation), flagged by a length/near-dup
+   outlier before training. → [Finding 4](#finding-4)
+5. **We propose LeRC**, a logic-layer rule-composition algebra for
+   diversity-with-fidelity; it is the most learnable corpus but
+   confirms the trade-off ceiling is at the model, not the data.
+   → [§5 LeRC](#lerc)
+
+**Single best result:** ReClor dev **79.8%** (`Para-Qwen-8B` →
+DeBERTa-v2-xxlarge), LogiQA test **42.24%** (`Fidelity-T5` →
+DeBERTa-large). → [Headline numbers](#headline-numbers)
+
+---
+
 **How this page is organized.** §1 Background explains the base
 method. §2 states the research questions and defines the two key
 terms. §3 presents the four findings, one per research question —
 this is the core of the page. §4 collects the headline numbers in one
 table. §5 describes LeRC, the algorithm we propose. The appendices
-hold the full version-by-version experiment log and the illustrated
-gallery of all 14 logic rules.
+hold the full experiment log and the illustrated gallery of all 14
+logic rules.
 
 ---
 
@@ -115,7 +145,7 @@ training corpus is named after how it was generated —
 (Internal artifact IDs like `v6` map to these names in
 [Appendix A](#appendix-a--full-experiment-log).)
 
-### Finding 1 — Richer rules + a faithful generator work (RQ1 ✅)
+### Finding 1 — Richer rules + a faithful generator work (RQ1 ✅) {#finding-1}
 
 We extended the rule library from 4 to **14 logical-equivalence
 rules** (De Morgan, transitivity, symmetric/asymmetric, predicate
@@ -135,7 +165,7 @@ The resulting `Fidelity-T5` corpus also beats `Stock-T5` downstream on
 ReClor: **63.5% vs 62.9%** (mean of 2 seeds, DeBERTa-large), and wins
 LogiQA *test* 42.24% vs 36.56%.
 
-### Finding 2 — The fidelity–diversity trade-off is structural at small scale (RQ2 🔴)
+### Finding 2 — The fidelity–diversity trade-off is structural at small scale (RQ2 🔴) {#finding-2}
 
 The fidelity win comes at a measured diversity cost: the cleaned
 generator's corpus has **26% fewer distinct unigrams** and a higher
@@ -174,7 +204,7 @@ Three robust observations:
    on both tasks; `Para-Qwen-8B` matches `Para-Llama-70B` on ReClor.
    The ReClor-best LLM (Qwen) is the LogiQA-worst — no universal winner.
 
-### Finding 3 — Scale dissolves the trade-off (RQ3 ✅)
+### Finding 3 — Scale dissolves the trade-off (RQ3 ✅) {#finding-3}
 
 Same corpora, downstream encoder scaled from DeBERTa-large (400M) to
 DeBERTa-v2-xxlarge (1.5B):
@@ -235,7 +265,7 @@ JSONs: [`agieval_lsatlr_partitioned_xxlarge.json`](agieval_lsatlr_partitioned_xx
 [`agieval_lsatlr_partitioned_large_qwen3.json`](agieval_lsatlr_partitioned_large_qwen3.json) ·
 [`agieval_lsatlr_partitioned_large_v6.json`](agieval_lsatlr_partitioned_large_v6.json).
 
-### Finding 4 — Reasoning-LLM corpora need auditing (RQ4 ⚠️)
+### Finding 4 — Reasoning-LLM corpora need auditing (RQ4 ⚠️) {#finding-4}
 
 Our first Qwen3 corpus produced a suspicious ReClor jump (67.0%).
 Investigation: Qwen3's default chat template emits `<think>` reasoning
@@ -264,7 +294,7 @@ generators.
 
 ---
 
-## 4 · Headline numbers
+## 4 · Headline numbers {#headline-numbers}
 
 | Benchmark | Best configuration | Score | Notes |
 |---|---|---|---|
@@ -286,7 +316,7 @@ in case a successor leaderboard opens.
 
 ---
 
-## 5 · Proposed algorithm — LeRC
+## 5 · Proposed algorithm — LeRC {#lerc}
 
 **Logic-Equivalent Rule Composition.** The dataset-level mitigations
 in Finding 2 all source diversity from *stochastic decoding*, which
