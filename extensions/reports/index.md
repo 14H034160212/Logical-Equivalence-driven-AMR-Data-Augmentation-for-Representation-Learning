@@ -11,29 +11,38 @@ for Logical Reasoning*.
 
 ## Key takeaways (jump to evidence)
 
-1. **A faithful AMR-to-text generator + richer rule set improves
-   logical-reasoning data.** Generator fidelity 68.9% → 82.2%; ReClor
-   63.5% vs 62.9% baseline. → [Finding 1](#finding-1)
-2. **There is a structural fidelity–diversity trade-off that no
-   data-side fix removes at small model scale.** 12 mitigations
-   (dataset recombination, symbolic composition, 5 LLM paraphrasers up
-   to 70B) all improve ReClor but none recovers LogiQA. → [Finding 2](#finding-2)
-3. **Scaling the consumer model dissolves the trade-off.** At 1.5B the
-   best corpus reaches **ReClor 79.8%** (beats the published number)
-   *and* nearly closes LogiQA — the diversity tax is paid by small
-   models, not large ones. → [Finding 3](#finding-3)
-4. **Reasoning-LLM paraphrasers silently contaminate corpora; a cheap
-   diversity audit catches it.** Qwen3's `<think>` traces leaked
-   reference answers (+2 pp inflation), flagged by a length/near-dup
-   outlier before training. → [Finding 4](#finding-4)
-5. **We propose LeRC**, a logic-layer rule-composition algebra for
-   diversity-with-fidelity; it is the most learnable corpus but
-   confirms the trade-off ceiling is at the model, not the data.
+We teach a model logical reasoning by feeding it many sentence pairs
+that mean the same thing. This page is about how to *generate* those
+pairs well. Five plain-language findings:
+
+1. **If the sentence generator doesn't make mistakes, the training data
+   gets better.** We fixed the generator so it stops dropping the word
+   "not" (it used to do this 31% of the time, now 18%). Cleaner data →
+   the model scores a bit higher. → [Finding 1](#finding-1)
+2. **But making the generator more careful also makes it more
+   repetitive — and that hurts harder questions.** Careful generators
+   write the same sentence shapes over and over. Simple questions
+   (ReClor) don't mind; harder multi-step questions (LogiQA) need
+   variety and get worse. We tried **12 different fixes** (including 5
+   different big AI models up to 70B) and *none* fixed both at once.
+   → [Finding 2](#finding-2)
+3. **Using a bigger model to learn from the data makes the problem go
+   away.** The small model needed variety; a 4× bigger model doesn't.
+   With the big model our best data scores **79.8%** on ReClor — higher
+   than the original paper — and the harder benchmark recovers too.
+   → [Finding 3](#finding-3)
+4. **Watch out: the newest "thinking" AI models can secretly poison
+   your data.** Qwen3 wrote its hidden reasoning into our data and
+   accidentally copied the answers, faking a 2-point boost. A quick
+   check (are the sentences suspiciously long or repetitive?) caught it.
+   → [Finding 4](#finding-4)
+5. **We propose a new method, LeRC**, that builds variety using logic
+   rules instead of a noisy generator. It produces the cleanest data,
+   but confirms the real fix is a bigger model, not better data.
    → [§5 LeRC](#lerc)
 
-**Single best result:** ReClor dev **79.8%** (`Para-Qwen-8B` →
-DeBERTa-v2-xxlarge), LogiQA test **42.24%** (`Fidelity-T5` →
-DeBERTa-large). → [Headline numbers](#headline-numbers)
+**Best single result:** **79.8%** on ReClor and **42.24%** on LogiQA —
+both beating the original paper's setup. → [Headline numbers](#headline-numbers)
 
 ---
 
